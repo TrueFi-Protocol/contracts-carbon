@@ -1,0 +1,49 @@
+{
+  "optimism_goerli": {
+    "structuredPortfolio": {
+      "txHash": "0xcd70f975fcfe3443ca2262ae3fe281481c404051b5671f6f7ad7d05d563599ce",
+      "address": "0x5beE31AA094Be02138d929DF779E143dff6ef47a",
+      "multisig": false
+    },
+    "trancheVault": {
+      "txHash": "0x08d1b1f524d52649c72b05edd0fe49134bc589d15969e269cc7445c9bc4fbfbb",
+      "address": "0x1D40825226ec2718bf4230d198FB4Ab2Fe474bFd",
+      "multisig": false
+    },
+    "carbon_protocolConfig": {
+      "txHash": "0xd2f59294430a03e67107dde7c37e222c70261c9c78358bfd5588bbd862ab2f93",
+      "address": "0x45936A0Fe0DAAB0D2B748d7eb80143b04b51a246",
+      "multisig": false
+    },
+    "carbon_protocolConfig_proxy": {
+      "txHash": "0x0d2b9bc50071a5071cd83ac1f0548c27fadfd08f814913c1e4eb44da1d4acd69",
+      "address": "0xcd09A42660c0304DB06d69851E2db56b57Cb8Af0",
+      "multisig": false
+    },
+    "structuredPortfolioFactory": {
+      "txHash": "0xebdda317a2007a4bf55bd92e1e2a4d9abe386dc8b102ae3817524cbaf1292404",
+      "address": "0x3Af0e6A21B5E484adEcdA19d18d74c6D467Ae18c",
+      "multisig": false
+    },
+    "carbon_defaultDepositController": {
+      "txHash": "0x142289c7f88e54ead6d6088f762dfc7fc904edb3693607a2dfbfe936ed27a071",
+      "address": "0xF55d6Ff147D5C914579d8457A26a368543b2973A",
+      "multisig": false
+    },
+    "carbon_defaultWithdrawController": {
+      "txHash": "0x8d136bb5c30db09ccb181e5e71115a27ed86dfc42c8ad6c1b7b352296280c71a",
+      "address": "0x7eF0643b44C88B7231A5618E3323A7D2299230ad",
+      "multisig": false
+    },
+    "carbon_defaultTransferController": {
+      "txHash": "0x178cb7e9487eb5a241d6aadcf1a2d03cb72ff3beb4747714207fff2c051e24eb",
+      "address": "0x23dDF02aFB91eAd488f2Bae082A7241ca52cD8cE",
+      "multisig": false
+    },
+    "allowAllLenderVerifier": {
+      "txHash": "0xd17dae4068b2ce48660ca49db4517b09267bfaef61e5197f1bca1d77982a8209",
+      "address": "0x6A762AadA513331d27a4c9870cE6bEF46c54AF7f",
+      "multisig": false
+    }
+  }
+}

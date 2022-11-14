@@ -1,0 +1,19 @@
+{
+  "optimism_kovan": {
+    "structuredPortfolio": {
+      "txHash": "0x9aa3b08f2dd7188362d4000d910ee27c06c20eba1eb014f95f40d45399288de9",
+      "address": "0xAfC4E7F88ADc1d031f0550c6D180fd4E98f5f845",
+      "multisig": false
+    },
+    "trancheVault": {
+      "txHash": "0x0cb2be3d3922d99844a023c89f6ce3e20bd0775a11de08afb752b6382e50cea7",
+      "address": "0x2a9868c521A9D69FeEd05f684ECe02Da28De762c",
+      "multisig": false
+    },
+    "structuredPortfolioFactory": {
+      "txHash": "0x7c02f9039b650b340b251090c34f908117cadcbc4532dfb81a4a0e62d7d35d1d",
+      "address": "0x4B9Af4f5e91482Fd17c57aAff3551c5Fb9533D82",
+      "multisig": false
+    }
+  }
+}

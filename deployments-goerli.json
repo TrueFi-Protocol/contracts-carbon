@@ -1,0 +1,19 @@
+{
+  "goerli": {
+    "structuredPortfolio": {
+      "txHash": "0x5f6b467e21d73609d41474a978acac8e364419deedd24d5abb820c4591ee75e2",
+      "address": "0x76F6b53B67161f23C274fdCfC2C9865a987944af",
+      "multisig": false
+    },
+    "trancheVault": {
+      "txHash": "0x65e0ec03a9f4f1e599ddf854bfb4edff4bc6ff6feae5c98c48d8777f93e4b930",
+      "address": "0xbFea87060fdEc1a56E25ad83a163757d447cA1dd",
+      "multisig": false
+    },
+    "structuredPortfolioFactory": {
+      "txHash": "0x57f5171a8bbb3bd39ec4ef0868133a8a7380b16a4fdf32a8ec338b84027de05b",
+      "address": "0xF75B8D5C048b64FE9aFFbCBd8b126ea9E940888D",
+      "multisig": false
+    }
+  }
+}

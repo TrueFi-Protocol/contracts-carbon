@@ -1,0 +1,10 @@
+{
+  "compilerType": "solcjs",
+  "compilerVersion": "v0.8.16+commit.07a7930e",
+  "compilerOptions": {
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      }
+    }
+}

@@ -1,0 +1,59 @@
+{
+  "ganache": {
+    "structuredPortfolio": {
+      "txHash": "0xcbaae3a5b9434ff2ad49d22886cf551147b641daead99c3cedebd59111651bb6",
+      "address": "0xA193E42526F1FEA8C99AF609dcEabf30C1c29fAA",
+      "multisig": false
+    },
+    "trancheVault": {
+      "txHash": "0x218508c914168d4df81e67d3e34436cb085490075a48ae217b4f0f83ae3e2db2",
+      "address": "0xFDFEF9D10d929cB3905C71400ce6be1990EA0F34",
+      "multisig": false
+    },
+    "carbon_protocolConfig": {
+      "txHash": "0x0c58780e0c681fc5c380e69d2c531fcca70581c0c5684959ef9a2b5cefe9e832",
+      "address": "0xaC8444e7d45c34110B34Ed269AD86248884E78C7",
+      "multisig": false
+    },
+    "carbon_protocolConfig_proxy": {
+      "txHash": "0x9742b4f90ba3ca354c945d3fd6c25d16ec3c789b76d3b8298560497555e15a51",
+      "address": "0x94BA4d5Ebb0e05A50e977FFbF6e1a1Ee3D89299c",
+      "multisig": false
+    },
+    "structuredPortfolioFactory": {
+      "txHash": "0x5a502af106776db7a54c2960534451e96289f13b0c6ae8a563c98285ba9a0de0",
+      "address": "0xFf807885934003A35b1284d7445fc83Fd23417e5",
+      "multisig": false
+    },
+    "carbon_defaultDepositController": {
+      "txHash": "0xc44fa041df87078f438a7e6dd1165370ebbf5974b44ec6700867c8ccfe6cbec0",
+      "address": "0xD756fb6A081CC11e7F513C39399DB296b1DE3036",
+      "multisig": false
+    },
+    "carbon_defaultWithdrawController": {
+      "txHash": "0x29e805dbe7fa99c6d36aefee8ebdc6348e3f9375b58c9f9b499e0df296e3ce49",
+      "address": "0x956dA338C1518a7FB213042b70c60c021aeBd554",
+      "multisig": false
+    },
+    "carbon_defaultTransferController": {
+      "txHash": "0xd63ec32b3043d42d5a89d1a6258bc88df3a035e63dea8b880562296737d52b43",
+      "address": "0xdCCc660F92826649754E357b11bd41C31C0609B9",
+      "multisig": false
+    },
+    "allowAllLenderVerifier": {
+      "txHash": "0x3af28b5b27b3173df24f672e26b676cc6d2e74e7f39fed5c696c60d5b3aa2fab",
+      "address": "0x84e924C5E04438D2c1Df1A981f7E7104952e6de1",
+      "multisig": false
+    },
+    "mockUsdc": {
+      "txHash": "0x8e59ac027a26dc4bf5d6ed907f978bd9436f40e7eda848175455181381b471e3",
+      "address": "0x6454C9d69a4721feBA60e26A367bD4D56196Ee7c",
+      "multisig": false
+    },
+    "fixedInterestOnlyLoans_proxy": {
+      "txHash": "0x94f7c21f807aaded4674c0beae0fc056f5ac6cf85a887eebf1e8224baf1bfe62",
+      "address": "0x4E0597863fA1AA7B6b95a887AD9fEee038815642",
+      "multisig": false
+    }
+  }
+}

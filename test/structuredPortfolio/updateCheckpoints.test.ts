@@ -1,0 +1,118 @@
+import { expect } from 'chai'
+import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
+import { setupFixtureLoader } from 'test/setup'
+import { YEAR } from 'utils/constants'
+import { getTxTimestamp } from 'utils/getTxTimestamp'
+import { timeTravel } from 'utils/timeTravel'
+
+describe('StructuredPortfolio.updateCheckpoint', () => {
+  const loadFixture = setupFixtureLoader()
+
+  it('reverts in capital formation', async () => {
+    const { structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
+    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('SP: Portfolio is not live')
+  })
+
+  it('reverts in Closed status', async () => {
+    const { structuredPortfolio, startAndClosePortfolio } = await loadFixture(structuredPortfolioFixture)
+    await startAndClosePortfolio()
+    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('SP: Portfolio is not live')
+  })
+
+  it('updates checkpoint', async () => {
+    const { protocolConfig, structuredPortfolio, senior, junior, seniorTranche, juniorTranche, equityTranche, parseTokenUnits, totalDeposit } = await loadFixture(structuredPortfolioLiveFixture)
+    const protocolFeeRate = 500
+    await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
+
+    await timeTravel(YEAR)
+
+    const tx = await structuredPortfolio.updateCheckpoints()
+    const txTimestamp = await getTxTimestamp(tx)
+
+    const seniorTargetValue = senior.calculateTargetValue()
+    const juniorTargetValue = junior.calculateTargetValue()
+    const equityTargetValue = totalDeposit.sub(seniorTargetValue).sub(juniorTargetValue)
+
+    const seniorCheckpoint = await seniorTranche.getCheckpoint()
+    const juniorCheckpoint = await juniorTranche.getCheckpoint()
+    const equityCheckpoint = await equityTranche.getCheckpoint()
+
+    const delta = parseTokenUnits(0.1)
+    expect(seniorCheckpoint.totalAssets).to.be.closeTo(seniorTargetValue, delta)
+    expect(seniorCheckpoint.protocolFeeRate).to.eq(protocolFeeRate)
+    expect(seniorCheckpoint.timestamp).to.eq(txTimestamp)
+
+    expect(juniorCheckpoint.totalAssets).to.be.closeTo(juniorTargetValue, delta)
+    expect(juniorCheckpoint.protocolFeeRate).to.eq(protocolFeeRate)
+    expect(juniorCheckpoint.timestamp).to.eq(txTimestamp)
+
+    expect(equityCheckpoint.totalAssets).to.be.closeTo(equityTargetValue, delta)
+    expect(equityCheckpoint.protocolFeeRate).to.eq(protocolFeeRate)
+    expect(equityCheckpoint.timestamp).to.eq(txTimestamp)
+  })
+
+  it('emits CheckpointUpdated event', async () => {
+    const { protocolConfig, structuredPortfolio, senior, junior, seniorTranche, juniorTranche, equityTranche, withInterest, portfolioStartTimestamp, totalDeposit } = await loadFixture(structuredPortfolioLiveFixture)
+    const protocolFeeRate = 500
+    await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
+
+    await timeTravel(YEAR)
+
+    const tx = await structuredPortfolio.updateCheckpoints()
+
+    const refreshTimestamp = await getTxTimestamp(tx)
+    const timePassed = refreshTimestamp - portfolioStartTimestamp
+
+    const seniorExpectedValue = withInterest(senior.initialDeposit, senior.targetApy, timePassed)
+    const juniorExpectedValue = withInterest(junior.initialDeposit, junior.targetApy, timePassed)
+    const equityExpectedValue = totalDeposit.sub(seniorExpectedValue).sub(juniorExpectedValue)
+
+    await expect(tx)
+      .to.emit(seniorTranche, 'CheckpointUpdated').withArgs(seniorExpectedValue, protocolFeeRate)
+      .to.emit(juniorTranche, 'CheckpointUpdated').withArgs(juniorExpectedValue, protocolFeeRate)
+      .to.emit(equityTranche, 'CheckpointUpdated').withArgs(equityExpectedValue, protocolFeeRate)
+  })
+
+  it('updating multiple times does not add too much interest', async () => {
+    const { structuredPortfolio, portfolioDuration, parseTokenUnits, withInterest, senior, junior } = await loadFixture(structuredPortfolioLiveFixture)
+    const updatesCount = 20
+    const period = portfolioDuration / updatesCount
+
+    for (let i = 0; i < updatesCount; i++) {
+      await structuredPortfolio.updateCheckpoints()
+      await timeTravel(period)
+    }
+
+    const waterfall = await structuredPortfolio.calculateWaterfall()
+
+    const seniorExpectedValue = withInterest(senior.initialDeposit, senior.targetApy, portfolioDuration)
+    const juniorExpectedValue = withInterest(junior.initialDeposit, junior.targetApy, portfolioDuration)
+
+    const delta = parseTokenUnits(3e4)
+    expect(waterfall[2]).to.be.closeTo(seniorExpectedValue, delta)
+    expect(waterfall[1]).to.be.closeTo(juniorExpectedValue, delta)
+  })
+
+  it('reverts when portfolio is paused', async () => {
+    const { structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
+    await structuredPortfolio.pause()
+
+    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('Pausable: paused')
+  })
+
+  it('does not revert when fee is over balance', async () => {
+    const { structuredPortfolio, protocolConfig, seniorTranche, juniorTranche, equityTranche, depositToTranche, parseTokenUnits, token, startPortfolioAndEnableLiveActions } = await loadFixture(structuredPortfolioFixture)
+    const protocolFeeRate = 10000
+    await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
+
+    await startPortfolioAndEnableLiveActions()
+    await depositToTranche(equityTranche, parseTokenUnits(4000))
+    await depositToTranche(juniorTranche, parseTokenUnits(2000))
+    await depositToTranche(seniorTranche, parseTokenUnits(1000))
+    await timeTravel(YEAR)
+
+    await token.transfer(structuredPortfolio.address, parseTokenUnits(0.1))
+
+    await expect(structuredPortfolio.updateCheckpoints()).not.to.be.reverted
+  })
+})
