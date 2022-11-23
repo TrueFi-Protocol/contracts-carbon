@@ -14,7 +14,7 @@ interface PortfolioParams {
 
 const DAY = 60 * 60 * 24
 
-export function deployPlayground({ structuredPortfolioFactory, defaultDepositController, defaultWithdrawController, defaultTransferController, protocolConfig, allowAllLenderVerifier }: CarbonDeployResult, deployer: string) {
+export function deployPlayground({ structuredPortfolioFactory, defaultDepositController, defaultWithdrawController, defaultTransferController, allowAllLenderVerifier }: CarbonDeployResult, deployer: string) {
   const usdc = contract('mockUsdc', MockToken, [6], {
     skipUpgrade: true,
   })
@@ -76,6 +76,4 @@ export function deployPlayground({ structuredPortfolioFactory, defaultDepositCon
   )
 
   structuredPortfolioFactory.createPortfolio(usdc, fixedInterestOnlyLoans, portfolioParams, trancheData, { from: 200, to: 2000 })
-
-  protocolConfig.setDefaultProtocolFeeRate(10)
 }

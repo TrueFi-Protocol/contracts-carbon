@@ -14,5 +14,5 @@ const getOptions = (privateKey: string, provider: JsonRpcProvider, deploymentsFi
 
 export function deployCarbonPlayground(privateKey: string, provider: JsonRpcProvider, deploymentsFile: string) {
   const options = getOptions(privateKey, provider, deploymentsFile)
-  return deploy(options, (deployer) => deployPlayground(deployCarbon(deployer), deployer))
+  return deploy(options, (deployer, executeOptions) => deployPlayground(deployCarbon(deployer, executeOptions), deployer))
 }
