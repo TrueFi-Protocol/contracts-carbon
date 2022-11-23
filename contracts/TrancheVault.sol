@@ -312,6 +312,14 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         super._transfer(sender, recipient, amount);
     }
 
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal override portfolioNotPaused {
+        super._approve(owner, spender, amount);
+    }
+
     // -- ERC165 methods --
     function supportsInterface(bytes4 interfaceID) public view override(AccessControlEnumerableUpgradeable, IERC165) returns (bool) {
         return (interfaceID == type(IERC165).interfaceId ||
