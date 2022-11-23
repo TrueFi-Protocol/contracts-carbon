@@ -1,6 +1,3 @@
 /docs
 deployments-test.json
 .certora_internal
-build
-cache
-node_modules
