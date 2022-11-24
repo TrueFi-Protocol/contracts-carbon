@@ -96,10 +96,6 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         return tranches;
     }
 
-    function getTranchesData() external view returns (TrancheData[] memory) {
-        return tranchesData;
-    }
-
     function updateCheckpoints() public whenNotPaused returns (uint256[] memory _totalAssets) {
         require(status == Status.Live, "SP: Portfolio is not live");
 

@@ -55,19 +55,17 @@ describe('StructuredPortfolio.initialize', () => {
   it('sets tranches target apys', async () => {
     const { structuredPortfolio, tranchesData } = await loadFixture(structuredPortfolioFixture)
     const expectedTargetApys = tranchesData.map(({ targetApy }) => targetApy)
-    const targetApys = (await structuredPortfolio.getTranchesData()).map(({ targetApy }) => targetApy)
-    expect(targetApys[0]).to.eq(expectedTargetApys[0])
-    expect(targetApys[1]).to.eq(expectedTargetApys[1])
-    expect(targetApys[2]).to.eq(expectedTargetApys[2])
-    expect(targetApys.length).to.eq(3)
+    for (let trancheIdx = 0; trancheIdx < 3; trancheIdx++) {
+      expect((await structuredPortfolio.tranchesData(trancheIdx)).targetApy).to.eq(expectedTargetApys[trancheIdx])
+    }
   })
 
   it('sets tranches min subordinate ratios', async () => {
     const { structuredPortfolio, tranchesData } = await loadFixture(structuredPortfolioFixture)
     const expectedRatios = tranchesData.map(({ minSubordinateRatio }) => minSubordinateRatio)
-    const minSubordinateRatios = (await structuredPortfolio.getTranchesData())
-      .map(({ minSubordinateRatio }) => minSubordinateRatio.toNumber())
-    expect(minSubordinateRatios).to.deep.equal(expectedRatios)
+    for (let trancheIdx = 0; trancheIdx < 3; trancheIdx++) {
+      expect((await structuredPortfolio.tranchesData(trancheIdx)).minSubordinateRatio).to.eq(expectedRatios[trancheIdx])
+    }
   })
 
   it('duration cannot be zero', async () => {

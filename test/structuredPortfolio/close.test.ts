@@ -108,10 +108,9 @@ describe('StructuredPortfolio.close', () => {
     await timeTravel(YEAR / 2)
     await structuredPortfolio.close()
 
-    const tranchesData = await structuredPortfolio.getTranchesData()
-    expect(tranchesData[0].maxValueOnClose).to.eq(0)
-    expect(tranchesData[1].maxValueOnClose).to.be.closeTo(withInterest(waterfall[1], junior.targetApy, YEAR / 2), DELTA)
-    expect(tranchesData[2].maxValueOnClose).to.be.closeTo(withInterest(waterfall[2], senior.targetApy, YEAR / 2), DELTA)
+    expect((await structuredPortfolio.tranchesData(0)).maxValueOnClose).to.eq(0)
+    expect((await structuredPortfolio.tranchesData(1)).maxValueOnClose).to.be.closeTo(withInterest(waterfall[1], junior.targetApy, YEAR / 2), DELTA)
+    expect((await structuredPortfolio.tranchesData(2)).maxValueOnClose).to.be.closeTo(withInterest(waterfall[2], senior.targetApy, YEAR / 2), DELTA)
   })
 
   it('close before predicted end date updates portfolio end date', async () => {

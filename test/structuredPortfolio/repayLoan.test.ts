@@ -394,9 +394,8 @@ describe('StructuredPortfolio.repayLoan', () => {
       await repayLoanInFull(loanToRepayId, loanToRepay)
       const repayAmount = getFullRepayAmount(loanToRepay)
 
-      const tranchesData = await structuredPortfolio.getTranchesData()
-      const seniorTrancheTargetValue = tranchesData[2].maxValueOnClose
-      const juniorTrancheTargetValue = tranchesData[1].maxValueOnClose
+      const seniorTrancheTargetValue = (await structuredPortfolio.tranchesData(2)).maxValueOnClose
+      const juniorTrancheTargetValue = (await structuredPortfolio.tranchesData(1)).maxValueOnClose
 
       const equityShare = repayAmount.sub(seniorTrancheTargetValue).sub(juniorTrancheTargetValue)
 

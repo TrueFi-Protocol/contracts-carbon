@@ -178,11 +178,6 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
     function getTranches() external view returns (ITrancheVault[] memory);
 
     /**
-     * @return Array of tranches details
-     */
-    function getTranchesData() external view returns (TrancheData[] memory);
-
-    /**
      * @notice Updates checkpoints on each tranche and pay pending fees
      * @dev Can be executed only in Live status
      * @return totalAssets Array of current tranche values
