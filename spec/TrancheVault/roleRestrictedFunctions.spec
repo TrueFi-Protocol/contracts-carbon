@@ -1,10 +1,5 @@
 import "TrancheVault.spec"
 
-methods {
-    calculateWaterfallForTranche(uint256) returns uint256 => NONDET
-    status() returns uint8 => NONDET
-}
-
 invariant defaultAdminRoleIsTheOnlyAdminRole()
     forall bytes32 role. getRoleAdmin(role) == DEFAULT_ADMIN_ROLE()
     filtered { f -> !isProxyFunction(f) }

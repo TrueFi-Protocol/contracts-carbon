@@ -1,7 +1,8 @@
 import "../Shared.spec"
 
 using MockToken as token
-// using StructuredPortfolio as portfolio
+using ProtocolConfig as protocolConfig
+using StructuredPortfolio as portfolio
 
 methods {
     depositController() returns address envfree
@@ -14,6 +15,11 @@ methods {
     managerFeeBeneficiary() returns address envfree
     managerFeeRate() returns uint256 envfree
     portfolio() returns address envfree
+    virtualTokenBalance() returns uint256 envfree
+
+    portfolio.status() returns uint8 envfree
+
+    protocolConfig.protocolTreasury() returns address envfree
 
     MANAGER_ROLE() returns bytes32 envfree
     DEFAULT_ADMIN_ROLE() returns bytes32 envfree
@@ -22,6 +28,9 @@ methods {
 
     token.allowance(address, address) returns uint256 envfree
     token.balanceOf(address) returns uint256 envfree
+
+    calculateWaterfallForTranche(uint256 trancheId) returns uint256 => NONDET
+    calculateWaterfallForTrancheWithoutFee(uint256 trancheId) returns uint256 => NONDET
 }
 
 // RULES
@@ -48,11 +57,19 @@ function callFunctionWithRevert(method f, env e) {
     }
 }
 
+// DEFINITIONS
+
 definition isProxyFunction(method f) returns bool =
     f.selector == upgradeTo(address).selector ||
     f.selector == upgradeToAndCall(address,bytes).selector ||
     f.selector == initialize(string,string,address,address,address,address,address,uint256,address,uint256).selector;
 
-// CONSTANTS
+// functions that change token balance only by calling _updateCheckpoint(uint256) 
+definition isCheckpointFunction(method f) returns bool =
+    f.selector == configure((uint256,address,address,address)).selector ||
+    f.selector == setManagerFeeRate(uint256).selector ||
+    f.selector == setManagerFeeBeneficiary(address).selector ||
+    f.selector == updateCheckpointFromPortfolio(uint256).selector || 
+    f.selector == updateCheckpoint().selector;
 
 // GHOSTS
