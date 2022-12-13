@@ -1,55 +1,5 @@
 import "TrancheVault.spec"
 
-// WARNING: this invariant assumes that there are no tokens transfered
-// directy into portfolio, as a result it is unsafe to require it
-invariant tokenBalanceIsEqualVirtualTokenBalance()
-    virtualTokenBalance() == token.balanceOf(currentContract)
-    filtered { f -> !isProxyFunction(f) && !f.isFallback && f.selector != onTransfer(uint256).selector } {
-        preserved deposit(uint256 assets, address receiver) with (env e) {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-            require e.msg.sender != currentContract;
-        }
-        preserved mint(uint256 shares, address receiver) with (env e) {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-            require e.msg.sender != currentContract;
-        }
-        preserved withdraw(uint256 assets, address receiver, address owner) with (env e) {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-            require receiver != currentContract;
-        }
-        preserved redeem(uint256 assets, address receiver, address owner) with (env e) {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-            require receiver != currentContract;
-        }
-        preserved {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-        }
-    }
-
-invariant tokenBalanceIsGTEVirtualTokenBalance()
-    virtualTokenBalance() >= token.balanceOf(currentContract)
-    filtered { f -> !isProxyFunction(f) && !f.isFallback } {
-        preserved withdraw(uint256 assets, address receiver, address owner) with (env e) {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-            require receiver != currentContract;
-        }
-        preserved redeem(uint256 assets, address receiver, address owner) with (env e) {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-            require receiver != currentContract;
-        }
-        preserved {
-            require protocolConfig.protocolTreasury() != currentContract;
-            require managerFeeBeneficiary() != currentContract;
-        }
-    }
-
 rule onlyDepositMintAndOnTransferIncreaseVirtualTokenBalance(method f) {
     uint256 virtualTokenBalance_old = virtualTokenBalance();
 
@@ -64,6 +14,68 @@ rule onlyDepositMintAndOnTransferIncreaseVirtualTokenBalance(method f) {
         f.selector == onTransfer(uint256).selector
     );
     assert true;
+}
+
+rule depositIncreasesVirtualTokenBalance() {
+    uint256 amount;
+    address receiver;
+    address sender;
+
+    uint256 depositFee;
+    env e1;
+    require e1.msg.sender == currentContract;
+    _, depositFee = depositController.onDeposit(e1, sender, amount, receiver);
+    // TODO: require in contract
+    require amount - depositFee > 0;
+
+    require portfolio.status() != Live();
+
+    uint256 virtualTokenBalance_old = virtualTokenBalance();
+
+    env e;
+    require e.msg.sender == sender;
+    deposit(e, amount, receiver);
+
+    uint256 virtualTokenBalance_new = virtualTokenBalance();
+
+    assert virtualTokenBalance_new > virtualTokenBalance_old;
+}
+
+rule mintIncreasesVirtualTokenBalance() {
+    uint256 shares;
+    address receiver;
+    address sender;
+
+    uint256 assetAmount;
+    env e1;
+    require e1.msg.sender == currentContract;
+    assetAmount, _ = depositController.onMint(e1, sender, shares, receiver);
+
+    require portfolio.status() != Live();
+
+    uint256 virtualTokenBalance_old = virtualTokenBalance();
+
+    env e;
+    require e.msg.sender == sender;
+    mint(e, shares, receiver);
+
+    uint256 virtualTokenBalance_new = virtualTokenBalance();
+
+    assert virtualTokenBalance_new > virtualTokenBalance_old;
+}
+
+rule onTransferIncreasesVirtualTokenBalance() {
+    uint256 assets;
+    require assets > 0;
+    
+    uint256 virtualTokenBalance_old = virtualTokenBalance();
+
+    env e;
+    onTransfer(e, assets);
+
+    uint256 virtualTokenBalance_new = virtualTokenBalance();
+
+    assert virtualTokenBalance_new > virtualTokenBalance_old;
 }
 
 rule onlyWithdrawRedeemOnPortfolioStartAndCheckpointFunctionsDecreaseVirtualTokenBalance(method f) {
@@ -83,6 +95,60 @@ rule onlyWithdrawRedeemOnPortfolioStartAndCheckpointFunctionsDecreaseVirtualToke
     assert true;
 }
 
+rule withdrawDecreasesVirtualTokenBalance() {
+    uint256 assets;
+    require assets > 0;
+
+    require portfolio.status() != Live();
+
+    uint256 virtualTokenBalance_old = virtualTokenBalance();
+
+    env e;
+    withdraw(e, assets, _, _);
+
+    uint256 virtualTokenBalance_new = virtualTokenBalance();
+
+    assert virtualTokenBalance_new < virtualTokenBalance_old;
+}
+
+rule redeemDecreasesVirtualTokenBalance() {
+    uint256 shares;
+    address receiver;
+    address owner;
+    address sender;
+
+    uint256 assets;
+    env e1;
+    require e1.msg.sender == currentContract;
+    assets, _ = withdrawController.onRedeem(e1, sender, shares, receiver, owner);
+    // TODO: require in contract
+    require assets > 0;
+
+    require portfolio.status() != Live();
+
+    uint256 virtualTokenBalance_old = virtualTokenBalance();
+
+    env e;
+    require e.msg.sender == sender;
+    redeem(e, shares, receiver, owner);
+
+    uint256 virtualTokenBalance_new = virtualTokenBalance();
+
+    assert virtualTokenBalance_new < virtualTokenBalance_old;
+}
+
+rule onPortfolioStartDecreasesVirtualTokenBalance() {
+    uint256 virtualTokenBalance_old = virtualTokenBalance();
+    require virtualTokenBalance_old > 0;
+
+    env e;
+    onPortfolioStart(e);
+
+    uint256 virtualTokenBalance_new = virtualTokenBalance();
+
+    assert virtualTokenBalance_new < virtualTokenBalance_old;
+}
+
 rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceOnlyWhenPendingFeesArePositive(method f) filtered { f -> isCheckpointFunction(f) } {
     uint256 timestamp;
 
@@ -98,10 +164,7 @@ rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceOnlyWhenPendingFeesAreP
 
     uint256 virtualTokenBalance_new = virtualTokenBalance();
 
-    ifEffectThenFunction(virtualTokenBalance_new < virtualTokenBalance_old,
-        totalPendingFees_old > 0
-    );
-    assert true;
+    assert virtualTokenBalance_new < virtualTokenBalance_old => totalPendingFees_old > 0;
 }
 
 // more detailed version of a rule above

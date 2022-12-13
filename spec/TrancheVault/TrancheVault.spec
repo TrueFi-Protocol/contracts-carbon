@@ -3,6 +3,8 @@ import "../Shared.spec"
 using MockToken as token
 using ProtocolConfig as protocolConfig
 using StructuredPortfolio as portfolio
+using DepositController as depositController
+using WithdrawController as withdrawController
 
 methods {
     depositController() returns address envfree
@@ -31,6 +33,8 @@ methods {
 
     calculateWaterfallForTranche(uint256 trancheId) returns uint256 => NONDET
     calculateWaterfallForTrancheWithoutFee(uint256 trancheId) returns uint256 => NONDET
+
+    convertToAssets(uint256 shares) returns uint256 => convertToAssetsGhost(shares)
 }
 
 // RULES
@@ -73,3 +77,13 @@ definition isCheckpointFunction(method f) returns bool =
     f.selector == updateCheckpoint().selector;
 
 // GHOSTS
+
+ghost convertToAssetsGhost(uint256) returns uint256;
+
+ghost uint256 tranchesCountGhost;
+hook Sstore portfolio.tranches.(offset 0) uint256 value STORAGE {
+    tranchesCountGhost = value;
+}
+hook Sload uint256 value portfolio.tranches.(offset 0) STORAGE {
+    require value == tranchesCountGhost;
+}
