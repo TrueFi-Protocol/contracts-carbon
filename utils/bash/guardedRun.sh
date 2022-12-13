@@ -9,7 +9,7 @@ export ETHERSCAN_KEY="XQPPJGFR4J3I6PEISYEG4JPETFZ2EF56EX" # Use for Ethereum & t
 #export ETHERSCAN_KEY="RPKYAHCE6R2YI7TRV51WS5N8R885RRNXG3" # Use for Optimism & optimistic testnets
 
 # Example usage:
-# $ scripts/deployment/guardedRun.sh --network ropsten --dry-run
+# $ scripts/deployment/guardedRun.sh --network goerli --dry-run
 # PRIVATE_KEY=0x123..64
 
 network='mainnet'
