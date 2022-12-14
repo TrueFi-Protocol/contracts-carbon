@@ -19,6 +19,11 @@ describe('TrancheVault.withdraw', () => {
     return fixtureResult
   }
 
+  it('cannot withdraw zero assets', async () => {
+    const { equityTranche, withdrawFromTranche } = await loadFixture(structuredPortfolioFixture)
+    await expect(withdrawFromTranche(equityTranche, 0)).to.be.revertedWith('TV: Amount cannot be zero')
+  })
+
   it('cannot withdraw in capital formation if not allowed', async () => {
     const { equityTranche, withdrawFromTranche } = await loadFixture(structuredPortfolioFixture)
     const amount = 1000

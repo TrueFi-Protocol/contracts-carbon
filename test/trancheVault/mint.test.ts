@@ -9,6 +9,11 @@ import { convertToAssets, convertToAssetsCeil } from 'utils/convertToAssets'
 describe('TrancheVault.mint', () => {
   const loadFixture = setupFixtureLoader()
 
+  it('cannot mint zero shares', async () => {
+    const { equityTranche, mintToTranche } = await loadFixture(structuredPortfolioFixture)
+    await expect(mintToTranche(equityTranche, 0)).to.be.revertedWith('TV: Amount cannot be zero')
+  })
+
   it('transfers sender\'s tokens to vault', async () => {
     const { juniorTranche, token, mintToTranche, parseTokenUnits } = await loadFixture(structuredPortfolioFixture)
 
@@ -31,7 +36,7 @@ describe('TrancheVault.mint', () => {
     const amount = MAX_UINT_128.add(1)
 
     await expect(equityTranche.mint(amount, wallet.address))
-      .to.be.revertedWith('TV: Exceeds max mint amount')
+      .to.be.revertedWith('TV: Amount exceeds max mint')
   })
 
   it('reverts if deposit above ceiling', async () => {
@@ -39,7 +44,7 @@ describe('TrancheVault.mint', () => {
     const mintAmount = parseTokenUnits(1)
     await equityTrancheData.depositController.setCeiling(mintAmount.sub(1))
 
-    await expect(mintToTranche(equityTranche, mintAmount)).to.be.revertedWith('TV: Exceeds max mint amount')
+    await expect(mintToTranche(equityTranche, mintAmount)).to.be.revertedWith('TV: Amount exceeds max mint')
   })
 
   it('pays deposit controller fees', async () => {
@@ -212,7 +217,7 @@ describe('TrancheVault.mint', () => {
 
       await timeTravel(3 * DAY)
       await structuredPortfolio.markLoanAsDefaulted(loanId)
-      await expect(mintToTranche(equityTranche, 100)).to.be.revertedWith('TV: Cannot deposit 0 assets')
+      await expect(mintToTranche(equityTranche, 100)).to.be.revertedWith('TV: Amount cannot be zero')
     })
 
     it('reverts if deposit above ceiling', async () => {
@@ -220,7 +225,7 @@ describe('TrancheVault.mint', () => {
       const mintAmount = parseTokenUnits(1)
       await equityTrancheData.depositController.setCeiling(mintAmount.sub(1))
 
-      await expect(mintToTranche(equityTranche, mintAmount)).to.be.revertedWith('TV: Exceeds max mint amount')
+      await expect(mintToTranche(equityTranche, mintAmount)).to.be.revertedWith('TV: Amount exceeds max mint')
     })
 
     it('respects tranche ratios', async () => {

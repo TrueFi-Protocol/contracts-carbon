@@ -17,6 +17,11 @@ describe('TrancheVault.redeem', () => {
     return fixtureResult
   }
 
+  it('cannot redeem zero shares', async () => {
+    const { equityTranche, redeemFromTranche } = await loadFixture(structuredPortfolioFixture)
+    await expect(redeemFromTranche(equityTranche, 0)).to.be.revertedWith('TV: Amount cannot be zero')
+  })
+
   it('reverts in capital formation if not allowed', async () => {
     const { seniorTranche, redeemFromTranche } = await loadFixture(structuredPortfolioFixture)
     const amount = 1000
@@ -52,7 +57,7 @@ describe('TrancheVault.redeem', () => {
     expect(await token.balanceOf(other.address)).to.be.closeTo(balanceBefore.add(amount), delta)
   })
 
-  it('cannot redeem more than max redeem amount', async () => {
+  it('cannot redeem more than max withdraw amount', async () => {
     const { seniorTranche, redeemFromTranche, wallet } = await structuredPortfolioClosedFixture()
     const maxWithdraw = await seniorTranche.maxWithdraw(wallet.address)
     await expect(redeemFromTranche(seniorTranche, maxWithdraw.add(1))).to.be.revertedWith('TV: Amount exceeds max redeem')

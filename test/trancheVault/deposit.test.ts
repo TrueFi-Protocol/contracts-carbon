@@ -8,6 +8,11 @@ import { timeTravel } from 'utils/timeTravel'
 describe('TrancheVault.deposit', () => {
   const loadFixture = setupFixtureLoader()
 
+  it('cannot deposit zero assets', async () => {
+    const { equityTranche, depositToTranche } = await loadFixture(structuredPortfolioFixture)
+    await expect(depositToTranche(equityTranche, 0)).to.be.revertedWith('TV: Amount cannot be zero')
+  })
+
   it('transfers sender\'s tokens to vault', async () => {
     const { equityTranche, token, depositToTranche } = await loadFixture(structuredPortfolioFixture)
     const amount = 1000

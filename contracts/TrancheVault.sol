@@ -187,6 +187,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         uint256 shares,
         address receiver
     ) internal {
+        require(amount > 0 && shares > 0, "TV: Amount cannot be zero");
         Status status = portfolio.status();
 
         if (status == Status.Live) {
@@ -205,7 +206,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         emit Deposit(msg.sender, receiver, amount, shares);
     }
 
-    function maxMint(address receiver) external view returns (uint256) {
+    function maxMint(address receiver) public view returns (uint256) {
         return depositController.maxMint(receiver);
     }
 
@@ -214,9 +215,8 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function mint(uint256 shares, address receiver) external cacheTotalAssets portfolioNotPaused returns (uint256) {
+        require(shares <= maxMint(msg.sender), "TV: Amount exceeds max mint");
         (uint256 assetAmount, uint256 depositFee) = depositController.onMint(msg.sender, shares, receiver);
-        require(assetAmount > 0, "TV: Cannot deposit 0 assets");
-        require(assetAmount <= maxDeposit(msg.sender), "TV: Exceeds max mint amount");
 
         _payDepositFee(depositFee);
         _depositAssets(assetAmount, shares, receiver);
@@ -257,6 +257,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         address owner,
         address receiver
     ) internal {
+        require(assets > 0 && shares > 0, "TV: Amount cannot be zero");
         _safeBurn(owner, shares);
 
         Status status = portfolio.status();
@@ -292,7 +293,6 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         address owner
     ) external cacheTotalAssets portfolioNotPaused returns (uint256) {
         require(shares <= maxRedeem(owner), "TV: Amount exceeds max redeem");
-
         (uint256 assets, uint256 withdrawFee) = withdrawController.onRedeem(msg.sender, shares, receiver, owner);
 
         _payWithdrawFee(withdrawFee);
