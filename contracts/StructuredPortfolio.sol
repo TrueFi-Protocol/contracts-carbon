@@ -48,13 +48,13 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function initialize(
         address manager,
         IERC20WithDecimals underlyingToken,
-        IFixedInterestOnlyLoans fixedInterestOnlyLoans,
+        IFixedInterestOnlyLoans _fixedInterestOnlyLoans,
         IProtocolConfig _protocolConfig,
         PortfolioParams memory portfolioParams,
         TrancheInitData[] memory tranchesInitData,
         ExpectedEquityRate calldata _expectedEquityRate
     ) external initializer {
-        _initialize(fixedInterestOnlyLoans, underlyingToken);
+        _initialize(_fixedInterestOnlyLoans, underlyingToken);
         __Upgradeable_init(_protocolConfig.protocolAdmin(), _protocolConfig.pauserAddress());
         _grantRole(MANAGER_ROLE, manager);
 

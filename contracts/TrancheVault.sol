@@ -393,14 +393,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         emit CheckpointUpdated(newTotalAssets, protocolFeeRate);
     }
 
-    function _payProtocolFee(uint256 pendingFee) internal returns (uint256 paidProtocolFee) {
+    function _payProtocolFee(uint256 pendingFee) internal {
         address protocolAddress = protocolConfig.protocolTreasury();
-        (paidProtocolFee, unpaidProtocolFee) = _payFee(pendingFee, protocolAddress);
+        (uint256 paidProtocolFee, uint256 _unpaidProtocolFee) = _payFee(pendingFee, protocolAddress);
+        unpaidProtocolFee += _unpaidProtocolFee;
         emit ProtocolFeePaid(protocolAddress, paidProtocolFee);
     }
 
-    function _payManagerFee(uint256 pendingFee) internal returns (uint256 paidManagerFee) {
-        (paidManagerFee, unpaidManagerFee) = _payFee(pendingFee, managerFeeBeneficiary);
+    function _payManagerFee(uint256 pendingFee) internal {
+        (uint256 paidManagerFee, uint256 _unpaidManagerFee) = _payFee(pendingFee, managerFeeBeneficiary);
+        unpaidManagerFee += _unpaidManagerFee;
         emit ManagerFeePaid(managerFeeBeneficiary, paidManagerFee);
     }
 
@@ -553,10 +555,6 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
 
     function _requireTrancheControllerOwnerRole() internal view {
         require(hasRole(TRANCHE_CONTROLLER_OWNER_ROLE, msg.sender), "TV: Only tranche controller owner");
-    }
-
-    function _requirePortfolioOrManager() internal view {
-        require(msg.sender == address(portfolio) || hasRole(MANAGER_ROLE, msg.sender), "TV: Only portfolio or manager");
     }
 
     function _requirePortfolio() internal view {
