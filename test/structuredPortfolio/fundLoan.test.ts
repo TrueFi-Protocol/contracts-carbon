@@ -66,4 +66,14 @@ describe('StructuredPortfolio.fundLoan', () => {
     await expect(structuredPortfolio.fundLoan(loanId))
       .to.be.revertedWith('Pausable: paused')
   })
+
+  it('reverts if virtualBalance < loan principal', async () => {
+    const { structuredPortfolio, token, getLoan, addAndAcceptLoan, parseTokenUnits } = await loadFixture(structuredPortfolioLiveFixture)
+    const portfolioBalance = await token.balanceOf(structuredPortfolio.address)
+    const loan = getLoan({ principal: portfolioBalance.add(1) })
+    const loanId = await addAndAcceptLoan(loan)
+
+    await token.mint(structuredPortfolio.address, parseTokenUnits(1))
+    await expect(structuredPortfolio.fundLoan(loanId)).to.be.revertedWith('SP: Principal exceeds balance')
+  })
 })

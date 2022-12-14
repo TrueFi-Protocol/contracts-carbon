@@ -389,7 +389,9 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         _requireManagerRole();
         require(status == Status.Live, "SP: Portfolio is not live");
         updateCheckpoints();
+
         uint256 principal = _fundLoan(loanId);
+        require(virtualTokenBalance >= principal, "SP: Principal exceeds balance");
         virtualTokenBalance -= principal;
     }
 
