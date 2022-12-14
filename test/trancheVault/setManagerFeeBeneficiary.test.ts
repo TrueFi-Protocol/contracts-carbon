@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import { constants } from 'ethers'
 import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { YEAR } from 'utils/constants'
@@ -11,6 +12,11 @@ describe('TrancheVault.setManagerFeeBeneficiary', () => {
   it('only manager', async () => {
     const { seniorTranche, other } = await loadFixture(structuredPortfolioFixture)
     await expect(seniorTranche.connect(other).setManagerFeeBeneficiary(other.address)).to.be.revertedWith('TV: Only manager')
+  })
+
+  it('cannot be zero address', async () => {
+    const { equityTranche } = await loadFixture(structuredPortfolioFixture)
+    await expect(equityTranche.setManagerFeeBeneficiary(constants.AddressZero)).to.be.revertedWith('TV: Cannot be zero address')
   })
 
   it('sets new manager beneficiary', async () => {

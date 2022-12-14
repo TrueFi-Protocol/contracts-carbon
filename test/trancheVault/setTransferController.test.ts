@@ -1,10 +1,15 @@
 import { expect } from 'chai'
-import { Wallet } from 'ethers'
+import { constants, Wallet } from 'ethers'
 import { trancheVaultFixture } from 'fixtures/trancheVaultFixture'
 import { setupFixtureLoader } from 'test/setup'
 
 describe('TrancheVault.setTransferController', () => {
   const loadFixture = setupFixtureLoader()
+
+  it('cannot be zero address', async () => {
+    const { tranche } = await loadFixture(trancheVaultFixture)
+    await expect(tranche.setTransferController(constants.AddressZero)).to.be.revertedWith('TV: Cannot be zero address')
+  })
 
   it('only tranche controller owner', async () => {
     const { tranche, other } = await loadFixture(trancheVaultFixture)

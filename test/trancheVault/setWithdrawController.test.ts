@@ -1,12 +1,17 @@
 import { setupFixtureLoader } from 'test/setup'
 import { expect } from 'chai'
 import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
-import { Wallet } from 'ethers'
+import { constants, Wallet } from 'ethers'
 
 describe('TrancheVault.setWithdrawController', () => {
   const loadFixture = setupFixtureLoader()
 
   const withdrawControllerAddress = Wallet.createRandom().address
+
+  it('cannot be zero address', async () => {
+    const { equityTranche } = await loadFixture(structuredPortfolioFixture)
+    await expect(equityTranche.setWithdrawController(constants.AddressZero)).to.be.revertedWith('TV: Cannot be zero address')
+  })
 
   it('only tranche controller owner', async () => {
     const { equityTranche, other } = await loadFixture(structuredPortfolioFixture)

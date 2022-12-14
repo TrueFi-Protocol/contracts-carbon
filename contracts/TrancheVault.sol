@@ -515,18 +515,21 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
 
     function setDepositController(IDepositController newController) public {
         _requireTrancheControllerOwnerRole();
+        _requireNonZeroAddress(address(newController));
         depositController = newController;
         emit DepositControllerChanged(newController);
     }
 
     function setWithdrawController(IWithdrawController newController) public {
         _requireTrancheControllerOwnerRole();
+        _requireNonZeroAddress(address(newController));
         withdrawController = newController;
         emit WithdrawControllerChanged(newController);
     }
 
     function setTransferController(ITransferController newController) public {
         _requireTrancheControllerOwnerRole();
+        _requireNonZeroAddress(address(newController));
         transferController = newController;
         emit TransferControllerChanged(newController);
     }
@@ -542,11 +545,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
 
     function setManagerFeeBeneficiary(address _managerFeeBeneficiary) public {
         _requireManagerRole();
+        _requireNonZeroAddress(_managerFeeBeneficiary);
         _updateCheckpoint(totalAssets());
 
         managerFeeBeneficiary = _managerFeeBeneficiary;
 
         emit ManagerFeeBeneficiaryChanged(_managerFeeBeneficiary);
+    }
+
+    function _requireNonZeroAddress(address _address) internal view {
+        require(_address != address(0), "TV: Cannot be zero address");
     }
 
     function _requireManagerRole() internal view {
