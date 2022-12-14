@@ -553,7 +553,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         emit ManagerFeeBeneficiaryChanged(_managerFeeBeneficiary);
     }
 
-    function _requireNonZeroAddress(address _address) internal view {
+    function _requireNonZeroAddress(address _address) internal pure {
         require(_address != address(0), "TV: Cannot be zero address");
     }
 
