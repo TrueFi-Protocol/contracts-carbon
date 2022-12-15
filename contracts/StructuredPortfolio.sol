@@ -387,7 +387,6 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
     function fundLoan(uint256 loanId) external whenNotPaused {
         _requireManagerRole();
-        require(status == Status.Live, "SP: Portfolio is not live");
         updateCheckpoints();
 
         uint256 principal = _fundLoan(loanId);
