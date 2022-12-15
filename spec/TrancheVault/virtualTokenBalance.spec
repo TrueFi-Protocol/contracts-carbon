@@ -188,7 +188,7 @@ rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceWhenPendingFeesArePosit
 
     uint256 virtualTokenBalance_new = virtualTokenBalance();
 
-    if (f.selector == configure((uint256,address,address,address)).selector) {
+    if (f.selector == configure((uint256,address,address,address,address)).selector) {
         require (managerFeeBeneficiary() != managerFeeBeneficiary_old ||
             managerFeeRate() != managerFeeRate_old);
     }

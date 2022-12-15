@@ -30,7 +30,7 @@ rule onlyNonRoleFunctionsCanBeCalledByUsersWithoutAnyRole(method f) filtered { f
         f.selector == decreaseAllowance(address,uint256).selector ||
         f.selector == updateCheckpoint().selector ||
         f.selector == setPortfolio(address).selector ||
-        f.selector == configure((uint256,address,address,address)).selector || // if no diff, then this does not require any roles
+        f.selector == configure((uint256,address,address,address,address)).selector || // if no diff, then this does not require any roles
         f.selector == renounceRole(bytes32,address).selector
     );
     assert true;

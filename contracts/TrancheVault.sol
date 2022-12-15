@@ -346,6 +346,9 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         if (newConfiguration.withdrawController != withdrawController) {
             setWithdrawController(newConfiguration.withdrawController);
         }
+        if (newConfiguration.transferController != transferController) {
+            setTransferController(newConfiguration.transferController);
+        }
     }
 
     function onPortfolioStart() external returns (uint256) {

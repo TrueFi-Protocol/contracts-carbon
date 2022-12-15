@@ -23,6 +23,6 @@ rule managerFeeBeneficiaryCanOnlyBeChangedBySetterAndConfigure(method f) {
 
     assert (managerFeeBeneficiary_new != managerFeeBeneficiary_old =>
         f.selector == setManagerFeeBeneficiary(address).selector ||
-        f.selector == configure((uint256,address,address,address)).selector
+        f.selector == configure((uint256,address,address,address,address)).selector
     );
 }

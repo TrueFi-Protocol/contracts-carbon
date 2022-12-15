@@ -82,7 +82,7 @@ definition isManuallyChecked(method f) returns bool =
     f.selector == sp.markLoanAsDefaulted(uint256).selector ||
     f.selector == sp.close().selector ||
     f.selector == sp.repayLoan(uint256).selector || 
-    f.selector == tv.configure((uint256,address,address,address)).selector ||
+    f.selector == tv.configure((uint256,address,address,address,address)).selector ||
     f.selector == tv.deposit(uint256,address).selector ||
     f.selector == tv.mint(uint256,address).selector ||
     f.selector == tv.withdraw(uint256,address,address).selector ||
@@ -95,7 +95,7 @@ function callFunctionWithRevert(method f, env e, bytes32 role_optional) {
     } else if (f.selector == revokeRole(bytes32,address).selector) {
         address target;
         revokeRole@withrevert(e, role_optional, target);
-    } else if (f.selector == tv.configure((uint256,address,address,address)).selector) {
+    } else if (f.selector == tv.configure((uint256,address,address,address,address)).selector) {
         tv.Configuration configuration;
         require configuration.managerFeeRate != tv.managerFeeRate() ||
             configuration.managerFeeBeneficiary != tv.managerFeeBeneficiary() ||

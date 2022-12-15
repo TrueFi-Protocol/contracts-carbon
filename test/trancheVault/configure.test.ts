@@ -11,6 +11,7 @@ describe('TrancheVault.configure', () => {
     managerFeeBeneficiary: await tranche.managerFeeBeneficiary(),
     depositController: await tranche.depositController(),
     withdrawController: await tranche.withdrawController(),
+    transferController: await tranche.transferController(),
   })
 
   describe('manager fee rate', () => {
@@ -78,6 +79,23 @@ describe('TrancheVault.configure', () => {
       newConfiguration.withdrawController = other.address
       await seniorTranche.configure(newConfiguration)
       expect(await seniorTranche.withdrawController()).to.eq(other.address)
+    })
+  })
+
+  describe('transfer controller', () => {
+    it('only tranche controller owner', async () => {
+      const { seniorTranche, other } = await loadFixture(structuredPortfolioFixture)
+      const newConfiguration = await getDefaultConfiguration(seniorTranche)
+      newConfiguration.transferController = other.address
+      await expect(seniorTranche.connect(other).configure(newConfiguration)).to.be.revertedWith('TV: Only tranche controller owner')
+    })
+
+    it('sets new transfer controller iff it was changed', async () => {
+      const { seniorTranche, other } = await loadFixture(structuredPortfolioFixture)
+      const newConfiguration = await getDefaultConfiguration(seniorTranche)
+      newConfiguration.transferController = other.address
+      await seniorTranche.configure(newConfiguration)
+      expect(await seniorTranche.transferController()).to.eq(other.address)
     })
   })
 

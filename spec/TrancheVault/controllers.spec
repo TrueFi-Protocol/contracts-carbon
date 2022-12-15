@@ -30,7 +30,7 @@ rule depositControllerCanOnlyBeChangedBySetterAndConfigure(method f) {
 
     assert (depositController_new != depositController_old =>
         f.selector == setDepositController(address).selector ||
-        f.selector == configure((uint256,address,address,address)).selector
+        f.selector == configure((uint256,address,address,address,address)).selector
     );
 }
 
@@ -44,7 +44,7 @@ rule withdrawControllerCanOnlyBeChangedBySetterAndConfigure(method f) {
 
     assert (withdrawController_new != withdrawController_old =>
         f.selector == setWithdrawController(address).selector ||
-        f.selector == configure((uint256,address,address,address)).selector
+        f.selector == configure((uint256,address,address,address,address)).selector
     );
 }
 
@@ -57,6 +57,7 @@ rule transferControllerCanOnlyBeChangedBySetter(method f) {
     address transferController_new = transferController();
 
     assert (transferController_new != transferController_old =>
-        f.selector == setTransferController(address).selector 
+        f.selector == setTransferController(address).selector ||
+        f.selector == configure((uint256,address,address,address,address)).selector
     );
 }

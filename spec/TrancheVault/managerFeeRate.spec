@@ -23,6 +23,6 @@ rule managerFeeRateCanOnlyBeChangedBySetterAndConfigure(method f) {
 
     assert (managerFeeRate_new != managerFeeRate_old =>
         f.selector == setManagerFeeRate(uint256).selector ||
-        f.selector == configure((uint256,address,address,address)).selector
+        f.selector == configure((uint256,address,address,address,address)).selector
     );
 }

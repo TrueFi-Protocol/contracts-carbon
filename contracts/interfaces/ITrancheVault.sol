@@ -36,6 +36,7 @@ struct Configuration {
     address managerFeeBeneficiary;
     IDepositController depositController;
     IWithdrawController withdrawController;
+    ITransferController transferController;
 }
 
 interface ITrancheVault is IERC4626Upgradeable, IERC165 {

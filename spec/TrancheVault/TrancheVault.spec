@@ -70,7 +70,7 @@ definition isProxyFunction(method f) returns bool =
 
 // functions that change token balance only by calling _updateCheckpoint(uint256) 
 definition isCheckpointFunction(method f) returns bool =
-    f.selector == configure((uint256,address,address,address)).selector ||
+    f.selector == configure((uint256,address,address,address,address)).selector ||
     f.selector == setManagerFeeRate(uint256).selector ||
     f.selector == setManagerFeeBeneficiary(address).selector ||
     f.selector == updateCheckpointFromPortfolio(uint256).selector || 
