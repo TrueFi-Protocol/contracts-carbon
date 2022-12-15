@@ -185,7 +185,7 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
     /**
      * @return Total tranche assets including accrued but yet not paid fees
      */
-    function totalAssetsWithoutFees() external view returns (uint256);
+    function totalAssetsBeforeFees() external view returns (uint256);
 
     /**
      * @return Sum of all unpaid fees and fees accrued since last checkpoint update

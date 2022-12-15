@@ -111,12 +111,12 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         if (totalAssetsCache != 0) {
             return totalAssetsCache;
         }
-        uint256 balance = totalAssetsWithoutFees();
+        uint256 balance = totalAssetsBeforeFees();
         uint256 pendingFees = totalPendingFees(balance);
         return balance > pendingFees ? balance - pendingFees : 0;
     }
 
-    function totalAssetsWithoutFees() public view returns (uint256) {
+    function totalAssetsBeforeFees() public view returns (uint256) {
         if (portfolio.status() == Status.Live) {
             return portfolio.calculateWaterfallForTrancheWithoutFee(waterfallIndex);
         }
@@ -384,9 +384,9 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             return;
         }
 
-        uint256 _totalAssetsWithoutFees = totalAssetsWithoutFees();
-        _payProtocolFee(_pendingProtocolFee(_totalAssetsWithoutFees));
-        _payManagerFee(_pendingManagerFee(_totalAssetsWithoutFees));
+        uint256 _totalAssetsBeforeFees = totalAssetsBeforeFees();
+        _payProtocolFee(_totalAssetsBeforeFees);
+        _payManagerFee(_totalAssetsBeforeFees);
 
         uint256 protocolFeeRate = protocolConfig.protocolFeeRate();
         checkpoint = Checkpoint({totalAssets: newTotalAssets, protocolFeeRate: protocolFeeRate, timestamp: block.timestamp});
@@ -394,14 +394,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         emit CheckpointUpdated(newTotalAssets, protocolFeeRate);
     }
 
-    function _payProtocolFee(uint256 pendingFee) internal {
+    function _payProtocolFee(uint256 _totalAssetsBeforeFees) internal {
+        uint256 pendingFee = _pendingProtocolFee(_totalAssetsBeforeFees);
         address protocolAddress = protocolConfig.protocolTreasury();
         (uint256 paidProtocolFee, uint256 _unpaidProtocolFee) = _payFee(pendingFee, protocolAddress);
         unpaidProtocolFee += _unpaidProtocolFee;
         emit ProtocolFeePaid(protocolAddress, paidProtocolFee);
     }
 
-    function _payManagerFee(uint256 pendingFee) internal {
+    function _payManagerFee(uint256 _totalAssetsBeforeFees) internal {
+        uint256 pendingFee = _pendingManagerFee(_totalAssetsBeforeFees);
         (uint256 paidManagerFee, uint256 _unpaidManagerFee) = _payFee(pendingFee, managerFeeBeneficiary);
         unpaidManagerFee += _unpaidManagerFee;
         emit ManagerFeePaid(managerFeeBeneficiary, paidManagerFee);
@@ -480,50 +482,50 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function totalPendingFees() external view returns (uint256) {
-        return totalPendingFees(totalAssetsWithoutFees());
+        return totalPendingFees(totalAssetsBeforeFees());
     }
 
-    function totalPendingFees(uint256 _totalAssetsWithoutFees) public view returns (uint256) {
-        return _pendingProtocolFee(_totalAssetsWithoutFees) + _pendingManagerFee(_totalAssetsWithoutFees);
+    function totalPendingFees(uint256 _totalAssetsBeforeFees) public view returns (uint256) {
+        return _pendingProtocolFee(_totalAssetsBeforeFees) + _pendingManagerFee(_totalAssetsBeforeFees);
     }
 
     function pendingProtocolFee() external view returns (uint256) {
-        return _pendingProtocolFee(totalAssetsWithoutFees());
+        return _pendingProtocolFee(totalAssetsBeforeFees());
     }
 
-    function _pendingProtocolFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
-        return _accruedProtocolFee(_totalAssetsWithoutFees) + unpaidProtocolFee;
+    function _pendingProtocolFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
+        return _accruedProtocolFee(_totalAssetsBeforeFees) + unpaidProtocolFee;
     }
 
     function pendingManagerFee() external view returns (uint256) {
-        return _pendingManagerFee(totalAssetsWithoutFees());
+        return _pendingManagerFee(totalAssetsBeforeFees());
     }
 
-    function _pendingManagerFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
-        return _accruedManagerFee(_totalAssetsWithoutFees) + unpaidManagerFee;
+    function _pendingManagerFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
+        return _accruedManagerFee(_totalAssetsBeforeFees) + unpaidManagerFee;
     }
 
     function totalAccruedFees() external view returns (uint256) {
-        uint256 _totalAssetsWithoutFees = totalAssetsWithoutFees();
-        return _accruedProtocolFee(_totalAssetsWithoutFees) + _accruedManagerFee(_totalAssetsWithoutFees);
+        uint256 _totalAssetsBeforeFees = totalAssetsBeforeFees();
+        return _accruedProtocolFee(_totalAssetsBeforeFees) + _accruedManagerFee(_totalAssetsBeforeFees);
     }
 
-    function _accruedProtocolFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
-        return _accruedFee(checkpoint.protocolFeeRate, _totalAssetsWithoutFees);
+    function _accruedProtocolFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
+        return _accruedFee(checkpoint.protocolFeeRate, _totalAssetsBeforeFees);
     }
 
-    function _accruedManagerFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
+    function _accruedManagerFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
         if (portfolio.status() != Status.Live) {
             return 0;
         }
-        return _accruedFee(managerFeeRate, _totalAssetsWithoutFees);
+        return _accruedFee(managerFeeRate, _totalAssetsBeforeFees);
     }
 
-    function _accruedFee(uint256 feeRate, uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
+    function _accruedFee(uint256 feeRate, uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
         if (checkpoint.timestamp == 0) {
             return 0;
         }
-        uint256 adjustedTotalAssets = (block.timestamp - checkpoint.timestamp) * _totalAssetsWithoutFees;
+        uint256 adjustedTotalAssets = (block.timestamp - checkpoint.timestamp) * _totalAssetsBeforeFees;
         return (adjustedTotalAssets * feeRate) / YEAR / BASIS_PRECISION;
     }
 
