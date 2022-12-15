@@ -112,7 +112,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             return totalAssetsCache;
         }
         uint256 balance = totalAssetsWithoutFees();
-        uint256 pendingFees = totalPendingFees();
+        uint256 pendingFees = totalPendingFees(balance);
         return balance > pendingFees ? balance - pendingFees : 0;
     }
 
@@ -384,11 +384,9 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             return;
         }
 
-        uint256 _pendingProtocolFee = pendingProtocolFee();
-        uint256 _pendingManagerFee = pendingManagerFee();
-
-        _payProtocolFee(_pendingProtocolFee);
-        _payManagerFee(_pendingManagerFee);
+        uint256 _totalAssetsWithoutFees = totalAssetsWithoutFees();
+        _payProtocolFee(_pendingProtocolFee(_totalAssetsWithoutFees));
+        _payManagerFee(_pendingManagerFee(_totalAssetsWithoutFees));
 
         uint256 protocolFeeRate = protocolConfig.protocolFeeRate();
         checkpoint = Checkpoint({totalAssets: newTotalAssets, protocolFeeRate: protocolFeeRate, timestamp: block.timestamp});
@@ -481,38 +479,51 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         _transferFromTranche(recipient, paidFee);
     }
 
-    function totalPendingFees() public view returns (uint256) {
-        return pendingProtocolFee() + pendingManagerFee();
+    function totalPendingFees() external view returns (uint256) {
+        return totalPendingFees(totalAssetsWithoutFees());
     }
 
-    function pendingProtocolFee() public view returns (uint256) {
-        return _accruedProtocolFee() + unpaidProtocolFee;
+    function totalPendingFees(uint256 _totalAssetsWithoutFees) public view returns (uint256) {
+        return _pendingProtocolFee(_totalAssetsWithoutFees) + _pendingManagerFee(_totalAssetsWithoutFees);
     }
 
-    function pendingManagerFee() public view returns (uint256) {
-        return _accruedManagerFee() + unpaidManagerFee;
+    function pendingProtocolFee() external view returns (uint256) {
+        return _pendingProtocolFee(totalAssetsWithoutFees());
+    }
+
+    function _pendingProtocolFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
+        return _accruedProtocolFee(_totalAssetsWithoutFees) + unpaidProtocolFee;
+    }
+
+    function pendingManagerFee() external view returns (uint256) {
+        return _pendingManagerFee(totalAssetsWithoutFees());
+    }
+
+    function _pendingManagerFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
+        return _accruedManagerFee(_totalAssetsWithoutFees) + unpaidManagerFee;
     }
 
     function totalAccruedFees() external view returns (uint256) {
-        return _accruedProtocolFee() + _accruedManagerFee();
+        uint256 _totalAssetsWithoutFees = totalAssetsWithoutFees();
+        return _accruedProtocolFee(_totalAssetsWithoutFees) + _accruedManagerFee(_totalAssetsWithoutFees);
     }
 
-    function _accruedProtocolFee() internal view returns (uint256) {
-        return _accruedFee(checkpoint.protocolFeeRate);
+    function _accruedProtocolFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
+        return _accruedFee(checkpoint.protocolFeeRate, _totalAssetsWithoutFees);
     }
 
-    function _accruedManagerFee() internal view returns (uint256) {
+    function _accruedManagerFee(uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
         if (portfolio.status() != Status.Live) {
             return 0;
         }
-        return _accruedFee(managerFeeRate);
+        return _accruedFee(managerFeeRate, _totalAssetsWithoutFees);
     }
 
-    function _accruedFee(uint256 feeRate) internal view returns (uint256) {
+    function _accruedFee(uint256 feeRate, uint256 _totalAssetsWithoutFees) internal view returns (uint256) {
         if (checkpoint.timestamp == 0) {
             return 0;
         }
-        uint256 adjustedTotalAssets = (block.timestamp - checkpoint.timestamp) * totalAssetsWithoutFees();
+        uint256 adjustedTotalAssets = (block.timestamp - checkpoint.timestamp) * _totalAssetsWithoutFees;
         return (adjustedTotalAssets * feeRate) / YEAR / BASIS_PRECISION;
     }
 

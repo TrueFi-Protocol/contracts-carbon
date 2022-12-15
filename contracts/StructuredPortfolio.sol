@@ -302,7 +302,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function calculateWaterfall() public view returns (uint256[] memory) {
         uint256[] memory waterfall = calculateWaterfallWithoutFees();
         for (uint256 i = 0; i < waterfall.length; i++) {
-            uint256 pendingFees = tranches[i].totalPendingFees();
+            uint256 pendingFees = tranches[i].totalPendingFees(waterfall[i]);
             waterfall[i] = _saturatingSub(waterfall[i], pendingFees);
         }
         return waterfall;

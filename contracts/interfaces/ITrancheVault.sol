@@ -193,6 +193,12 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
     function totalPendingFees() external view returns (uint256);
 
     /**
+     * @return Sum of all unpaid fees and fees accrued on the given amount since last checkpoint update
+     * @param amount Asset amount with which fees should be calculated
+     */
+    function totalPendingFees(uint256 amount) external view returns (uint256);
+
+    /**
      * @return Sum of continuous protocol and manager fees accrued on every block on the top of checkpoint tranche total assets since last checkpoint update
      */
     function totalAccruedFees() external view returns (uint256);
