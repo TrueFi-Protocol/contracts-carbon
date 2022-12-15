@@ -52,9 +52,9 @@ contract StructuredPortfolioFactory is AccessControlEnumerable {
     bytes32 public constant WHITELISTED_MANAGER_ROLE = keccak256("WHITELISTED_MANAGER_ROLE");
 
     IStructuredPortfolio[] public portfolios;
-    address public trancheImplementation;
-    address public portfolioImplementation;
-    IProtocolConfig public protocolConfig;
+    address public immutable trancheImplementation;
+    address public immutable portfolioImplementation;
+    IProtocolConfig public immutable protocolConfig;
 
     /**
      * @notice Event fired on portfolio creation
