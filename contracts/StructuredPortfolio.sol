@@ -183,9 +183,12 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         endDate = block.timestamp + portfolioDuration;
 
         uint256 tranchesCount = tranches.length;
+        uint256 transferredAssets;
         for (uint256 i = 0; i < tranchesCount; i++) {
-            virtualTokenBalance += tranches[i].onPortfolioStart();
+            transferredAssets += tranches[i].onPortfolioStart();
         }
+
+        virtualTokenBalance += transferredAssets;
     }
 
     function checkTranchesRatiosFromTranche(uint256 newTotalAssets) external view {
