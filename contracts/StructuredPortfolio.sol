@@ -358,6 +358,9 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function _defaultedLoansDeficit(TrancheData memory trancheData, uint256 timestamp) internal pure returns (uint256) {
+        if (trancheData.loansDeficitCheckpoint.deficit == 0) {
+            return 0;
+        }
         uint256 timePassed = _saturatingSub(timestamp, trancheData.loansDeficitCheckpoint.timestamp);
         return _withInterest(trancheData.loansDeficitCheckpoint.deficit, trancheData.targetApy, timePassed);
     }
