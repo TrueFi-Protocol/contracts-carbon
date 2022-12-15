@@ -130,15 +130,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         if (status == Status.Live) {
             return liquidAssets() + loansValue();
         }
-        return _tranchesTotalAssets();
-    }
-
-    function _tranchesTotalAssets() internal view returns (uint256 tranchesTotalAssets) {
-        uint256 tranchesCount = tranches.length;
-        for (uint256 i = 0; i < tranchesCount; i++) {
-            tranchesTotalAssets += tranches[i].totalAssets();
-        }
-        return tranchesTotalAssets;
+        return _sum(_tranchesTotalAssets());
     }
 
     function liquidAssets() public view returns (uint256) {
@@ -182,8 +174,9 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function start() external whenNotPaused {
         _requireManagerRole();
         require(status == Status.CapitalFormation, "SP: Portfolio is not in capital formation");
-        checkTranchesRatios();
-        require(totalAssets() >= minimumSize, "SP: Portfolio minimum size not reached");
+        uint256[] memory _totalAssets = _tranchesTotalAssets();
+        _checkTranchesRatios(_totalAssets);
+        require(_sum(_totalAssets) >= minimumSize, "SP: Portfolio minimum size not reached");
         _changePortfolioStatus(Status.Live);
 
         startDate = block.timestamp;
@@ -203,12 +196,20 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         _checkTranchesRatios(_totalAssets);
     }
 
-    function checkTranchesRatios() public view {
+    function checkTranchesRatios() external view {
+        _checkTranchesRatios(_tranchesTotalAssets());
+    }
+
+    function _tranchesTotalAssets() internal view returns (uint256[] memory) {
+        if (status == Status.Live) {
+            return calculateWaterfall();
+        }
+
         uint256[] memory _totalAssets = new uint256[](tranches.length);
         for (uint256 i = 0; i < _totalAssets.length; i++) {
             _totalAssets[i] = tranches[i].totalAssets();
         }
-        _checkTranchesRatios(_totalAssets);
+        return _totalAssets;
     }
 
     function _checkTranchesRatios(uint256[] memory _totalAssets) internal view {
@@ -500,6 +501,14 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
     function _addSigned(uint256 x, int256 y) internal pure returns (uint256) {
         return y < 0 ? x - uint256(-y) : x + uint256(y);
+    }
+
+    function _sum(uint256[] memory components) internal pure returns (uint256) {
+        uint256 sum;
+        for (uint256 i = 0; i < components.length; i++) {
+            sum += components[i];
+        }
+        return sum;
     }
 
     function _limitedBlockTimestamp() internal view returns (uint256) {
