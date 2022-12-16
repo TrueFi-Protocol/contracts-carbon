@@ -117,7 +117,9 @@ abstract contract LoansManager {
         uint256 loansLength = activeLoanIds.length;
         for (uint256 i = 0; i < loansLength; i++) {
             if (activeLoanIds[i] == loanId) {
-                activeLoanIds[i] = activeLoanIds[loansLength - 1];
+                if (i < loansLength - 1) {
+                    activeLoanIds[i] = activeLoanIds[loansLength - 1];
+                }
                 activeLoanIds.pop();
                 emit ActiveLoanRemoved(loanId);
                 return;
