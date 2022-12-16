@@ -236,7 +236,7 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
     function onPortfolioStart() external returns (uint256);
 
     /**
-     * @notice Updates virtualTokenBalance after transferring assets from StructuredPortfolio to TrancheVault
+     * @notice Updates virtualTokenBalance and checkpoint after transferring assets from StructuredPortfolio to TrancheVault
      * @dev Can be executed only by associated StructuredPortfolio
      * @param assets Transferred assets amount
      */

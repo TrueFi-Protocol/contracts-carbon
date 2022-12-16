@@ -243,20 +243,15 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
         if (status == Status.Live) {
             require(isManager || isAfterEndDate, "SP: Cannot close before end date");
+            _changePortfolioStatus(Status.Closed);
             _closeTranches();
         } else {
             require(isManager || block.timestamp >= startDeadline, "SP: Cannot close before end date");
+            _changePortfolioStatus(Status.Closed);
         }
 
         if (!isAfterEndDate) {
             endDate = block.timestamp;
-        }
-
-        _changePortfolioStatus(Status.Closed);
-
-        uint256 tranchesCount = tranches.length;
-        for (uint256 i = 0; i < tranchesCount; i++) {
-            tranches[i].updateCheckpoint();
         }
     }
 
@@ -465,7 +460,6 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         tranchesData[trancheIdx].distributedAssets += amount;
         asset.safeTransferFrom(msg.sender, address(tranche), amount);
         tranche.onTransfer(amount);
-        tranche.updateCheckpoint();
     }
 
     function updateLoanGracePeriod(uint256 loanId, uint32 newGracePeriod) external {
