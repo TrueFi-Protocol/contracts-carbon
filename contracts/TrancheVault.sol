@@ -364,7 +364,6 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     function onTransfer(uint256 assets) external {
         _requirePortfolio();
         virtualTokenBalance += assets;
-        _updateCheckpoint(virtualTokenBalance);
     }
 
     function updateCheckpoint() external portfolioNotPaused {

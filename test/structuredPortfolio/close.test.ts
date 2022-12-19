@@ -137,7 +137,7 @@ describe('StructuredPortfolio.close', () => {
     await expect(structuredPortfolio.close()).to.emit(structuredPortfolio, 'PortfolioStatusChanged').withArgs(PortfolioStatus.Closed)
   })
 
-  it('transfers accrued fees', async () => {
+  it('transfers accrued protocol fees', async () => {
     const { structuredPortfolio, protocolConfig, protocolConfigParams, withInterest, token, tranches, totalDeposit } = await loadFixture(structuredPortfolioLiveFixture)
     const protocolFeeRate = 500
     await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
@@ -149,6 +149,23 @@ describe('StructuredPortfolio.close', () => {
     const timePassed = await getTxTimestamp(closeTx) - await getTxTimestamp(updateTx)
     const expectedProtocolFees = withInterest(totalDeposit, protocolFeeRate, timePassed).sub(totalDeposit)
     expect(await token.balanceOf(protocolConfigParams.protocolTreasury)).to.be.closeTo(expectedProtocolFees, tranches.length)
+  })
+
+  it('transfers accrued manager fees', async () => {
+    const { seniorTranche, structuredPortfolio, withInterest, token, another, senior: { initialDeposit, targetApy }, parseTokenUnits } = await loadFixture(structuredPortfolioLiveFixture)
+    const managerFeeRate = 500
+    await seniorTranche.setManagerFeeBeneficiary(another.address)
+    await seniorTranche.setManagerFeeRate(managerFeeRate)
+    const updateTx = await structuredPortfolio.updateCheckpoints()
+
+    await timeTravel(YEAR)
+    const closeTx = await structuredPortfolio.close()
+
+    const timePassed = await getTxTimestamp(closeTx) - await getTxTimestamp(updateTx)
+    const expectedSeniorValue = withInterest(initialDeposit, targetApy, timePassed)
+    const expectedManagerFees = withInterest(expectedSeniorValue, managerFeeRate, timePassed).sub(expectedSeniorValue)
+    const delta = parseTokenUnits(0.1)
+    expect(await token.balanceOf(another.address)).to.be.closeTo(expectedManagerFees, delta)
   })
 
   it('no assets remain in the portfolio', async () => {

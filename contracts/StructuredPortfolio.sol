@@ -264,12 +264,12 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
         if (status == Status.Live) {
             require(isManager || isAfterEndDate, "SP: Cannot close before end date");
-            _changePortfolioStatus(Status.Closed);
             _closeTranches();
         } else {
             require(isManager || block.timestamp >= startDeadline, "SP: Cannot close before end date");
-            _changePortfolioStatus(Status.Closed);
         }
+
+        _changePortfolioStatus(Status.Closed);
 
         if (!isAfterEndDate) {
             endDate = block.timestamp;
@@ -279,30 +279,30 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function _closeTranches() internal {
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
 
-        uint256 tranchesCount = tranches.length;
-        for (uint256 i = tranchesCount - 1; i > 0; i--) {
-            uint256 maxTrancheValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
-            tranchesData[i].maxValueOnClose = maxTrancheValueOnClose;
+        uint256[] memory assumedTranchesAssets = calculateWaterfall();
+        uint256[] memory distributedAssets = new uint256[](assumedTranchesAssets.length);
+        uint256 assetsLeft = virtualTokenBalance;
+        for (uint256 i = assumedTranchesAssets.length - 1; i > 0; i--) {
+            tranchesData[i].maxValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
 
-            uint256 amount = _min(maxTrancheValueOnClose, virtualTokenBalance);
-            _transferAssetsToTranche(i, amount);
+            distributedAssets[i] = _min(assumedTranchesAssets[i], assetsLeft);
+            tranches[i].updateCheckpointFromPortfolio(distributedAssets[i]);
+
+            assetsLeft -= distributedAssets[i];
         }
 
-        _transferAssetsToTranche(0, virtualTokenBalance);
+        distributedAssets[0] = _min(assumedTranchesAssets[0], assetsLeft);
+        tranches[0].updateCheckpointFromPortfolio(distributedAssets[0]);
+
+        for (uint256 i = 0; i < distributedAssets.length; i++) {
+            tranchesData[i].distributedAssets = distributedAssets[i];
+            _transfer(tranches[i], distributedAssets[i]);
+        }
     }
 
-    function _transferAssetsToTranche(uint256 trancheIdx, uint256 amount) internal {
-        if (amount == 0) {
-            return;
-        }
-        tranchesData[trancheIdx].distributedAssets = amount;
-        ITrancheVault tranche = tranches[trancheIdx];
-        _transfer(address(tranche), amount);
+    function _transfer(ITrancheVault tranche, uint256 amount) internal {
+        asset.safeTransfer(address(tranche), amount);
         tranche.onTransfer(amount);
-    }
-
-    function _transfer(address receiver, uint256 amount) internal {
-        asset.safeTransfer(receiver, amount);
         virtualTokenBalance -= amount;
     }
 
@@ -451,6 +451,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         tranchesData[trancheIdx].distributedAssets += amount;
         asset.safeTransferFrom(msg.sender, address(tranche), amount);
         tranche.onTransfer(amount);
+        tranche.updateCheckpoint();
     }
 
     function updateLoanGracePeriod(uint256 loanId, uint32 newGracePeriod) external {
