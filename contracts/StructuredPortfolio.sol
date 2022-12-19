@@ -486,6 +486,10 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         }
     }
 
+    function getActiveLoans() external view returns (uint256[] memory) {
+        return activeLoanIds;
+    }
+
     function _changePortfolioStatus(Status newStatus) internal {
         status = newStatus;
         emit PortfolioStatusChanged(newStatus);

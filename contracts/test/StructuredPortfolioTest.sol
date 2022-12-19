@@ -31,10 +31,6 @@ contract StructuredPortfolioTest is StructuredPortfolio {
         minimumSize = newSize;
     }
 
-    function getActiveLoans() external view returns (uint256[] memory) {
-        return activeLoanIds;
-    }
-
     function mockIncreaseVirtualTokenBalance(uint256 increment) external {
         virtualTokenBalance += increment;
     }
