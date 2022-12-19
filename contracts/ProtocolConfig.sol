@@ -27,13 +27,6 @@ contract ProtocolConfig is Upgradeable, IProtocolConfig {
 
     mapping(address => CustomFeeRate) internal customFeeRates;
 
-    event DefaultProtocolFeeRateChanged(uint256 newProtocolFeeRate);
-    event CustomProtocolFeeRateChanged(address contractAddress, uint16 newProtocolFeeRate);
-    event CustomProtocolFeeRateRemoved(address contractAddress);
-    event ProtocolAdminChanged(address indexed newProtocolAdmin);
-    event ProtocolTreasuryChanged(address indexed newProtocolTreasury);
-    event PauserAddressChanged(address indexed newPauserAddress);
-
     function initialize(
         uint256 _defaultProtocolFeeRate,
         address _protocolAdmin,

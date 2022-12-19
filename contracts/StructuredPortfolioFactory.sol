@@ -13,41 +13,10 @@ pragma solidity ^0.8.16;
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {IERC20WithDecimals} from "./interfaces/IERC20WithDecimals.sol";
-import {IFixedInterestOnlyLoans} from "./interfaces/IFixedInterestOnlyLoans.sol";
-import {IProtocolConfig} from "./interfaces/IProtocolConfig.sol";
-import {IStructuredPortfolio, TrancheInitData, PortfolioParams, ExpectedEquityRate} from "./interfaces/IStructuredPortfolio.sol";
-import {ITrancheVault} from "./interfaces/ITrancheVault.sol";
+import {IStructuredPortfolioFactory, TrancheData, ITrancheVault, IERC20WithDecimals, IStructuredPortfolio, IProtocolConfig, IFixedInterestOnlyLoans, PortfolioParams, ExpectedEquityRate, TrancheInitData} from "./interfaces/IStructuredPortfolioFactory.sol";
 import {ProxyWrapper} from "./proxy/ProxyWrapper.sol";
 
-struct TrancheData {
-    string name;
-    string symbol;
-    /// @dev Implementation of the controller applied when calling deposit-related functions
-    address depositControllerImplementation;
-    /// @dev Encoded args with initialize method selector from deposit controller
-    bytes depositControllerInitData;
-    /// @dev Implementation of the controller applied when calling withdraw-related functions
-    address withdrawControllerImplementation;
-    /// @dev Encoded args with initialize method selector from withdraw controller
-    bytes withdrawControllerInitData;
-    /// @dev Implementation of the controller used when calling transfer-related functions
-    address transferControllerImplementation;
-    /// @dev Encoded args with initialize method selector from transfer controller
-    bytes transferControllerInitData;
-    /// @dev The APY expected to be granted at the end of the portfolio
-    uint128 targetApy;
-    /// @dev The minimum ratio of funds obtained in a tranche vault to its subordinate tranches
-    uint128 minSubordinateRatio;
-    /// @dev Manager fee expressed in BPS
-    uint256 managerFeeRate;
-}
-
-/**
- * @title A factory for deploying Structured Portfolios
- * @dev Only whitelisted users can create portfolios
- */
-contract StructuredPortfolioFactory is AccessControlEnumerable {
+contract StructuredPortfolioFactory is IStructuredPortfolioFactory, AccessControlEnumerable {
     using Address for address;
     bytes32 public constant WHITELISTED_MANAGER_ROLE = keccak256("WHITELISTED_MANAGER_ROLE");
 
@@ -56,21 +25,6 @@ contract StructuredPortfolioFactory is AccessControlEnumerable {
     address public immutable portfolioImplementation;
     IProtocolConfig public immutable protocolConfig;
 
-    /**
-     * @notice Event fired on portfolio creation
-     * @param newPortfolio Address of the newly created portfolio
-     * @param manager Address of the portfolio manager
-     * @param tranches List of adressess of tranche vaults deployed to store assets
-     */
-    event PortfolioCreated(IStructuredPortfolio indexed newPortfolio, address indexed manager, ITrancheVault[] tranches);
-
-    /**
-     * @dev Grants admin role to message sender, allowing for whitelisting of portfolio managers
-     * @dev Portfolio and tranche implementation addresses are stored in order to create proxies
-     * @param _portfolioImplementation Portfolio implementation address
-     * @param _trancheImplementation Tranche vault implementation address
-     * @param _protocolConfig Protocol config address
-     */
     constructor(
         address _portfolioImplementation,
         address _trancheImplementation,
@@ -82,13 +36,6 @@ contract StructuredPortfolioFactory is AccessControlEnumerable {
         protocolConfig = _protocolConfig;
     }
 
-    /**
-     * @notice Creates a portfolio alongside with its tranche vaults
-     * @dev Tranche vaults are ordered from the most volatile to the most stable
-     * @param fixedInterestOnlyLoans Address of a Fixed Intereset Only Loans used for managing loans
-     * @param portfolioParams Parameters used for portfolio deployment
-     * @param tranchesData Data used for tranche vaults deployment
-     */
     function createPortfolio(
         IERC20WithDecimals underlyingToken,
         IFixedInterestOnlyLoans fixedInterestOnlyLoans,
@@ -174,7 +121,6 @@ contract StructuredPortfolioFactory is AccessControlEnumerable {
         }
     }
 
-    /// @return All created portfolios
     function getPortfolios() external view returns (IStructuredPortfolio[] memory) {
         return portfolios;
     }

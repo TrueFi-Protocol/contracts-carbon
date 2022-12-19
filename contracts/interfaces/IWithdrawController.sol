@@ -11,7 +11,28 @@
 
 pragma solidity ^0.8.16;
 
+import {Status} from "../interfaces/IStructuredPortfolio.sol";
+
+struct WithdrawAllowed {
+    Status status;
+    bool value;
+}
+
 interface IWithdrawController {
+    event FloorChanged(uint256 newFloor);
+
+    event WithdrawAllowedChanged(bool newWithdrawAllowed, Status portfolioStatus);
+
+    event WithdrawFeeRateChanged(uint256 newFeeRate);
+
+    function MANAGER_ROLE() external view returns (bytes32);
+
+    function floor() external view returns (uint256);
+
+    function withdrawFeeRate() external view returns (uint256);
+
+    function withdrawAllowed(Status status) external view returns (bool);
+
     function initialize(
         address,
         uint256,
@@ -39,4 +60,16 @@ interface IWithdrawController {
         address receiver,
         address owner
     ) external returns (uint256 assets, uint256 redeemFee);
+
+    function setFloor(uint256 newFloor) external;
+
+    function setWithdrawAllowed(bool newWithdrawAllowed, Status portfolioStatus) external;
+
+    function setWithdrawFeeRate(uint256 newFeeRate) external;
+
+    function configure(
+        uint256 newFloor,
+        uint256 newFeeRate,
+        WithdrawAllowed memory newWithdrawAllowed
+    ) external;
 }

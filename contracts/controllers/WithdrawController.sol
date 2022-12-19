@@ -15,15 +15,9 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import {ITrancheVault} from "../interfaces/ITrancheVault.sol";
-import {IWithdrawController} from "../interfaces/IWithdrawController.sol";
-import {Status} from "../interfaces/IStructuredPortfolio.sol";
+import {IWithdrawController, Status, WithdrawAllowed} from "../interfaces/IWithdrawController.sol";
 
 uint256 constant BASIS_PRECISION = 10000;
-
-struct WithdrawAllowed {
-    Status status;
-    bool value;
-}
 
 contract WithdrawController is IWithdrawController, Initializable, AccessControlEnumerable {
     /// @dev Manager role used for access control
@@ -31,10 +25,6 @@ contract WithdrawController is IWithdrawController, Initializable, AccessControl
     uint256 public floor;
     uint256 public withdrawFeeRate;
     mapping(Status => bool) public withdrawAllowed;
-
-    event FloorChanged(uint256 newFloor);
-    event WithdrawAllowedChanged(bool newWithdrawAllowed, Status portfolioStatus);
-    event WithdrawFeeRateChanged(uint256 newFeeRate);
 
     constructor() {}
 

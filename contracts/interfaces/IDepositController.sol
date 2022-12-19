@@ -11,7 +11,33 @@
 
 pragma solidity ^0.8.16;
 
+import {ILenderVerifier} from "../interfaces/ILenderVerifier.sol";
+import {Status} from "../interfaces/IStructuredPortfolio.sol";
+
+struct DepositAllowed {
+    Status status;
+    bool value;
+}
+
 interface IDepositController {
+    event CeilingChanged(uint256 newCeiling);
+
+    event DepositAllowedChanged(bool newDepositAllowed, Status portfolioStatus);
+
+    event DepositFeeRateChanged(uint256 newFeeRate);
+
+    event LenderVerifierChanged(ILenderVerifier indexed newLenderVerifier);
+
+    function MANAGER_ROLE() external view returns (bytes32);
+
+    function lenderVerifier() external view returns (ILenderVerifier);
+
+    function ceiling() external view returns (uint256);
+
+    function depositFeeRate() external view returns (uint256);
+
+    function depositAllowed(Status status) external view returns (bool);
+
     function initialize(
         address manager,
         address lenderVerfier,
@@ -38,4 +64,19 @@ interface IDepositController {
         uint256 shares,
         address receiver
     ) external returns (uint256 assets, uint256 mintFee);
+
+    function setCeiling(uint256 newCeiling) external;
+
+    function setDepositAllowed(bool newDepositAllowed, Status portfolioStatus) external;
+
+    function setDepositFeeRate(uint256 newFeeRate) external;
+
+    function setLenderVerifier(ILenderVerifier newLenderVerifier) external;
+
+    function configure(
+        uint256 newCeiling,
+        uint256 newFeeRate,
+        ILenderVerifier newLenderVerifier,
+        DepositAllowed memory newDepositAllowed
+    ) external;
 }

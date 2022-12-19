@@ -73,6 +73,18 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      */
     event ManagerFeeBeneficiaryChanged(address newManagerFeeBeneficiary);
 
+    event DepositControllerChanged(IDepositController indexed newController);
+
+    event WithdrawControllerChanged(IWithdrawController indexed newController);
+
+    event TransferControllerChanged(ITransferController indexed newController);
+
+    /// @dev Tranche manager role used for access control
+    function MANAGER_ROLE() external view returns (bytes32);
+
+    /// @dev Role used to access tranche controllers setters
+    function TRANCHE_CONTROLLER_OWNER_ROLE() external view returns (bytes32);
+
     /**
      * @return Associated StructuredPortfolio address
      */
@@ -107,6 +119,8 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      * @return Address to which manager fee should be transferred
      */
     function managerFeeBeneficiary() external view returns (address);
+
+    function protocolConfig() external view returns (IProtocolConfig);
 
     /**
      * @notice DepositController address setter
@@ -183,6 +197,15 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
     function updateCheckpoint() external;
 
     /**
+     * @notice Updates TrancheVault checkpoint with total assets value calculated in StructuredPortfolio waterfall
+     * @dev
+     * - can be executed only by associated StructuredPortfolio
+     * - can be executed only in Live portfolio status
+     * @param _totalAssets Total assets amount to save in the checkpoint
+     */
+    function updateCheckpointFromPortfolio(uint256 _totalAssets) external;
+
+    /**
      * @return Total tranche assets including accrued but yet not paid fees
      */
     function totalAssetsBeforeFees() external view returns (uint256);
@@ -197,6 +220,10 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      * @param amount Asset amount with which fees should be calculated
      */
     function totalPendingFees(uint256 amount) external view returns (uint256);
+
+    function pendingProtocolFee() external view returns (uint256);
+
+    function pendingManagerFee() external view returns (uint256);
 
     /**
      * @return Sum of continuous protocol and manager fees accrued on every block on the top of checkpoint tranche total assets since last checkpoint update
@@ -217,15 +244,6 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      * @return managerFee Remembered value of fee unpaid to manager due to insufficient TrancheVault funds at the moment of transfer
      */
     function unpaidManagerFee() external view returns (uint256);
-
-    /**
-     * @notice Updates TrancheVault checkpoint with total assets value calculated in StructuredPortfolio waterfall
-     * @dev
-     * - can be executed only by associated StructuredPortfolio
-     * - can be executed only in Live portfolio status
-     * @param _totalAssets Total assets amount to save in the checkpoint
-     */
-    function updateCheckpointFromPortfolio(uint256 _totalAssets) external;
 
     /**
      * @notice Initializes TrancheVault checkpoint and transfers all TrancheVault assets to associated StructuredPortfolio

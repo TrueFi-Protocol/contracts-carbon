@@ -12,6 +12,25 @@
 pragma solidity ^0.8.16;
 
 interface IProtocolConfig {
+    event DefaultProtocolFeeRateChanged(uint256 newProtocolFeeRate);
+
+    event CustomProtocolFeeRateChanged(address contractAddress, uint16 newProtocolFeeRate);
+
+    event CustomProtocolFeeRateRemoved(address contractAddress);
+
+    event ProtocolAdminChanged(address indexed newProtocolAdmin);
+
+    event ProtocolTreasuryChanged(address indexed newProtocolTreasury);
+
+    event PauserAddressChanged(address indexed newPauserAddress);
+
+    function initialize(
+        uint256 _defaultProtocolFeeRate,
+        address _protocolAdmin,
+        address _protocolTreasury,
+        address _pauserAddress
+    ) external;
+
     function protocolFeeRate() external view returns (uint256);
 
     function protocolFeeRate(address) external view returns (uint256);
@@ -23,4 +42,16 @@ interface IProtocolConfig {
     function protocolTreasury() external view returns (address);
 
     function pauserAddress() external view returns (address);
+
+    function setCustomProtocolFeeRate(address contractAddress, uint16 newFeeRate) external;
+
+    function removeCustomProtocolFeeRate(address contractAddress) external;
+
+    function setDefaultProtocolFeeRate(uint256 newFeeRate) external;
+
+    function setProtocolAdmin(address newProtocolAdmin) external;
+
+    function setProtocolTreasury(address newProtocolTreasury) external;
+
+    function setPauserAddress(address newPauserAddress) external;
 }

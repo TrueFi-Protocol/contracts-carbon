@@ -98,10 +98,17 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
      */
     event CheckpointUpdated(uint256[] totalAssets, uint256[] protocolFeeRates);
 
+    /// @dev Portfolio manager role used for access control
+    function MANAGER_ROLE() external view returns (bytes32);
+
+    function name() external view returns (string memory);
+
     /**
      * @return Current portfolio status
      */
     function status() external view returns (Status);
+
+    function startDate() external view returns (uint256);
 
     /**
      * @dev After the portfolio is closed returns the actual end date.
@@ -114,6 +121,8 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
      * @return The date by which the manager is supposed to launch the portfolio.
      */
     function startDeadline() external view returns (uint256);
+
+    function minimumSize() external view returns (uint256);
 
     /**
      * @notice Launches the portfolio making it possible to issue loans.
@@ -141,6 +150,8 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
      * @return Array of current tranche values
      */
     function calculateWaterfall() external view returns (uint256[] memory);
+
+    function calculateWaterfallWithoutFees() external view returns (uint256[] memory);
 
     /**
      * @param trancheIndex Index of tranche
@@ -193,10 +204,14 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
      */
     function liquidAssets() external view returns (uint256);
 
+    function loansValue() external view returns (uint256);
+
     /**
      * @return Sum of all unsettled fees that tranches should pay
      */
     function totalPendingFees() external view returns (uint256);
+
+    function getActiveLoans() external view returns (uint256[] memory);
 
     /**
      * @notice Creates a loan that should be accepted next by the loan recipient
@@ -225,12 +240,16 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
      */
     function repayLoan(uint256 loanId) external;
 
+    function cancelLoan(uint256 loanId) external;
+
     /**
      * @notice Sets the status of a loan with given id to Defaulted and excludes it from active loans array
      * @dev Can be executed only by StructuredPortfolio manager
      * @param loanId Id of a loan that should be defaulted
      */
     function markLoanAsDefaulted(uint256 loanId) external;
+
+    function updateLoanGracePeriod(uint256 loanId, uint32 newGracePeriod) external;
 
     /**
      * @notice Virtual value of the portfolio

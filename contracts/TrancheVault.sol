@@ -21,41 +21,34 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import {IDepositController} from "./interfaces/IDepositController.sol";
 import {IWithdrawController} from "./interfaces/IWithdrawController.sol";
-import {ITrancheVault, SizeRange, Checkpoint, Configuration} from "./interfaces/ITrancheVault.sol";
+import {ITrancheVault, SizeRange, Checkpoint, Configuration, IProtocolConfig} from "./interfaces/ITrancheVault.sol";
 import {ITransferController} from "./interfaces/ITransferController.sol";
 import {IERC20WithDecimals} from "./interfaces/IERC20WithDecimals.sol";
 import {IStructuredPortfolio, Status, BASIS_PRECISION, YEAR} from "./interfaces/IStructuredPortfolio.sol";
-import {IProtocolConfig} from "./interfaces/IProtocolConfig.sol";
 import {IPausable} from "./interfaces/IPausable.sol";
 import {Upgradeable} from "./proxy/Upgradeable.sol";
 
 contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     using SafeERC20 for IERC20WithDecimals;
 
-    /// @dev Tranche manager role used for access control
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE"); // 0x241ecf16d79d0f8dbfb92cbc07fe17840425976cf0667f022fe9877caa831b08
 
-    /// @dev Role used to access tranche controllers setters
     bytes32 public constant TRANCHE_CONTROLLER_OWNER_ROLE = keccak256("TRANCHE_CONTROLLER_OWNER_ROLE"); // 0x5b4e632df2edce09667a379f949ff4559a6f6e163b09e2e961c6950a280403b4
 
     IERC20WithDecimals internal token;
+    Checkpoint internal checkpoint;
     IStructuredPortfolio public portfolio;
     IDepositController public depositController;
     IWithdrawController public withdrawController;
     ITransferController public transferController;
     IProtocolConfig public protocolConfig;
     uint256 public waterfallIndex;
-    Checkpoint public checkpoint;
     uint256 public unpaidProtocolFee;
     uint256 public unpaidManagerFee;
     address public managerFeeBeneficiary;
     uint256 public managerFeeRate;
     uint256 public virtualTokenBalance;
     uint256 internal totalAssetsCache;
-
-    event DepositControllerChanged(IDepositController indexed newController);
-    event WithdrawControllerChanged(IWithdrawController indexed newController);
-    event TransferControllerChanged(ITransferController indexed newController);
 
     modifier portfolioNotPaused() {
         require(!IPausable(address(portfolio)).paused(), "TV: Portfolio is paused");
@@ -569,6 +562,11 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         emit ManagerFeeBeneficiaryChanged(_managerFeeBeneficiary);
     }
 
+    function setPortfolio(IStructuredPortfolio _portfolio) external {
+        require(address(portfolio) == address(0), "TV: Portfolio already set");
+        portfolio = _portfolio;
+    }
+
     function _requireNonZeroAddress(address _address) internal pure {
         require(_address != address(0), "TV: Cannot be zero address");
     }
@@ -583,11 +581,6 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
 
     function _requirePortfolio() internal view {
         require(msg.sender == address(portfolio), "TV: Sender is not portfolio");
-    }
-
-    function setPortfolio(IStructuredPortfolio _portfolio) external {
-        require(address(portfolio) == address(0), "TV: Portfolio already set");
-        portfolio = _portfolio;
     }
 
     function _safeBurn(address owner, uint256 shares) internal {

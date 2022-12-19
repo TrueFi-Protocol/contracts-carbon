@@ -14,17 +14,10 @@ pragma solidity ^0.8.16;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import {IDepositController} from "../interfaces/IDepositController.sol";
+import {IDepositController, ILenderVerifier, Status, DepositAllowed} from "../interfaces/IDepositController.sol";
 import {ITrancheVault} from "../interfaces/ITrancheVault.sol";
-import {ILenderVerifier} from "../interfaces/ILenderVerifier.sol";
-import {Status} from "../interfaces/IStructuredPortfolio.sol";
 
 uint256 constant BASIS_PRECISION = 10000;
-
-struct DepositAllowed {
-    Status status;
-    bool value;
-}
 
 contract DepositController is IDepositController, Initializable, AccessControlEnumerable {
     /// @dev Manager role used for access control
@@ -34,11 +27,6 @@ contract DepositController is IDepositController, Initializable, AccessControlEn
     uint256 public depositFeeRate;
 
     mapping(Status => bool) public depositAllowed;
-
-    event CeilingChanged(uint256 newCeiling);
-    event DepositAllowedChanged(bool newDepositAllowed, Status portfolioStatus);
-    event DepositFeeRateChanged(uint256 newFeeRate);
-    event LenderVerifierChanged(ILenderVerifier indexed newLenderVerifier);
 
     constructor() {}
 

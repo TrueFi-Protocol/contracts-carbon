@@ -26,7 +26,6 @@ import {LoansManager, AddLoanParams} from "./LoansManager.sol";
 contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable {
     using SafeERC20 for IERC20WithDecimals;
 
-    /// @dev Portfolio manager role used for access control
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE"); // 0x241ecf16d79d0f8dbfb92cbc07fe17840425976cf0667f022fe9877caa831b08
 
     IProtocolConfig public protocolConfig;
