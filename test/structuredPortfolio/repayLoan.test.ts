@@ -121,34 +121,6 @@ describe('StructuredPortfolio.repayLoan', () => {
       }
     })
 
-    it('updates checkpoint on tranches', async () => {
-      const {
-        structuredPortfolio,
-        loan: basicLoan,
-        addAndFundLoan,
-        equityTranche,
-        repayLoanInFull,
-        getFullRepayAmount,
-      } = await loadFixture(structuredPortfolioLiveFixture)
-      const loanDuration = YEAR - basicLoan.gracePeriod
-      const loan: Loan = {
-        ...basicLoan,
-        periodCount: 1,
-        periodDuration: loanDuration,
-      }
-      const loanId = await addAndFundLoan(loan)
-      await timeTravel(loanDuration + loan.gracePeriod + 1)
-      await structuredPortfolio.markLoanAsDefaulted(loanId)
-      await structuredPortfolio.close()
-
-      const [totalAssetsBefore] = await equityTranche.getCheckpoint()
-      await repayLoanInFull(loanId, loan)
-      const repayAmount = getFullRepayAmount(loan)
-      const [totalAssetsAfter] = await equityTranche.getCheckpoint()
-
-      expect(totalAssetsAfter).to.be.closeTo(totalAssetsBefore.add(repayAmount), DELTA)
-    })
-
     it('all to equity', async () => {
       const {
         structuredPortfolio,
@@ -225,6 +197,7 @@ describe('StructuredPortfolio.repayLoan', () => {
         addAndFundLoan,
         equityTranche,
         juniorTranche,
+        seniorTranche,
         repayLoanInFull,
         getFullRepayAmount,
         initialDeposits,
@@ -253,11 +226,13 @@ describe('StructuredPortfolio.repayLoan', () => {
       await structuredPortfolio.markLoanAsDefaulted(loanToDefaultId)
       await structuredPortfolio.close()
 
+      const seniorTotalAssetsBefore = await seniorTranche.totalAssets()
       const juniorTotalAssetsBefore = await juniorTranche.totalAssets()
 
       await repayLoanInFull(loanToRepayId, loanToRepay)
       const repayAmount = getFullRepayAmount(loanToRepay)
 
+      expect(await seniorTranche.totalAssets()).to.eq(seniorTotalAssetsBefore)
       expect(await juniorTranche.totalAssets()).to.be.closeTo(juniorTotalAssetsBefore.add(repayAmount), DELTA)
       expect(await equityTranche.totalAssets()).to.eq(0)
     })

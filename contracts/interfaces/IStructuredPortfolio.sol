@@ -180,9 +180,8 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
     /**
      * @notice Updates checkpoints on each tranche and pay pending fees
      * @dev Can be executed only in Live status
-     * @return totalAssets Array of current tranche values
      */
-    function updateCheckpoints() external returns (uint256[] memory totalAssets);
+    function updateCheckpoints() external;
 
     /**
      * @return Total value locked in the contract including yield from outstanding loans

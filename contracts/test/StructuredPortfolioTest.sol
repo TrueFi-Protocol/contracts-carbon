@@ -38,4 +38,8 @@ contract StructuredPortfolioTest is StructuredPortfolio {
     function mockDecreaseVirtualTokenBalance(uint256 decrement) external {
         virtualTokenBalance -= decrement;
     }
+
+    function getNewLoansDeficit(uint256 currentDeficit, int256 delta) external pure returns (uint256) {
+        return _getNewLoansDeficit(currentDeficit, delta);
+    }
 }

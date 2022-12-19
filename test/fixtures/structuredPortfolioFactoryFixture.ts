@@ -43,8 +43,19 @@ interface PortfolioParams {
   minimumSize: number,
 }
 
-export const getStructuredPortfolioFactoryFixture = (tokenDecimals: number) => {
+export interface FixtureConfig {
+  tokenDecimals: number,
+  targetApys: number[],
+}
+
+const defaultFixtureConfig: FixtureConfig = {
+  tokenDecimals: 6,
+  targetApys: [0, 500, 300],
+}
+
+export const getStructuredPortfolioFactoryFixture = (fixtureConfig?: Partial<FixtureConfig>) => {
   return async ([wallet, other]: Wallet[]) => {
+    const { tokenDecimals, targetApys } = { ...defaultFixtureConfig, ...fixtureConfig }
     const token = await new MockToken__factory(wallet).deploy(tokenDecimals)
 
     const parseTokenUnits = (amount: string | number) => utils.parseUnits(amount.toString(), tokenDecimals)
@@ -87,7 +98,7 @@ export const getStructuredPortfolioFactoryFixture = (tokenDecimals: number) => {
       withdrawControllerInitData: withdrawController.interface.encodeFunctionData('initialize', [wallet.address, 0, 1]),
       transferControllerImplementation: transferController.address,
       transferControllerInitData: transferController.interface.encodeFunctionData('initialize', [wallet.address]),
-      targetApy: 0,
+      targetApy: targetApys[0],
       minSubordinateRatio: 0,
       managerFeeRate: 0,
     }
@@ -101,7 +112,7 @@ export const getStructuredPortfolioFactoryFixture = (tokenDecimals: number) => {
       withdrawControllerInitData: withdrawController.interface.encodeFunctionData('initialize', [wallet.address, 0, 1]),
       transferControllerImplementation: transferController.address,
       transferControllerInitData: transferController.interface.encodeFunctionData('initialize', [wallet.address]),
-      targetApy: 500,
+      targetApy: targetApys[1],
       minSubordinateRatio: 0,
       managerFeeRate: 0,
     }
@@ -115,7 +126,7 @@ export const getStructuredPortfolioFactoryFixture = (tokenDecimals: number) => {
       withdrawControllerInitData: withdrawController.interface.encodeFunctionData('initialize', [wallet.address, 0, 1]),
       transferControllerImplementation: transferController.address,
       transferControllerInitData: transferController.interface.encodeFunctionData('initialize', [wallet.address]),
-      targetApy: 300,
+      targetApy: targetApys[2],
       minSubordinateRatio: 0,
       managerFeeRate: 0,
     }
@@ -254,4 +265,4 @@ export const getStructuredPortfolioFactoryFixture = (tokenDecimals: number) => {
   }
 }
 
-export const structuredPortfolioFactoryFixture = getStructuredPortfolioFactoryFixture(6)
+export const structuredPortfolioFactoryFixture = getStructuredPortfolioFactoryFixture()

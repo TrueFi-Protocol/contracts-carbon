@@ -1,6 +1,6 @@
 import { DepositController, TrancheVaultTest, WithdrawController } from 'build/types'
 import { Wallet, constants, BigNumber } from 'ethers'
-import { getStructuredPortfolioFactoryFixture, TrancheData } from './structuredPortfolioFactoryFixture'
+import { FixtureConfig, getStructuredPortfolioFactoryFixture, TrancheData } from './structuredPortfolioFactoryFixture'
 import { BigNumberish } from 'ethers'
 import { setupLoansManagerHelpers } from './setupLoansManagerHelpers'
 import { ONE_IN_BPS, YEAR } from 'utils/constants'
@@ -20,9 +20,9 @@ export enum PortfolioStatus {
   Closed,
 }
 
-const getStructuredPortfolioFixture = (tokenDecimals: number) => {
+export const getStructuredPortfolioFixture = (fixtureConfig?: Partial<FixtureConfig>) => {
   return async ([wallet, other, ...rest]: Wallet[]) => {
-    const factoryFixtureResult = await getStructuredPortfolioFactoryFixture(tokenDecimals)([wallet, other, ...rest])
+    const factoryFixtureResult = await getStructuredPortfolioFactoryFixture(fixtureConfig)([wallet, other, ...rest])
     const { portfolioDuration, getPortfolioFromTx, tranches, tranchesData, fixedInterestOnlyLoans, token } = factoryFixtureResult
 
     const structuredPortfolio = await getPortfolioFromTx()
@@ -113,11 +113,11 @@ const getStructuredPortfolioFixture = (tokenDecimals: number) => {
   }
 }
 
-export const structuredPortfolioFixture = getStructuredPortfolioFixture(6)
+export const structuredPortfolioFixture = getStructuredPortfolioFixture()
 
-export const getStructuredPortfolioLiveFixture = (tokenDecimals: number) => {
+export const getStructuredPortfolioLiveFixture = (fixtureConfig?: Partial<FixtureConfig>) => {
   return async ([wallet, borrower, ...rest]: Wallet[]) => {
-    const portfolioFixtureResult = await getStructuredPortfolioFixture(tokenDecimals)([wallet, borrower, ...rest])
+    const portfolioFixtureResult = await getStructuredPortfolioFixture(fixtureConfig)([wallet, borrower, ...rest])
     const {
       tranches,
       depositToTranche,
@@ -171,4 +171,4 @@ export const getStructuredPortfolioLiveFixture = (tokenDecimals: number) => {
   }
 }
 
-export const structuredPortfolioLiveFixture = getStructuredPortfolioLiveFixture(6)
+export const structuredPortfolioLiveFixture = getStructuredPortfolioLiveFixture()

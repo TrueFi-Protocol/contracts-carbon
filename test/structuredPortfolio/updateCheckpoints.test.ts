@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
+import { BigNumber } from 'ethers'
+import { getStructuredPortfolioFixture, structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
@@ -114,5 +115,62 @@ describe('StructuredPortfolio.updateCheckpoint', () => {
     await token.transfer(structuredPortfolio.address, parseTokenUnits(0.1))
 
     await expect(structuredPortfolio.updateCheckpoints()).not.to.be.reverted
+  })
+
+  describe('with defaulted loans deficit', () => {
+    it('deficit cannot be repeatedly assigned to tranche interest', async () => {
+      const { depositToTranche, seniorTranche, juniorTranche, equityTranche, parseTokenUnits, structuredPortfolio, addAndFundLoan, getLoan, tranches } = await loadFixture(getStructuredPortfolioFixture({ tokenDecimals: 18, targetApys: [0, 200, 100] }))
+
+      const totalAssets: BigNumber[] = []
+      const delta = parseTokenUnits('0.000001')
+      async function assertTotalAssets() {
+        for (let i = 0; i < tranches.length; i++) {
+          expect(await tranches[i].totalAssets()).to.be.closeTo(totalAssets[i], delta)
+        }
+      }
+
+      const amount = parseTokenUnits(100)
+      await depositToTranche(seniorTranche, amount)
+      await depositToTranche(juniorTranche, amount)
+      await depositToTranche(equityTranche, amount)
+
+      await structuredPortfolio.start()
+
+      const loanB = getLoan({
+        principal: parseTokenUnits(180),
+        periodCount: 12,
+        periodPayment: parseTokenUnits(180 / 12 * 0.1), // 10%
+        periodDuration: YEAR / 12,
+        gracePeriod: 0,
+      })
+      await addAndFundLoan(loanB)
+
+      const loanA = getLoan({
+        principal: parseTokenUnits(102),
+        periodCount: 1,
+        periodPayment: BigNumber.from(1), // 0%
+        periodDuration: 1,
+        gracePeriod: 0,
+      })
+      const loanAId = await addAndFundLoan(loanA)
+
+      await timeTravel(1)
+
+      await structuredPortfolio.markLoanAsDefaulted(loanAId)
+
+      await timeTravel(YEAR)
+      for (let i = 0; i < tranches.length; i++) {
+        totalAssets.push(await tranches[i].totalAssets())
+      }
+
+      await structuredPortfolio.updateCheckpoints()
+      await assertTotalAssets()
+
+      await structuredPortfolio.updateCheckpoints()
+      await assertTotalAssets()
+
+      await structuredPortfolio.updateCheckpoints()
+      await assertTotalAssets()
+    })
   })
 })

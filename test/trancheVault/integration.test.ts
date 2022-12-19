@@ -13,7 +13,7 @@ describe('TrancheVault integration tests', () => {
 
   for (const decimals of tokenDecimals) {
     it(`multiple deposits and withdrawals (${decimals} decimals)`, async () => {
-      const { juniorTranche, provider, parseTokenUnits, token } = await loadFixture(getStructuredPortfolioLiveFixture(decimals))
+      const { juniorTranche, provider, parseTokenUnits, token } = await loadFixture(getStructuredPortfolioLiveFixture({ tokenDecimals: decimals }))
       const [lenderA, lenderB, lenderC] = provider.getWallets().slice(3)
 
       let lenderAShares = constants.Zero
