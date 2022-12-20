@@ -13,6 +13,26 @@ describe('TrancheVault.updateCheckpoint', () => {
     await expect(seniorTranche.updateCheckpoint()).to.be.revertedWith('TV: Only in Closed status')
   })
 
+  it('reverts if protocolTreasury is TrancheVault', async () => {
+    const { seniorTranche, protocolConfig, structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
+    await protocolConfig.setProtocolTreasury(seniorTranche.address)
+    await protocolConfig.setDefaultProtocolFeeRate(500)
+    await structuredPortfolio.close()
+    await timeTravel(WEEK)
+
+    await expect(seniorTranche.updateCheckpoint()).to.be.revertedWith('TV: Token transfer to TV')
+  })
+
+  it('reverts if protocolTreasury is StructuredPortfolio', async () => {
+    const { seniorTranche, protocolConfig, structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
+    await protocolConfig.setProtocolTreasury(structuredPortfolio.address)
+    await protocolConfig.setDefaultProtocolFeeRate(500)
+    await structuredPortfolio.close()
+    await timeTravel(WEEK)
+
+    await expect(seniorTranche.updateCheckpoint()).to.be.revertedWith('TV: Token transfer to SP')
+  })
+
   it('updates checkpoint', async () => {
     const { seniorTranche, protocolConfig, token, structuredPortfolio, withInterest } = await loadFixture(structuredPortfolioLiveFixture)
     const protocolFeeRate = 500

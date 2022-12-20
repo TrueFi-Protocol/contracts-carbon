@@ -180,6 +180,8 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         uint256 shares,
         address receiver
     ) internal {
+        assert(msg.sender != address(this));
+        assert(msg.sender != address(portfolio));
         require(amount > 0 && shares > 0, "TV: Amount cannot be zero");
         Status status = portfolio.status();
 
@@ -345,10 +347,13 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function onPortfolioStart() external returns (uint256) {
+        assert(address(this) != address(portfolio));
         _requirePortfolio();
 
         uint256 balance = virtualTokenBalance;
-        _transferFromTranche(address(portfolio), balance);
+        virtualTokenBalance = 0;
+
+        token.safeTransfer(address(portfolio), balance);
         _updateCheckpoint(balance);
 
         return balance;
@@ -406,6 +411,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         if (fee == 0) {
             return;
         }
+        require(address(this) != managerFeeBeneficiary, "TV: managerFeeBeneficiary is TV");
         token.safeTransferFrom(msg.sender, managerFeeBeneficiary, fee);
         emit ManagerFeePaid(managerFeeBeneficiary, fee);
     }
@@ -419,21 +425,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function _transferAssets(address to, uint256 assets) internal {
+        require(to != address(this), "TV: Token transfer to TV");
+        require(to != address(portfolio), "TV: Token transfer to SP");
+
         if (portfolio.status() == Status.Live) {
-            _transferFromPortfolio(to, assets);
+            portfolio.decreaseVirtualTokenBalance(assets);
+            token.safeTransferFrom(address(portfolio), to, assets);
         } else {
-            _transferFromTranche(to, assets);
+            virtualTokenBalance -= assets;
+            token.safeTransfer(to, assets);
         }
-    }
-
-    function _transferFromTranche(address to, uint256 assets) internal {
-        token.safeTransfer(to, assets);
-        virtualTokenBalance -= assets;
-    }
-
-    function _transferFromPortfolio(address to, uint256 assets) internal {
-        token.safeTransferFrom(address(portfolio), to, assets);
-        portfolio.decreaseVirtualTokenBalance(assets);
     }
 
     function _payFee(uint256 fee, address recipient) internal returns (uint256 paidFee, uint256 unpaidFee) {
@@ -441,15 +442,8 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             return (0, 0);
         }
 
-        if (portfolio.status() == Status.Live) {
-            return _payFeeInLive(recipient, fee);
-        } else {
-            return _payFeeInClosed(recipient, fee);
-        }
-    }
+        uint256 balance = portfolio.status() == Status.Live ? portfolio.virtualTokenBalance() : virtualTokenBalance;
 
-    function _payFeeInLive(address recipient, uint256 fee) internal returns (uint256 paidFee, uint256 unpaidFee) {
-        uint256 balance = portfolio.virtualTokenBalance();
         if (fee > balance) {
             paidFee = balance;
             unpaidFee = fee - balance;
@@ -458,20 +452,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             unpaidFee = 0;
         }
 
-        _transferFromPortfolio(recipient, paidFee);
-    }
-
-    function _payFeeInClosed(address recipient, uint256 fee) internal returns (uint256 paidFee, uint256 unpaidFee) {
-        uint256 balance = virtualTokenBalance;
-        if (fee > balance) {
-            paidFee = balance;
-            unpaidFee = fee - balance;
-        } else {
-            paidFee = fee;
-            unpaidFee = 0;
-        }
-
-        _transferFromTranche(recipient, paidFee);
+        _transferAssets(recipient, paidFee);
     }
 
     function totalPendingFees() external view returns (uint256) {
