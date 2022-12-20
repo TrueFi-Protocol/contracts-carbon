@@ -197,6 +197,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         uint256[] memory _totalAssets = _tranchesTotalAssets();
         _checkTranchesRatios(_totalAssets);
         require(_sum(_totalAssets) >= minimumSize, "SP: Portfolio minimum size not reached");
+
         _changePortfolioStatus(Status.Live);
 
         startDate = block.timestamp;
@@ -212,9 +213,11 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function checkTranchesRatiosFromTranche(uint256 newTotalAssets) external view {
-        uint256[] memory _totalAssets = new uint256[](tranches.length);
+        uint256[] memory _totalAssets = calculateWaterfall();
         for (uint256 i = 0; i < _totalAssets.length; i++) {
-            _totalAssets[i] = msg.sender == address(tranches[i]) ? newTotalAssets : tranches[i].totalAssets();
+            if (msg.sender == address(tranches[i])) {
+                _totalAssets[i] = newTotalAssets;
+            }
         }
         _checkTranchesRatios(_totalAssets);
     }
@@ -281,21 +284,24 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         uint256[] memory assumedTranchesAssets = calculateWaterfall();
         uint256[] memory distributedAssets = new uint256[](assumedTranchesAssets.length);
         uint256 assetsLeft = virtualTokenBalance;
+
         for (uint256 i = assumedTranchesAssets.length - 1; i > 0; i--) {
             tranchesData[i].maxValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
 
-            distributedAssets[i] = _min(assumedTranchesAssets[i], assetsLeft);
-            tranches[i].updateCheckpointFromPortfolio(distributedAssets[i]);
+            uint256 trancheDistributedAssets = _min(assumedTranchesAssets[i], assetsLeft);
+            distributedAssets[i] = trancheDistributedAssets;
+            tranches[i].updateCheckpointFromPortfolio(trancheDistributedAssets);
 
-            assetsLeft -= distributedAssets[i];
+            assetsLeft -= trancheDistributedAssets;
         }
 
         distributedAssets[0] = _min(assumedTranchesAssets[0], assetsLeft);
         tranches[0].updateCheckpointFromPortfolio(distributedAssets[0]);
 
         for (uint256 i = 0; i < distributedAssets.length; i++) {
-            tranchesData[i].distributedAssets = distributedAssets[i];
-            _transfer(tranches[i], distributedAssets[i]);
+            uint256 trancheDistributedAssets = distributedAssets[i];
+            tranchesData[i].distributedAssets = trancheDistributedAssets;
+            _transfer(tranches[i], trancheDistributedAssets);
         }
     }
 
