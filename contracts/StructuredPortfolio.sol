@@ -161,9 +161,12 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function totalPendingFees() public view returns (uint256) {
         uint256 sum = 0;
         uint256 tranchesCount = tranches.length;
+        uint256[] memory _totalAssets = calculateWaterfallWithoutFees();
+
         for (uint256 i = 0; i < tranchesCount; i++) {
-            sum += tranches[i].totalPendingFees();
+            sum += tranches[i].totalPendingFeesForAssets(_totalAssets[i]);
         }
+
         return sum;
     }
 
@@ -321,7 +324,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function calculateWaterfall() public view returns (uint256[] memory) {
         uint256[] memory waterfall = calculateWaterfallWithoutFees();
         for (uint256 i = 0; i < waterfall.length; i++) {
-            uint256 pendingFees = tranches[i].totalPendingFees(waterfall[i]);
+            uint256 pendingFees = tranches[i].totalPendingFeesForAssets(waterfall[i]);
             waterfall[i] = _saturatingSub(waterfall[i], pendingFees);
         }
         return waterfall;

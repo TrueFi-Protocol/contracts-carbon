@@ -105,7 +105,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             return totalAssetsCache;
         }
         uint256 balance = totalAssetsBeforeFees();
-        uint256 pendingFees = totalPendingFees(balance);
+        uint256 pendingFees = totalPendingFeesForAssets(balance);
         return balance > pendingFees ? balance - pendingFees : 0;
     }
 
@@ -455,10 +455,10 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function totalPendingFees() external view returns (uint256) {
-        return totalPendingFees(totalAssetsBeforeFees());
+        return totalPendingFeesForAssets(totalAssetsBeforeFees());
     }
 
-    function totalPendingFees(uint256 _totalAssetsBeforeFees) public view returns (uint256) {
+    function totalPendingFeesForAssets(uint256 _totalAssetsBeforeFees) public view returns (uint256) {
         return _pendingProtocolFee(_totalAssetsBeforeFees) + _pendingManagerFee(_totalAssetsBeforeFees);
     }
 
