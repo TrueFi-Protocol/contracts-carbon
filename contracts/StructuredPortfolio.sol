@@ -278,21 +278,21 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function _closeTranches() internal {
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
 
-        uint256[] memory assumedTranchesAssets = calculateWaterfall();
-        uint256[] memory distributedAssets = new uint256[](assumedTranchesAssets.length);
+        uint256[] memory waterfallTranchesAssets = calculateWaterfall();
+        uint256[] memory distributedAssets = new uint256[](waterfallTranchesAssets.length);
         uint256 assetsLeft = virtualTokenBalance;
 
-        for (uint256 i = assumedTranchesAssets.length - 1; i > 0; i--) {
+        for (uint256 i = waterfallTranchesAssets.length - 1; i > 0; i--) {
             tranchesData[i].maxValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
 
-            uint256 trancheDistributedAssets = _min(assumedTranchesAssets[i], assetsLeft);
+            uint256 trancheDistributedAssets = _min(waterfallTranchesAssets[i], assetsLeft);
             distributedAssets[i] = trancheDistributedAssets;
             tranches[i].updateCheckpointFromPortfolio(trancheDistributedAssets);
 
             assetsLeft -= trancheDistributedAssets;
         }
 
-        distributedAssets[0] = _min(assumedTranchesAssets[0], assetsLeft);
+        distributedAssets[0] = _min(waterfallTranchesAssets[0], assetsLeft);
         tranches[0].updateCheckpointFromPortfolio(distributedAssets[0]);
 
         for (uint256 i = 0; i < distributedAssets.length; i++) {
@@ -333,23 +333,22 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
             return waterfall;
         }
 
-        uint256 allAssets = virtualTokenBalance + loansValue();
-        uint256 totalWaterfallSum = 0;
+        uint256 assetsLeft = virtualTokenBalance + loansValue();
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
 
         for (uint256 i = waterfall.length - 1; i > 0; i--) {
             uint256 assumedTrancheValue = _assumedTrancheValue(i, limitedBlockTimestamp);
 
-            if (assumedTrancheValue + totalWaterfallSum > allAssets) {
-                waterfall[i] = allAssets - totalWaterfallSum;
+            if (assumedTrancheValue >= assetsLeft) {
+                waterfall[i] = assetsLeft;
                 return waterfall;
             }
 
             waterfall[i] = assumedTrancheValue;
-            totalWaterfallSum += assumedTrancheValue;
+            assetsLeft -= assumedTrancheValue;
         }
 
-        waterfall[0] = allAssets - totalWaterfallSum;
+        waterfall[0] = assetsLeft;
 
         return waterfall;
     }
