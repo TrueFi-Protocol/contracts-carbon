@@ -1,5 +1,4 @@
 import {
-  AllowAllLenderVerifier__factory,
   DepositController,
   DepositController__factory,
   MockLenderVerifier__factory,
