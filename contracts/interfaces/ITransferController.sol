@@ -12,8 +12,21 @@
 pragma solidity ^0.8.16;
 
 interface ITransferController {
-    function initialize(address) external;
+    /**
+     * @notice Setup contract with given params
+     * @dev Used by Initializable contract (can be called only once)
+     * @param manager Address to which MANAGER_ROLE should be granted
+     */
+    function initialize(address manager) external;
 
+    /**
+     * @notice Verifies TrancheVault shares transfers
+     * @return isTransferAllowed Value indicating whether TrancheVault shares transfer with given params is allowed
+     * @param sender Transfer transaction sender address
+     * @param from Transferred funds owner address
+     * @param to Transferred funds recipient address
+     * @param value Transferred assets amount
+     */
     function onTransfer(
         address sender,
         address from,

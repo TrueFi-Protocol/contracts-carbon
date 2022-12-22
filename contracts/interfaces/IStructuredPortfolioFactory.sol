@@ -21,7 +21,9 @@ import {IProtocolConfig} from "./IProtocolConfig.sol";
 import {IStructuredPortfolio, TrancheInitData, PortfolioParams, ExpectedEquityRate} from "./IStructuredPortfolio.sol";
 
 struct TrancheData {
+    /// @dev Tranche name
     string name;
+    /// @dev Tranche symbol
     string symbol;
     /// @dev Implementation of the controller applied when calling deposit-related functions
     address depositControllerImplementation;
@@ -48,14 +50,20 @@ struct TrancheData {
  * @dev Only whitelisted users can create portfolios
  */
 interface IStructuredPortfolioFactory is IAccessControlEnumerable {
+    /// @return Whitelisted manager role used for access control, allowing user with this role too create StructuredPortfolio
     function WHITELISTED_MANAGER_ROLE() external view returns (bytes32);
 
+    /// @param portfolioId Id of the portfolio created with this StructuredPortfolioFactory
+    /// @return Address of the StructuredPortfolio with given portfolio id
     function portfolios(uint256 portfolioId) external view returns (IStructuredPortfolio);
 
+    /// @return Address of the Tranche contract implementation used for portfolio deployment
     function trancheImplementation() external view returns (address);
 
+    /// @return Address of the StructuredPortfolio contract implementation used for portfolio deployment
     function portfolioImplementation() external view returns (address);
 
+    /// @return Address of the ProtocolConfig
     function protocolConfig() external view returns (IProtocolConfig);
 
     /**

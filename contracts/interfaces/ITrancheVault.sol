@@ -73,53 +73,52 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      */
     event ManagerFeeBeneficiaryChanged(address newManagerFeeBeneficiary);
 
+    /**
+     * @notice Event emitted when new DepositController address is set
+     * @param newController New DepositController address
+     */
     event DepositControllerChanged(IDepositController indexed newController);
 
+    /**
+     * @notice Event emitted when new WithdrawController address is set
+     * @param newController New WithdrawController address
+     */
     event WithdrawControllerChanged(IWithdrawController indexed newController);
 
+    /**
+     * @notice Event emitted when new TransferController address is set
+     * @param newController New TransferController address
+     */
     event TransferControllerChanged(ITransferController indexed newController);
 
-    /// @dev Tranche manager role used for access control
+    /// @notice Tranche manager role used for access control
     function MANAGER_ROLE() external view returns (bytes32);
 
-    /// @dev Role used to access tranche controllers setters
+    /// @notice Role used to access tranche controllers setters
     function TRANCHE_CONTROLLER_OWNER_ROLE() external view returns (bytes32);
 
-    /**
-     * @return Associated StructuredPortfolio address
-     */
+    /// @return Associated StructuredPortfolio address
     function portfolio() external view returns (IStructuredPortfolio);
 
-    /**
-     * @return Address of DepositController contract responsible for deposit-related operations on TrancheVault
-     */
+    /// @return Address of DepositController contract responsible for deposit-related operations on TrancheVault
     function depositController() external view returns (IDepositController);
 
-    /**
-     * @return Address of WithdrawController contract responsible for withdraw-related operations on TrancheVault
-     */
+    /// @return Address of WithdrawController contract responsible for withdraw-related operations on TrancheVault
     function withdrawController() external view returns (IWithdrawController);
 
-    /**
-     * @return Address of TransferController contract deducing whether a specific transfer is allowed or not
-     */
+    /// @return Address of TransferController contract deducing whether a specific transfer is allowed or not
     function transferController() external view returns (ITransferController);
 
-    /**
-     * @return TrancheVault index in StructuredPortfolio tranches order
-     */
+    /// @return TrancheVault index in StructuredPortfolio tranches order
     function waterfallIndex() external view returns (uint256);
 
-    /**
-     * @return Annual rate of continuous fee accrued on every block on the top of checkpoint tranche total assets (expressed in bps)
-     */
+    /// @return Annual rate of continuous fee accrued on every block on the top of checkpoint tranche total assets (expressed in bps)
     function managerFeeRate() external view returns (uint256);
 
-    /**
-     * @return Address to which manager fee should be transferred
-     */
+    /// @return Address to which manager fee should be transferred
     function managerFeeBeneficiary() external view returns (address);
 
+    /// @return Address of ProtocolConfig contract used to collect protocol fee
     function protocolConfig() external view returns (IProtocolConfig);
 
     /**
@@ -200,19 +199,15 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      * @notice Updates TrancheVault checkpoint with total assets value calculated in StructuredPortfolio waterfall
      * @dev
      * - can be executed only by associated StructuredPortfolio
-     * - can be executed only in Live portfolio status
+     * - is used by StructuredPortfolio only in Live portfolio status
      * @param _totalAssets Total assets amount to save in the checkpoint
      */
     function updateCheckpointFromPortfolio(uint256 _totalAssets) external;
 
-    /**
-     * @return Total tranche assets including accrued but yet not paid fees
-     */
+    /// @return Total tranche assets including accrued but yet not paid fees
     function totalAssetsBeforeFees() external view returns (uint256);
 
-    /**
-     * @return Sum of all unpaid fees and fees accrued since last checkpoint update
-     */
+    /// @return Sum of all unpaid fees and fees accrued since last checkpoint update
     function totalPendingFees() external view returns (uint256);
 
     /**
@@ -221,23 +216,19 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      */
     function totalPendingFeesForAssets(uint256 amount) external view returns (uint256);
 
+    /// @return Sum of unpaid protocol fees and protocol fees accrued since last checkpoint update
     function pendingProtocolFee() external view returns (uint256);
 
+    /// @return Sum of unpaid manager fees and manager fees accrued since last checkpoint update
     function pendingManagerFee() external view returns (uint256);
 
-    /**
-     * @return checkpoint Checkpoint tracking info about TrancheVault total assets and protocol fee rate at last checkpoint update, and timestamp of that update
-     */
+    /// @return checkpoint Checkpoint tracking info about TrancheVault total assets and protocol fee rate at last checkpoint update, and timestamp of that update
     function getCheckpoint() external view returns (Checkpoint memory checkpoint);
 
-    /**
-     * @return protocolFee Remembered value of fee unpaid to protocol due to insufficient TrancheVault funds at the moment of transfer
-     */
+    /// @return protocolFee Remembered value of fee unpaid to protocol due to insufficient TrancheVault funds at the moment of transfer
     function unpaidProtocolFee() external view returns (uint256 protocolFee);
 
-    /**
-     * @return managerFee Remembered value of fee unpaid to manager due to insufficient TrancheVault funds at the moment of transfer
-     */
+    /// @return managerFee Remembered value of fee unpaid to manager due to insufficient TrancheVault funds at the moment of transfer
     function unpaidManagerFee() external view returns (uint256);
 
     /**

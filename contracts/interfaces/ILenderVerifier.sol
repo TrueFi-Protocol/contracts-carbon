@@ -11,6 +11,14 @@
 
 pragma solidity ^0.8.16;
 
+/**
+ * @title Contract used for checking whether given address is allowed to put funds into an instrument according to implemented strategy
+ * @dev Used by DepositController
+ */
 interface ILenderVerifier {
+    /**
+     * @param lender Address of lender to verify
+     * @return Value indicating whether given lender address is allowed to put funds into an instrument or not
+     */
     function isAllowed(address lender) external view returns (bool);
 }

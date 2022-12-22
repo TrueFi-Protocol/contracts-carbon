@@ -32,7 +32,6 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
     Status public status;
     string public name;
-    /// @notice Expected end date, updated to actual on portfolio close
     uint256 public endDate;
     uint256 public startDate;
     uint256 internal portfolioDuration;
