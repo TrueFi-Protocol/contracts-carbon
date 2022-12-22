@@ -5,6 +5,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MockToken is ERC20 {
     uint8 public _decimals;
+    mapping(address => bool) private _failTransfers;
 
     constructor(uint8 __decimals) ERC20("MockToken", "MT") {
         _decimals = __decimals;
@@ -20,5 +21,29 @@ contract MockToken is ERC20 {
 
     function burn(address account, uint256 amount) external {
         _burn(account, amount);
+    }
+
+    function failTransfers(address recipient, bool newValue) external {
+        _failTransfers[recipient] = newValue;
+    }
+
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        if (_failTransfers[to]) {
+            revert("MockToken: Transfer failed");
+        } else {
+            return super.transfer(to, amount);
+        }
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public override returns (bool) {
+        if (_failTransfers[to]) {
+            revert("MockToken: Transfer failed");
+        } else {
+            return super.transferFrom(from, to, amount);
+        }
     }
 }

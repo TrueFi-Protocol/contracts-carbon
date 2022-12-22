@@ -14,12 +14,10 @@ describe('TrancheVault.updateCheckpointFromPortfolio', () => {
   })
 
   it('reverts if managerFeeBeneficiary is TrancheVault', async () => {
-    const { seniorTranche, structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
+    const { seniorTranche } = await loadFixture(structuredPortfolioLiveFixture)
     await seniorTranche.setManagerFeeRate(500)
     await timeTravel(WEEK)
-    await seniorTranche.setManagerFeeBeneficiary(seniorTranche.address)
-
-    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('TV: Token transfer to TV')
+    await expect(seniorTranche.setManagerFeeBeneficiary(seniorTranche.address)).to.be.revertedWith('TV: Token transfer to TV')
   })
 
   it('reverts if protocolTreasury is TrancheVault', async () => {
@@ -36,9 +34,7 @@ describe('TrancheVault.updateCheckpointFromPortfolio', () => {
     const { seniorTranche, structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
     await seniorTranche.setManagerFeeRate(500)
     await timeTravel(WEEK)
-    await seniorTranche.setManagerFeeBeneficiary(structuredPortfolio.address)
-
-    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('TV: Token transfer to SP')
+    await expect(seniorTranche.setManagerFeeBeneficiary(structuredPortfolio.address)).to.be.revertedWith('TV: Token transfer to SP')
   })
 
   it('reverts if protocolTreasury is StructuredPortfolio', async () => {

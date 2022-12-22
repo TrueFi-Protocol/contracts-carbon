@@ -535,9 +535,9 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     function setManagerFeeBeneficiary(address _managerFeeBeneficiary) public {
         _requireManagerRole();
         _requireNonZeroAddress(_managerFeeBeneficiary);
-        _updateCheckpoint(totalAssets());
 
         managerFeeBeneficiary = _managerFeeBeneficiary;
+        _updateCheckpoint(totalAssets());
 
         emit ManagerFeeBeneficiaryChanged(_managerFeeBeneficiary);
     }

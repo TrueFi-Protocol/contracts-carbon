@@ -25,8 +25,8 @@ describe('TrancheVault.setManagerFeeBeneficiary', () => {
     expect(await seniorTranche.managerFeeBeneficiary()).to.eq(other.address)
   })
 
-  it('transfers pending fee to old beneficiary', async () => {
-    const { startPortfolioAndEnableLiveActions, seniorTranche, other, depositToTranche, parseTokenUnits, withInterest, token, wallet } = await loadFixture(structuredPortfolioFixture)
+  it('transfers pending fee to the new beneficiary', async () => {
+    const { startPortfolioAndEnableLiveActions, seniorTranche, other, depositToTranche, parseTokenUnits, withInterest, token } = await loadFixture(structuredPortfolioFixture)
     const managerFeeRate = 500
     await seniorTranche.setManagerFeeRate(managerFeeRate)
 
@@ -36,16 +36,42 @@ describe('TrancheVault.setManagerFeeBeneficiary', () => {
     const startTx = await startPortfolioAndEnableLiveActions()
     await timeTravel(YEAR)
 
-    const walletBalanceBefore = await token.balanceOf(wallet.address)
+    const otherBalanceBefore = await token.balanceOf(other.address)
     const setBeneficiaryTx = await seniorTranche.setManagerFeeBeneficiary(other.address)
 
     const timePassed = await getTxTimestamp(setBeneficiaryTx) - await getTxTimestamp(startTx)
     const expectedFee = withInterest(depositAmount, managerFeeRate, timePassed).sub(depositAmount)
-    expect(await token.balanceOf(wallet.address)).to.eq(walletBalanceBefore.add(expectedFee))
+    expect(await token.balanceOf(other.address)).to.eq(otherBalanceBefore.add(expectedFee))
   })
 
   it('emits event', async () => {
     const { seniorTranche, other } = await loadFixture(structuredPortfolioFixture)
     await expect(seniorTranche.setManagerFeeBeneficiary(other.address)).to.emit(seniorTranche, 'ManagerFeeBeneficiaryChanged').withArgs(other.address)
+  })
+
+  it('can update managerFeeBeneficiary if transfer to current one fails', async () => {
+    const {
+      seniorTranche,
+      depositToTranche,
+      parseTokenUnits,
+      token,
+      other,
+      startPortfolioAndEnableLiveActions,
+    } = await loadFixture(structuredPortfolioFixture)
+
+    const managerFeeRate = 500
+    await seniorTranche.setManagerFeeRate(managerFeeRate)
+
+    await startPortfolioAndEnableLiveActions()
+
+    await depositToTranche(seniorTranche, parseTokenUnits(1000))
+    await timeTravel(YEAR)
+
+    const managerFeeBeneficiary = await seniorTranche.managerFeeBeneficiary()
+    await token.failTransfers(managerFeeBeneficiary, true)
+
+    await seniorTranche.setManagerFeeBeneficiary(other.address)
+
+    expect(await seniorTranche.managerFeeBeneficiary()).to.eq(other.address)
   })
 })

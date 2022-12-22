@@ -1,4 +1,5 @@
 import {
+  AllowAllLenderVerifier__factory,
   DepositController,
   DepositController__factory,
   MockToken__factory,
@@ -15,7 +16,6 @@ import { extractEventArgFromTx } from 'utils/extractEventArgFromTx'
 import { deployFixedInterestOnlyLoans } from './deployFixedInterestOnlyLoans'
 import { deployControllers } from 'fixtures/deployControllers'
 import { deployProtocolConfig } from './deployProtocolConfig'
-import { AllowAllLenderVerifier__factory } from 'build/types/factories/AllowAllLenderVerifier__factory'
 
 interface TrancheInitData {
   name: string,
