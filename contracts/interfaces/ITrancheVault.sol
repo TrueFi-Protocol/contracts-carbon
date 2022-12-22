@@ -263,4 +263,14 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      * @dev Can be executed only by TrancheVault manager
      */
     function configure(Configuration memory newConfiguration) external;
+
+    /**
+     * @return Maximum tranche value that fits portfolio ratio limits
+     */
+    function maxTrancheValueComplyingWithRatio() external view returns (uint256);
+
+    /**
+     * @return Minimum tranche value that fits portfolio ratio limits
+     */
+    function minTrancheValueComplyingWithRatio() external view returns (uint256);
 }

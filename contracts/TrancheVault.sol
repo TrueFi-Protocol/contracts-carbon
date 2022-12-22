@@ -373,6 +373,57 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         _updateCheckpoint(newTotalAssets);
     }
 
+    function maxTrancheValueComplyingWithRatio() external view returns (uint256) {
+        if (portfolio.status() != Status.Live) {
+            return type(uint256).max;
+        }
+
+        if (waterfallIndex == 0) {
+            return type(uint256).max;
+        }
+
+        uint256[] memory waterfallValues = portfolio.calculateWaterfall();
+
+        uint256 subordinateValue = 0;
+        for (uint256 i = 0; i < waterfallIndex; i++) {
+            subordinateValue += waterfallValues[i];
+        }
+
+        uint256 minSubordinateRatio = portfolio.getTrancheData(waterfallIndex).minSubordinateRatio;
+        if (minSubordinateRatio == 0) {
+            return type(uint256).max;
+        }
+
+        return (subordinateValue * BASIS_PRECISION) / minSubordinateRatio;
+    }
+
+    function minTrancheValueComplyingWithRatio() external view returns (uint256) {
+        if (portfolio.status() != Status.Live) {
+            return 0;
+        }
+
+        uint256[] memory waterfallValues = portfolio.calculateWaterfall();
+        uint256 tranchesCount = waterfallValues.length;
+        if (waterfallIndex == tranchesCount - 1) {
+            return 0;
+        }
+
+        uint256 subordinateValueWithoutTranche = 0;
+        uint256 maxThreshold = 0;
+        for (uint256 i = 0; i < tranchesCount - 1; i++) {
+            uint256 trancheValue = waterfallValues[i];
+            if (i != waterfallIndex) {
+                subordinateValueWithoutTranche += trancheValue;
+            }
+            if (i >= waterfallIndex) {
+                uint256 lowerBound = (waterfallValues[i + 1] * portfolio.getTrancheData(i + 1).minSubordinateRatio) / BASIS_PRECISION;
+                uint256 minTrancheValue = _saturatingSub(lowerBound, subordinateValueWithoutTranche);
+                maxThreshold = _max(minTrancheValue, maxThreshold);
+            }
+        }
+        return maxThreshold;
+    }
+
     /**
      * @param newTotalAssets Total assets value to save in checkpoint with fees deducted
      */
@@ -568,5 +619,13 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         require(sharesAllowance >= shares, "TV: Insufficient allowance");
         _burn(owner, shares);
         _approve(owner, msg.sender, sharesAllowance - shares);
+    }
+
+    function _max(uint256 x, uint256 y) internal pure returns (uint256) {
+        return x < y ? y : x;
+    }
+
+    function _saturatingSub(uint256 x, uint256 y) internal pure returns (uint256) {
+        return x > y ? x - y : 0;
     }
 }
