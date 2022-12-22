@@ -116,6 +116,12 @@ describe('TrancheVault.mint', () => {
       .to.be.revertedWith('TV: Portfolio is paused')
   })
 
+  it('reverts if receiver is not allowed by Lender Verifier', async () => {
+    const { lenderVerifier, other, equityTranche, mintToTranche } = await loadFixture(structuredPortfolioFixture)
+    await lenderVerifier.setIsBlacklisted(other.address, true)
+    await expect(mintToTranche(equityTranche, 100, other.address)).to.be.revertedWith('TV: Amount exceeds max mint')
+  })
+
   describe('Live status', () => {
     it('transfers sender\'s tokens to portfolio', async () => {
       const { juniorTranche, junior, withInterest, mintToTranche, token, structuredPortfolio, wallet, parseTokenUnits, portfolioStartTimestamp } = await loadFixture(structuredPortfolioLiveFixture)

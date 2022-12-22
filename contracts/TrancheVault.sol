@@ -166,7 +166,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function deposit(uint256 amount, address receiver) external cacheTotalAssets portfolioNotPaused returns (uint256) {
-        require(amount <= maxDeposit(msg.sender), "TV: Amount exceeds max deposit");
+        require(amount <= maxDeposit(receiver), "TV: Amount exceeds max deposit");
         (uint256 shares, uint256 depositFee) = depositController.onDeposit(msg.sender, amount, receiver);
 
         _payDepositFee(depositFee);
@@ -210,7 +210,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function mint(uint256 shares, address receiver) external cacheTotalAssets portfolioNotPaused returns (uint256) {
-        require(shares <= maxMint(msg.sender), "TV: Amount exceeds max mint");
+        require(shares <= maxMint(receiver), "TV: Amount exceeds max mint");
         (uint256 assetAmount, uint256 depositFee) = depositController.onMint(msg.sender, shares, receiver);
 
         _payDepositFee(depositFee);

@@ -114,6 +114,12 @@ describe('TrancheVault.deposit', () => {
       .to.be.revertedWith('TV: Portfolio is paused')
   })
 
+  it('reverts if receiver is not allowed by Lender Verifier', async () => {
+    const { lenderVerifier, other, equityTranche, depositToTranche } = await loadFixture(structuredPortfolioFixture)
+    await lenderVerifier.setIsBlacklisted(other.address, true)
+    await expect(depositToTranche(equityTranche, 100, other.address)).to.be.revertedWith('TV: Amount exceeds max deposit')
+  })
+
   describe('Live status', () => {
     it('transfers sender\'s tokens to portfolio', async () => {
       const { equityTranche, token, depositToTranche, structuredPortfolio, wallet } = await loadFixture(structuredPortfolioLiveFixture)

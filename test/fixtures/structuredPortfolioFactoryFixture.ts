@@ -2,6 +2,7 @@ import {
   AllowAllLenderVerifier__factory,
   DepositController,
   DepositController__factory,
+  MockLenderVerifier__factory,
   MockToken__factory,
   StructuredPortfolioFactory__factory,
   StructuredPortfolioTest__factory,
@@ -81,7 +82,7 @@ export const getStructuredPortfolioFactoryFixture = (fixtureConfig?: Partial<Fix
 
     const { depositController, withdrawController, transferController } = await deployControllers(wallet)
 
-    const lenderVerifier = await new AllowAllLenderVerifier__factory(wallet).deploy()
+    const lenderVerifier = await new MockLenderVerifier__factory(wallet).deploy()
 
     const sizes = [
       { floor: constants.Zero, ceiling: parseTokenUnits(5e9) },
