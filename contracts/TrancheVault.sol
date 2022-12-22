@@ -478,11 +478,6 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         return _accruedManagerFee(_totalAssetsBeforeFees) + unpaidManagerFee;
     }
 
-    function totalAccruedFees() external view returns (uint256) {
-        uint256 _totalAssetsBeforeFees = totalAssetsBeforeFees();
-        return _accruedProtocolFee(_totalAssetsBeforeFees) + _accruedManagerFee(_totalAssetsBeforeFees);
-    }
-
     function _accruedProtocolFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
         return _accruedFee(checkpoint.protocolFeeRate, _totalAssetsBeforeFees);
     }

@@ -226,11 +226,6 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
     function pendingManagerFee() external view returns (uint256);
 
     /**
-     * @return Sum of continuous protocol and manager fees accrued on every block on the top of checkpoint tranche total assets since last checkpoint update
-     */
-    function totalAccruedFees() external view returns (uint256);
-
-    /**
      * @return checkpoint Checkpoint tracking info about TrancheVault total assets and protocol fee rate at last checkpoint update, and timestamp of that update
      */
     function getCheckpoint() external view returns (Checkpoint memory checkpoint);
