@@ -27,6 +27,12 @@ export const config: Config = {
       protocolAdmin: '0x715C72ea89CD250890714467963b0F9774FF2520',
       protocolTreasury: '0x715C72ea89CD250890714467963b0F9774FF2520',
       pauserAddress: '0x715C72ea89CD250890714467963b0F9774FF2520'
-    }
-  }
+    },
+    goerli: {
+      defaultProtocolFeeRate: 50,
+      protocolAdmin: '0xe13610d0a3e4303c70791773C5DF8Bb16de185d1',
+      protocolTreasury: '0xe13610d0a3e4303c70791773C5DF8Bb16de185d1',
+      pauserAddress: '0xe13610d0a3e4303c70791773C5DF8Bb16de185d1',
+    },
+  },
 }
