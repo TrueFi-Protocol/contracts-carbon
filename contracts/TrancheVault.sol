@@ -446,14 +446,14 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         uint256 pendingFee = _pendingProtocolFee(_totalAssetsBeforeFees);
         address protocolAddress = protocolConfig.protocolTreasury();
         (uint256 paidProtocolFee, uint256 _unpaidProtocolFee) = _payFee(pendingFee, protocolAddress);
-        unpaidProtocolFee += _unpaidProtocolFee;
+        unpaidProtocolFee = _unpaidProtocolFee;
         emit ProtocolFeePaid(protocolAddress, paidProtocolFee);
     }
 
     function _payManagerFee(uint256 _totalAssetsBeforeFees) internal {
         uint256 pendingFee = _pendingManagerFee(_totalAssetsBeforeFees);
         (uint256 paidManagerFee, uint256 _unpaidManagerFee) = _payFee(pendingFee, managerFeeBeneficiary);
-        unpaidManagerFee += _unpaidManagerFee;
+        unpaidManagerFee = _unpaidManagerFee;
         emit ManagerFeePaid(managerFeeBeneficiary, paidManagerFee);
     }
 

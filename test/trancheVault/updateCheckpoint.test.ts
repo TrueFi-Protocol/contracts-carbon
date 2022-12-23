@@ -1,9 +1,11 @@
 import { expect } from 'chai'
 import { structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { WEEK } from 'utils/constants'
+import { WEEK, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
 import { timeTravel } from 'utils/timeTravel'
+import { parseUSDC } from 'utils/parseUSDC'
+import { setNextBlockTimestamp } from 'utils/setNextBlockTimestamp'
 
 describe('TrancheVault.updateCheckpoint', () => {
   const loadFixture = setupFixtureLoader()
@@ -68,5 +70,48 @@ describe('TrancheVault.updateCheckpoint', () => {
     const tx = await seniorTranche.updateCheckpoint()
 
     await expect(tx).to.emit(seniorTranche, 'CheckpointUpdated').withArgs(seniorBalance, protocolFeeRate)
+  })
+
+  it('correctly handles unpaid protocol fees', async () => {
+    const { structuredPortfolio, addAndFundLoan, getLoan, protocolConfig, depositToTranche, juniorTranche } = await loadFixture(structuredPortfolioLiveFixture)
+    const protocolFeeRate = 50
+    await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
+    const timestamp = await getTxTimestamp(await structuredPortfolio.updateCheckpoints())
+
+    const maxLoanValue = (await structuredPortfolio.liquidAssets()).sub(parseUSDC(1))
+    const loan = getLoan({ principal: maxLoanValue })
+    await addAndFundLoan(loan)
+    await protocolConfig.setDefaultProtocolFeeRate(0)
+    await setNextBlockTimestamp(timestamp + YEAR)
+    expect(await juniorTranche.unpaidProtocolFee()).to.equal(0)
+    await depositToTranche(juniorTranche, 5)
+    const unpaidFees = await juniorTranche.unpaidProtocolFee()
+    expect(unpaidFees).to.be.gt(0)
+
+    for (let i = 1; i <= 5; i++) {
+      await depositToTranche(juniorTranche, 5)
+      expect(await juniorTranche.unpaidProtocolFee()).to.equal(unpaidFees.sub(i * 5))
+    }
+  })
+
+  it('correctly handles unpaid manager fees', async () => {
+    const { structuredPortfolio, addAndFundLoan, getLoan, depositToTranche, juniorTranche } = await loadFixture(structuredPortfolioLiveFixture)
+    const managerFeeRate = 50
+    await juniorTranche.setManagerFeeRate(managerFeeRate)
+    const timestamp = await getTxTimestamp(await structuredPortfolio.updateCheckpoints())
+
+    const maxLoanValue = (await structuredPortfolio.liquidAssets()).sub(parseUSDC(1))
+    const loan = getLoan({ principal: maxLoanValue })
+    await addAndFundLoan(loan)
+    await setNextBlockTimestamp(timestamp + YEAR)
+    await juniorTranche.setManagerFeeRate(0)
+    await depositToTranche(juniorTranche, 5)
+    const unpaidFees = await juniorTranche.unpaidManagerFee()
+    expect(unpaidFees).to.be.gt(0)
+
+    for (let i = 1; i <= 5; i++) {
+      await depositToTranche(juniorTranche, 5)
+      expect(await juniorTranche.unpaidManagerFee()).to.equal(unpaidFees.sub(i * 5))
+    }
   })
 })
