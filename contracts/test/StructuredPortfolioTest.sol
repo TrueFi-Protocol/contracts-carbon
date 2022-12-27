@@ -42,4 +42,8 @@ contract StructuredPortfolioTest is StructuredPortfolio {
     function getNewLoansDeficit(uint256 currentDeficit, int256 delta) external pure returns (uint256) {
         return _getNewLoansDeficit(currentDeficit, delta);
     }
+
+    function someLoansDefaultedTest() external view returns (bool) {
+        return someLoansDefaulted;
+    }
 }

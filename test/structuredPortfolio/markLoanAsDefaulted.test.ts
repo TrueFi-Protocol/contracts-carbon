@@ -15,4 +15,14 @@ describe('StructuredPortfolio.markLoanAsDefaulted', () => {
 
     await expect(structuredPortfolio.connect(other).markLoanAsDefaulted(loanId)).to.be.revertedWith('SP: Only manager')
   })
+
+  it('sets someLoansDefaulted to true', async () => {
+    const { addAndFundLoan, structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
+
+    const loanId = await addAndFundLoan()
+    await timeTravel(DAY * 2)
+
+    await structuredPortfolio.markLoanAsDefaulted(loanId)
+    expect(await structuredPortfolio.someLoansDefaultedTest()).to.be.true
+  })
 })

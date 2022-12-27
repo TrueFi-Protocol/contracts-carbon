@@ -34,7 +34,6 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     string public name;
     uint256 public endDate;
     uint256 public startDate;
-    uint256 internal portfolioDuration;
     uint256 public startDeadline;
     uint256 public minimumSize;
     uint256 public virtualTokenBalance;
@@ -42,6 +41,9 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     ITrancheVault[] public tranches;
     TrancheData[] public tranchesData;
     ExpectedEquityRate public expectedEquityRate;
+
+    bool internal someLoansDefaulted;
+    uint256 internal portfolioDuration;
 
     function initialize(
         address manager,
@@ -101,15 +103,20 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function updateCheckpoints() public whenNotPaused {
         require(status == Status.Live, "SP: Portfolio is not live");
 
+        if (someLoansDefaulted) {
+            _updateCheckpointsAndLoansDeficit();
+        } else {
+            _updateCheckpoints();
+        }
+    }
+
+    function _updateCheckpointsAndLoansDeficit() internal {
         uint256[] memory _totalAssetsBefore = new uint256[](tranches.length);
         for (uint256 i = 0; i < tranches.length; i++) {
             _totalAssetsBefore[i] = tranches[i].getCheckpoint().totalAssets;
         }
 
-        uint256[] memory _totalAssetsAfter = calculateWaterfall();
-        for (uint256 i = 0; i < _totalAssetsAfter.length; i++) {
-            tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i]);
-        }
+        uint256[] memory _totalAssetsAfter = _updateCheckpoints();
 
         uint256 timestamp = _limitedBlockTimestamp();
         for (uint256 i = 1; i < _totalAssetsAfter.length; i++) {
@@ -120,6 +127,14 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
             tranchesData[i].loansDeficitCheckpoint = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
         }
+    }
+
+    function _updateCheckpoints() internal returns (uint256[] memory) {
+        uint256[] memory _totalAssetsAfter = calculateWaterfall();
+        for (uint256 i = 0; i < _totalAssetsAfter.length; i++) {
+            tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i]);
+        }
+        return _totalAssetsAfter;
     }
 
     function _getNewLoansDeficit(uint256 currentDeficit, int256 delta) internal pure returns (uint256) {
@@ -475,6 +490,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         _requireManagerRole();
 
         updateCheckpoints();
+        someLoansDefaulted = true;
         _markLoanAsDefaulted(loanId);
         updateCheckpoints();
     }
