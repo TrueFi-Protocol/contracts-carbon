@@ -437,7 +437,12 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         _payManagerFee(_totalAssetsBeforeFees);
 
         uint256 protocolFeeRate = protocolConfig.protocolFeeRate();
-        checkpoint = Checkpoint({totalAssets: newTotalAssets, protocolFeeRate: protocolFeeRate, timestamp: block.timestamp});
+        uint256 newTotalAssetsWithUnpaidFees = newTotalAssets + unpaidManagerFee + unpaidProtocolFee;
+        checkpoint = Checkpoint({
+            totalAssets: newTotalAssetsWithUnpaidFees,
+            protocolFeeRate: protocolFeeRate,
+            timestamp: block.timestamp
+        });
 
         emit CheckpointUpdated(newTotalAssets, protocolFeeRate);
     }
