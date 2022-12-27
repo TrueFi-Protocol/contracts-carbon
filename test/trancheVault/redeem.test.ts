@@ -147,6 +147,30 @@ describe('TrancheVault.redeem', () => {
       .to.changeTokenBalance(equityTranche, wallet, -amount)
   })
 
+  it('can redeem all in CapitalFormation', async () => {
+    const { seniorTranche, juniorTranche, depositToTranche, parseTokenUnits, wallet, other, another, juniorTrancheData: { withdrawController } } = await loadFixture(structuredPortfolioFixture)
+
+    const redeemAll = async (account: Wallet) => {
+      return juniorTranche.connect(account).redeem(await juniorTranche.balanceOf(account.address), account.address, account.address)
+    }
+
+    await depositToTranche(seniorTranche, parseTokenUnits(500), wallet.address)
+    await depositToTranche(juniorTranche, parseTokenUnits(100), wallet.address)
+    await depositToTranche(juniorTranche, parseTokenUnits(200), other.address)
+    await depositToTranche(juniorTranche, parseTokenUnits(300), another.address)
+
+    await withdrawController.setWithdrawAllowed(true, PortfolioStatus.CapitalFormation)
+
+    await redeemAll(wallet)
+    await redeemAll(other)
+    await redeemAll(another)
+
+    expect(await juniorTranche.totalAssets()).to.eq(0)
+    expect(await juniorTranche.balanceOf(wallet.address)).to.eq(0)
+    expect(await juniorTranche.balanceOf(other.address)).to.eq(0)
+    expect(await juniorTranche.balanceOf(another.address)).to.eq(0)
+  })
+
   it('emits ManagerFeePaid event when controller fee set', async () => {
     const { equityTranche, depositToTranche, redeemFromTranche, parseTokenUnits, another, equityTrancheData: { withdrawController } } = await loadFixture(structuredPortfolioFixture)
     await depositToTranche(equityTranche, parseTokenUnits(1000))
@@ -161,44 +185,6 @@ describe('TrancheVault.redeem', () => {
 
     await expect(redeemFromTranche(equityTranche, amount))
       .to.emit(equityTranche, 'ManagerFeePaid').withArgs(another.address, withdrawFee)
-  })
-
-  it('Closed status: can redeem all when controller fee set', async () => {
-    const { equityTranche, wallet, redeemFromTranche, token, structuredPortfolio, equity: { withdrawController } } = await loadFixture(structuredPortfolioLiveFixture)
-    await withdrawController.setWithdrawFeeRate(500)
-    await structuredPortfolio.close()
-
-    const allShares = await equityTranche.balanceOf(wallet.address)
-    await expect(() => redeemFromTranche(equityTranche, allShares))
-      .to.changeTokenBalance(equityTranche, wallet, -allShares)
-    expect(await token.balanceOf(equityTranche.address)).to.eq(0)
-  })
-
-  it('Live status: can redeem all when controller fee set', async () => {
-    const { equityTranche, wallet, redeemFromTranche, token, equity: { withdrawController } } = await loadFixture(structuredPortfolioLiveFixture)
-    await withdrawController.setWithdrawFeeRate(500)
-
-    const allShares = await equityTranche.balanceOf(wallet.address)
-    await expect(() => redeemFromTranche(equityTranche, allShares))
-      .to.changeTokenBalance(equityTranche, wallet, -allShares)
-    expect(await token.balanceOf(equityTranche.address)).to.eq(0)
-  })
-
-  it('can redeem all when all types of fees set', async () => {
-    const { equityTranche, wallet, redeemFromTranche, token, structuredPortfolio, protocolConfig, equity: { withdrawController } } = await loadFixture(structuredPortfolioLiveFixture)
-
-    await withdrawController.setWithdrawFeeRate(500)
-    await equityTranche.setManagerFeeRate(300)
-    await protocolConfig.setDefaultProtocolFeeRate(700)
-    await structuredPortfolio.updateCheckpoints()
-
-    await timeTravel(YEAR)
-    await structuredPortfolio.close()
-
-    const allShares = await equityTranche.balanceOf(wallet.address)
-    await expect(() => redeemFromTranche(equityTranche, allShares))
-      .to.changeTokenBalance(equityTranche, wallet, -allShares)
-    expect(await token.balanceOf(equityTranche.address)).to.be.closeTo(0, 1e4)
   })
 
   it('emits event', async () => {
@@ -291,6 +277,16 @@ describe('TrancheVault.redeem', () => {
       expect(await token.balanceOf(lenderA.address)).to.be.closeTo(expectedLenderAAmount, parseTokenUnits(1))
       expect(await token.balanceOf(lenderB.address)).to.be.closeTo(expectedLenderBAmount, parseTokenUnits(0.00001))
       expect(await token.balanceOf(lenderC.address)).to.be.closeTo(expectedLenderCAmount, parseTokenUnits(0.00001))
+    })
+
+    it('can redeem all when controller fee set', async () => {
+      const { equityTranche, wallet, redeemFromTranche, token, equity: { withdrawController } } = await loadFixture(structuredPortfolioLiveFixture)
+      await withdrawController.setWithdrawFeeRate(500)
+
+      const allShares = await equityTranche.balanceOf(wallet.address)
+      await expect(() => redeemFromTranche(equityTranche, allShares))
+        .to.changeTokenBalance(equityTranche, wallet, -allShares)
+      expect(await token.balanceOf(equityTranche.address)).to.eq(0)
     })
 
     it('cannot redeem below floor', async () => {
@@ -403,6 +399,34 @@ describe('TrancheVault.redeem', () => {
     expect(await juniorTranche.balanceOf(wallet.address)).to.eq(0)
     expect(await juniorTranche.balanceOf(other.address)).to.eq(0)
     expect(await juniorTranche.balanceOf(another.address)).to.eq(0)
+  })
+
+  it('can redeem all when all types of fees set', async () => {
+    const { equityTranche, wallet, redeemFromTranche, token, structuredPortfolio, protocolConfig, equity: { withdrawController } } = await loadFixture(structuredPortfolioLiveFixture)
+
+    await withdrawController.setWithdrawFeeRate(500)
+    await equityTranche.setManagerFeeRate(300)
+    await protocolConfig.setDefaultProtocolFeeRate(700)
+    await structuredPortfolio.updateCheckpoints()
+
+    await timeTravel(YEAR)
+    await structuredPortfolio.close()
+
+    const allShares = await equityTranche.balanceOf(wallet.address)
+    await expect(() => redeemFromTranche(equityTranche, allShares))
+      .to.changeTokenBalance(equityTranche, wallet, -allShares)
+    expect(await token.balanceOf(equityTranche.address)).to.be.closeTo(0, 1e4)
+  })
+
+  it('can redeem all when controller fee set', async () => {
+    const { equityTranche, wallet, redeemFromTranche, token, structuredPortfolio, equity: { withdrawController } } = await loadFixture(structuredPortfolioLiveFixture)
+    await withdrawController.setWithdrawFeeRate(500)
+    await structuredPortfolio.close()
+
+    const allShares = await equityTranche.balanceOf(wallet.address)
+    await expect(() => redeemFromTranche(equityTranche, allShares))
+      .to.changeTokenBalance(equityTranche, wallet, -allShares)
+    expect(await token.balanceOf(equityTranche.address)).to.eq(0)
   })
 })
 
