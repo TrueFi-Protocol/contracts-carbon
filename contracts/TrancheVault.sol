@@ -151,7 +151,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         return Math.ceilDiv(shares * totalAssets(), _totalSupply);
     }
 
-    function maxDeposit(address receiver) public view returns (uint256) {
+    function _maxDeposit(address receiver) internal view returns (uint256) {
         if (portfolio.status() == Status.Live) {
             if (totalSupply() != 0 && totalAssets() == 0) {
                 return 0;
@@ -161,12 +161,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         return depositController.maxDeposit(receiver);
     }
 
+    function maxDeposit(address receiver) external view returns (uint256) {
+        return _min(_maxDeposit(receiver), _maxDepositComplyingWithRatio());
+    }
+
     function previewDeposit(uint256 assets) public view returns (uint256) {
         return depositController.previewDeposit(assets);
     }
 
     function deposit(uint256 amount, address receiver) external cacheTotalAssets portfolioNotPaused returns (uint256) {
-        require(amount <= maxDeposit(receiver), "TV: Amount exceeds max deposit");
+        require(amount <= _maxDeposit(receiver), "TV: Amount exceeds max deposit");
         (uint256 shares, uint256 depositFee) = depositController.onDeposit(msg.sender, amount, receiver);
 
         _payDepositFee(depositFee);
@@ -201,8 +205,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         emit Deposit(msg.sender, receiver, amount, shares);
     }
 
-    function maxMint(address receiver) public view returns (uint256) {
+    function _maxMint(address receiver) internal view returns (uint256) {
         return depositController.maxMint(receiver);
+    }
+
+    function maxMint(address receiver) external view returns (uint256) {
+        uint256 maxRatioLimit = _maxDepositComplyingWithRatio();
+        if (maxRatioLimit == type(uint256).max) {
+            return _maxMint(receiver);
+        }
+        return _min(_maxMint(receiver), previewDeposit(maxRatioLimit));
     }
 
     function previewMint(uint256 shares) public view returns (uint256) {
@@ -210,7 +222,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function mint(uint256 shares, address receiver) external cacheTotalAssets portfolioNotPaused returns (uint256) {
-        require(shares <= maxMint(receiver), "TV: Amount exceeds max mint");
+        require(shares <= _maxMint(receiver), "TV: Amount exceeds max mint");
         (uint256 assetAmount, uint256 depositFee) = depositController.onMint(msg.sender, shares, receiver);
 
         _payDepositFee(depositFee);
@@ -219,12 +231,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         return assetAmount;
     }
 
-    function maxWithdraw(address owner) public view returns (uint256) {
+    function _maxWithdraw(address owner) public view returns (uint256) {
         if (totalAssets() == 0) {
             return 0;
         }
 
         return withdrawController.maxWithdraw(owner);
+    }
+
+    function maxWithdraw(address owner) external view returns (uint256) {
+        return _min(_maxWithdraw(owner), _maxWithdrawComplyingWithRatio());
     }
 
     function previewWithdraw(uint256 assets) public view returns (uint256) {
@@ -236,7 +252,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         address receiver,
         address owner
     ) external cacheTotalAssets portfolioNotPaused returns (uint256) {
-        require(assets <= maxWithdraw(owner), "TV: Amount exceeds max withdraw");
+        require(assets <= _maxWithdraw(owner), "TV: Amount exceeds max withdraw");
 
         (uint256 shares, uint256 withdrawFee) = withdrawController.onWithdraw(msg.sender, assets, receiver, owner);
 
@@ -270,12 +286,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
-    function maxRedeem(address owner) public view returns (uint256) {
+    function _maxRedeem(address owner) public view returns (uint256) {
         if (totalAssets() == 0) {
             return 0;
         }
 
         return withdrawController.maxRedeem(owner);
+    }
+
+    function maxRedeem(address owner) external view returns (uint256) {
+        return _min(_maxRedeem(owner), convertToShares(_maxWithdrawComplyingWithRatio()));
     }
 
     function previewRedeem(uint256 shares) public view returns (uint256) {
@@ -287,7 +307,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         address receiver,
         address owner
     ) external cacheTotalAssets portfolioNotPaused returns (uint256) {
-        require(shares <= maxRedeem(owner), "TV: Amount exceeds max redeem");
+        require(shares <= _maxRedeem(owner), "TV: Amount exceeds max redeem");
         (uint256 assets, uint256 withdrawFee) = withdrawController.onRedeem(msg.sender, shares, receiver, owner);
 
         _payWithdrawFee(withdrawFee);
@@ -373,7 +393,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         _updateCheckpoint(newTotalAssets);
     }
 
-    function maxTrancheValueComplyingWithRatio() external view returns (uint256) {
+    function _maxTrancheValueComplyingWithRatio() internal view returns (uint256) {
         if (portfolio.status() != Status.Live) {
             return type(uint256).max;
         }
@@ -397,7 +417,15 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         return (subordinateValue * BASIS_PRECISION) / minSubordinateRatio;
     }
 
-    function minTrancheValueComplyingWithRatio() external view returns (uint256) {
+    function _maxDepositComplyingWithRatio() internal view returns (uint256) {
+        uint256 maxTrancheValueComplyingWithRatio = _maxTrancheValueComplyingWithRatio();
+        if (maxTrancheValueComplyingWithRatio == type(uint256).max) {
+            return type(uint256).max;
+        }
+        return _saturatingSub(maxTrancheValueComplyingWithRatio, totalAssets());
+    }
+
+    function _minTrancheValueComplyingWithRatio() internal view returns (uint256) {
         if (portfolio.status() != Status.Live) {
             return 0;
         }
@@ -422,6 +450,11 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             }
         }
         return maxThreshold;
+    }
+
+    function _maxWithdrawComplyingWithRatio() internal view returns (uint256) {
+        uint256 minTrancheValueComplyingWithRatio = _minTrancheValueComplyingWithRatio();
+        return _saturatingSub(totalAssets(), minTrancheValueComplyingWithRatio);
     }
 
     /**
@@ -628,6 +661,10 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
 
     function _max(uint256 x, uint256 y) internal pure returns (uint256) {
         return x < y ? y : x;
+    }
+
+    function _min(uint256 x, uint256 y) internal pure returns (uint256) {
+        return x > y ? y : x;
     }
 
     function _saturatingSub(uint256 x, uint256 y) internal pure returns (uint256) {

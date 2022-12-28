@@ -28,7 +28,6 @@ describe('TrancheVault.maxMint', () => {
 
     const maxDepositAmount = ceiling.sub(totalAmount)
     const expectedMaxMintAmount = maxDepositAmount.mul(depositAmount).div(totalAmount)
-
     expect(await equityTranche.maxMint(wallet.address)).to.eq(expectedMaxMintAmount)
   })
 
