@@ -1,5 +1,5 @@
 import '@typechain/hardhat'
-import '@nomiclabs/hardhat-waffle'
+import 'hardhat-waffle-dev'
 import './abi-exporter'
 import 'solidity-docgen'
 
@@ -39,4 +39,8 @@ module.exports = {
     ...mocharc,
     timeout: 400000,
   },
+  waffle: {
+    skipEstimateGas: '0xB71B00',
+    injectCallHistory: true,
+  }
 }
