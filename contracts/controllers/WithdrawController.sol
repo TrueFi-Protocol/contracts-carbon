@@ -15,6 +15,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import {ITrancheVault} from "../interfaces/ITrancheVault.sol";
+import {IStructuredPortfolio} from "../interfaces/IStructuredPortfolio.sol";
 import {IWithdrawController, Status, WithdrawAllowed} from "../interfaces/IWithdrawController.sol";
 
 uint256 constant BASIS_PRECISION = 10000;
@@ -53,7 +54,7 @@ contract WithdrawController is IWithdrawController, Initializable, AccessControl
             return userMaxWithdraw;
         }
 
-        uint256 globalMaxWithdraw = _globalMaxWithdraw(vault);
+        uint256 globalMaxWithdraw = _globalMaxWithdraw(vault, status);
 
         return Math.min(userMaxWithdraw, globalMaxWithdraw);
     }
@@ -70,15 +71,22 @@ contract WithdrawController is IWithdrawController, Initializable, AccessControl
             return userMaxRedeem;
         }
 
-        uint256 globalMaxWithdraw = _globalMaxWithdraw(vault);
+        uint256 globalMaxWithdraw = _globalMaxWithdraw(vault, status);
         uint256 globalMaxRedeem = vault.convertToShares(globalMaxWithdraw);
 
         return Math.min(userMaxRedeem, globalMaxRedeem);
     }
 
-    function _globalMaxWithdraw(ITrancheVault vault) internal view returns (uint256) {
-        uint256 totalAssets = vault.totalAssets();
-        return totalAssets > floor ? totalAssets - floor : 0;
+    function _globalMaxWithdraw(ITrancheVault vault, Status status) internal view returns (uint256) {
+        uint256 totalWithdrawableAssets = vault.totalAssets();
+        IStructuredPortfolio portfolio = vault.portfolio();
+        if (status == Status.Live) {
+            uint256 virtualTokenBalance = portfolio.virtualTokenBalance();
+            if (virtualTokenBalance < totalWithdrawableAssets) {
+                totalWithdrawableAssets = virtualTokenBalance;
+            }
+        }
+        return totalWithdrawableAssets > floor ? totalWithdrawableAssets - floor : 0;
     }
 
     function onWithdraw(

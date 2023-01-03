@@ -1,6 +1,11 @@
 import { expect } from 'chai'
-import { PortfolioStatus, structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
+import {
+  PortfolioStatus,
+  structuredPortfolioFixture,
+  structuredPortfolioLiveFixture,
+} from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
+import { parseUSDC } from 'utils/parseUSDC'
 
 describe('TrancheVault.maxWithdraw', () => {
   const loadFixture = setupFixtureLoader()
@@ -90,5 +95,16 @@ describe('TrancheVault.maxWithdraw', () => {
     await startAndClosePortfolio()
 
     expect(await equityTranche.maxWithdraw(wallet.address)).to.eq(depositedAmount)
+  })
+
+  it('is limited by virtual token balance if it is below totalAssets', async () => {
+    const { structuredPortfolio, addAndFundLoan, getLoan, juniorTranche, seniorTranche, wallet } = await loadFixture(structuredPortfolioLiveFixture)
+
+    const maxLoanValue = (await structuredPortfolio.totalAssets()).sub(parseUSDC(1))
+    const loan = getLoan({ principal: maxLoanValue })
+    await addAndFundLoan(loan)
+    await structuredPortfolio.updateCheckpoints()
+    expect(await juniorTranche.maxWithdraw(wallet.address)).to.equal(await structuredPortfolio.virtualTokenBalance())
+    expect(await seniorTranche.maxWithdraw(wallet.address)).to.equal(await structuredPortfolio.virtualTokenBalance())
   })
 })
