@@ -384,7 +384,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
       expect(waterfallValues[0]).to.eq(0)
     })
 
-    it('with unpaid fees', async () => {
+    it('with unpaid fees when tranche is called', async () => {
       const { structuredPortfolio, addAndFundLoan, getLoan, protocolConfig, depositToTranche, juniorTranche } = await loadFixture(structuredPortfolioLiveFixture)
       const protocolFeeRate = 50
       await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
@@ -398,6 +398,27 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
       const waterfallBeforeFees = await structuredPortfolio.calculateWaterfall()
       for (let i = 0; i < 5; i++) {
         await depositToTranche(juniorTranche, 10)
+      }
+      const waterfallAfterFees = await structuredPortfolio.calculateWaterfall()
+      expect(waterfallAfterFees[0]).to.be.closeTo(waterfallBeforeFees[0], delta)
+      expect(waterfallAfterFees[1]).to.be.closeTo(waterfallBeforeFees[1], delta)
+      expect(waterfallAfterFees[2]).to.be.closeTo(waterfallBeforeFees[2], delta)
+    })
+
+    it('with unpaid fees when updateCheckpoints is called', async () => {
+      const { structuredPortfolio, addAndFundLoan, getLoan, protocolConfig } = await loadFixture(structuredPortfolioLiveFixture)
+      const protocolFeeRate = 50
+      await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
+      await structuredPortfolio.updateCheckpoints()
+      const delta = parseUSDC(1)
+
+      const maxLoanValue = (await structuredPortfolio.totalAssets()).sub(parseUSDC(100))
+      const loan = getLoan({ principal: maxLoanValue })
+      await addAndFundLoan(loan)
+      await timeTravel(YEAR)
+      const waterfallBeforeFees = await structuredPortfolio.calculateWaterfall()
+      for (let i = 0; i < 5; i++) {
+        await structuredPortfolio.updateCheckpoints()
       }
       const waterfallAfterFees = await structuredPortfolio.calculateWaterfall()
       expect(waterfallAfterFees[0]).to.be.closeTo(waterfallBeforeFees[0], delta)
