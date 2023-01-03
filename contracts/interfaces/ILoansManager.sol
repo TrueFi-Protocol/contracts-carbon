@@ -12,6 +12,8 @@
 pragma solidity ^0.8.16;
 
 import {IAccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
+import {IFixedInterestOnlyLoans} from "./IFixedInterestOnlyLoans.sol";
+import {IERC20WithDecimals} from "./IERC20WithDecimals.sol";
 
 struct AddLoanParams {
     uint256 principal;
@@ -24,6 +26,66 @@ struct AddLoanParams {
 }
 
 /// @title Manager of a Structured Portfolio's active loans
-interface ILoansManager is IAccessControlUpgradeable {
+interface ILoansManager {
+    /**
+     * @notice Event emitted when the loan is added
+     * @param loanId Loan id
+     */
+    event LoanAdded(uint256 indexed loanId);
 
+    /**
+     * @notice Event emitted when the loan is funded
+     * @param loanId Loan id
+     */
+    event LoanFunded(uint256 indexed loanId);
+
+    /**
+     * @notice Event emitted when the loan is repaid
+     * @param loanId Loan id
+     * @param amount Repaid amount
+     */
+    event LoanRepaid(uint256 indexed loanId, uint256 amount);
+
+    /**
+     * @notice Event emitted when the loan is marked as defaulted
+     * @param loanId Loan id
+     */
+    event LoanDefaulted(uint256 indexed loanId);
+
+    /**
+     * @notice Event emitted when the loan grace period is updated
+     * @param loanId Loan id
+     * @param newGracePeriod New loan grace period
+     */
+    event LoanGracePeriodUpdated(uint256 indexed loanId, uint32 newGracePeriod);
+
+    /**
+     * @notice Event emitted when the loan is cancelled
+     * @param loanId Loan id
+     */
+    event LoanCancelled(uint256 indexed loanId);
+
+    /**
+     * @notice Event emitted when the loan is fully repaid, cancelled or defaulted
+     * @param loanId Loan id
+     */
+    event ActiveLoanRemoved(uint256 indexed loanId);
+
+    /// @return FixedInterestOnlyLoans contract address
+    function fixedInterestOnlyLoans() external view returns (IFixedInterestOnlyLoans);
+
+    /// @return Underlying asset address
+    function asset() external view returns (IERC20WithDecimals);
+
+    /**
+     * @param index Index of loan in array
+     * @return Loan id
+     */
+    function activeLoanIds(uint256 index) external view returns (uint256);
+
+    /**
+     * @param loanId Loan id
+     * @return Value indicating whether loan with given id was issued by this contract
+     */
+    function issuedLoanIds(uint256 loanId) external view returns (bool);
 }

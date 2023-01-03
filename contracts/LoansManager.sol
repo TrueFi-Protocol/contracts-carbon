@@ -17,7 +17,7 @@ import {IERC20WithDecimals} from "./interfaces/IERC20WithDecimals.sol";
 import {ILoansManager, AddLoanParams} from "./interfaces/ILoansManager.sol";
 
 /// @title Manager of portfolio's active loans
-abstract contract LoansManager {
+abstract contract LoansManager is ILoansManager {
     using SafeERC20 for IERC20WithDecimals;
 
     IFixedInterestOnlyLoans public fixedInterestOnlyLoans;
@@ -25,14 +25,6 @@ abstract contract LoansManager {
 
     uint256[] public activeLoanIds;
     mapping(uint256 => bool) public issuedLoanIds;
-
-    event LoanAdded(uint256 indexed loanId);
-    event LoanFunded(uint256 indexed loanId);
-    event LoanRepaid(uint256 indexed loanId, uint256 amount);
-    event LoanDefaulted(uint256 indexed loanId);
-    event LoanGracePeriodUpdated(uint256 indexed loanId, uint32 newGracePeriod);
-    event LoanCancelled(uint256 indexed loanId);
-    event ActiveLoanRemoved(uint256 indexed loanId);
 
     function _initialize(IFixedInterestOnlyLoans _fixedInterestOnlyLoans, IERC20WithDecimals _asset) internal {
         fixedInterestOnlyLoans = _fixedInterestOnlyLoans;
