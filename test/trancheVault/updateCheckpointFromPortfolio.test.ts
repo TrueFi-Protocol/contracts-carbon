@@ -13,13 +13,6 @@ describe('TrancheVault.updateCheckpointFromPortfolio', () => {
     await expect(tranche.updateCheckpointFromPortfolio(100)).to.be.revertedWith('TV: Sender is not portfolio')
   })
 
-  it('reverts if managerFeeBeneficiary is TrancheVault', async () => {
-    const { seniorTranche } = await loadFixture(structuredPortfolioLiveFixture)
-    await seniorTranche.setManagerFeeRate(500)
-    await timeTravel(WEEK)
-    await expect(seniorTranche.setManagerFeeBeneficiary(seniorTranche.address)).to.be.revertedWith('TV: Token transfer to TV')
-  })
-
   it('reverts if protocolTreasury is TrancheVault', async () => {
     const { protocolConfig, seniorTranche, structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
     await protocolConfig.setDefaultProtocolFeeRate(500)

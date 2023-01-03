@@ -499,7 +499,6 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         if (fee == 0) {
             return;
         }
-        require(address(this) != managerFeeBeneficiary, "TV: managerFeeBeneficiary is TV");
         token.safeTransferFrom(msg.sender, managerFeeBeneficiary, fee);
         emit ManagerFeePaid(managerFeeBeneficiary, fee);
     }
@@ -619,6 +618,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     function setManagerFeeBeneficiary(address _managerFeeBeneficiary) public {
         _requireManagerRole();
         _requireNonZeroAddress(_managerFeeBeneficiary);
+        require(address(this) != _managerFeeBeneficiary, "TV: Cannot be TV address");
 
         managerFeeBeneficiary = _managerFeeBeneficiary;
         _updateCheckpoint(totalAssets());

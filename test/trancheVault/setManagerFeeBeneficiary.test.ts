@@ -19,6 +19,11 @@ describe('TrancheVault.setManagerFeeBeneficiary', () => {
     await expect(equityTranche.setManagerFeeBeneficiary(constants.AddressZero)).to.be.revertedWith('TV: Cannot be zero address')
   })
 
+  it('cannot be Tranche Vault', async () => {
+    const { equityTranche } = await loadFixture(structuredPortfolioFixture)
+    await expect(equityTranche.setManagerFeeBeneficiary(equityTranche.address)).to.be.revertedWith('TV: Cannot be TV address')
+  })
+
   it('sets new manager beneficiary', async () => {
     const { seniorTranche, other } = await loadFixture(structuredPortfolioFixture)
     await seniorTranche.setManagerFeeBeneficiary(other.address)
