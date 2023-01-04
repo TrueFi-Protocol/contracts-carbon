@@ -37,13 +37,13 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     uint256 public startDeadline;
     uint256 public minimumSize;
     uint256 public virtualTokenBalance;
+    uint256 public portfolioDuration;
 
     ITrancheVault[] public tranches;
     TrancheData[] public tranchesData;
     ExpectedEquityRate public expectedEquityRate;
 
     bool internal someLoansDefaulted;
-    uint256 internal portfolioDuration;
 
     function initialize(
         address manager,
