@@ -17,24 +17,12 @@ rule onlyDepositMintAndOnTransferIncreaseVirtualTokenBalance(method f) {
 }
 
 rule depositIncreasesVirtualTokenBalance() {
-    uint256 amount;
-    address receiver;
-    address sender;
-
-    uint256 depositFee;
-    env e1;
-    require e1.msg.sender == currentContract;
-    _, depositFee = depositController.onDeposit(e1, sender, amount, receiver);
-    // TODO: require in contract
-    require amount - depositFee > 0;
-
     require portfolio.status() != Live();
 
     uint256 virtualTokenBalance_old = virtualTokenBalance();
 
     env e;
-    require e.msg.sender == sender;
-    deposit(e, amount, receiver);
+    deposit(e, _, _);
 
     uint256 virtualTokenBalance_new = virtualTokenBalance();
 
@@ -42,43 +30,19 @@ rule depositIncreasesVirtualTokenBalance() {
 }
 
 rule mintIncreasesVirtualTokenBalance() {
-    uint256 shares;
-    address receiver;
-    address sender;
-
-    uint256 assetAmount;
-    env e1;
-    require e1.msg.sender == currentContract;
-    assetAmount, _ = depositController.onMint(e1, sender, shares, receiver);
-
     require portfolio.status() != Live();
 
     uint256 virtualTokenBalance_old = virtualTokenBalance();
 
     env e;
-    require e.msg.sender == sender;
-    mint(e, shares, receiver);
+    mint(e, _, _);
 
     uint256 virtualTokenBalance_new = virtualTokenBalance();
 
     assert virtualTokenBalance_new > virtualTokenBalance_old;
 }
 
-rule onTransferIncreasesVirtualTokenBalance() {
-    uint256 assets;
-    require assets > 0;
-    
-    uint256 virtualTokenBalance_old = virtualTokenBalance();
-
-    env e;
-    onTransfer(e, assets);
-
-    uint256 virtualTokenBalance_new = virtualTokenBalance();
-
-    assert virtualTokenBalance_new > virtualTokenBalance_old;
-}
-
-rule onlyWithdrawRedeemOnPortfolioStartAndCheckpointFunctionsDecreaseVirtualTokenBalance(method f) {
+rule onlyWithdrawRedeemOnPortfolioStartOnTransferAndCheckpointFunctionsDecreaseVirtualTokenBalance(method f) {
     uint256 virtualTokenBalance_old = virtualTokenBalance();
 
     env e;
@@ -90,21 +54,19 @@ rule onlyWithdrawRedeemOnPortfolioStartAndCheckpointFunctionsDecreaseVirtualToke
         f.selector == withdraw(uint256, address, address).selector ||
         f.selector == redeem(uint256, address, address).selector ||
         f.selector == onPortfolioStart().selector ||
-        isCheckpointFunction(f)
+        f.selector == onTransfer(uint256).selector ||
+        isCheckpointFunctionInClose(f)
     );
     assert true;
 }
 
 rule withdrawDecreasesVirtualTokenBalance() {
-    uint256 assets;
-    require assets > 0;
-
     require portfolio.status() != Live();
 
     uint256 virtualTokenBalance_old = virtualTokenBalance();
 
     env e;
-    withdraw(e, assets, _, _);
+    withdraw(e, _, _, _);
 
     uint256 virtualTokenBalance_new = virtualTokenBalance();
 
@@ -112,25 +74,12 @@ rule withdrawDecreasesVirtualTokenBalance() {
 }
 
 rule redeemDecreasesVirtualTokenBalance() {
-    uint256 shares;
-    address receiver;
-    address owner;
-    address sender;
-
-    uint256 assets;
-    env e1;
-    require e1.msg.sender == currentContract;
-    assets, _ = withdrawController.onRedeem(e1, sender, shares, receiver, owner);
-    // TODO: require in contract
-    require assets > 0;
-
     require portfolio.status() != Live();
 
     uint256 virtualTokenBalance_old = virtualTokenBalance();
 
     env e;
-    require e.msg.sender == sender;
-    redeem(e, shares, receiver, owner);
+    redeem(e, _, _, _);
 
     uint256 virtualTokenBalance_new = virtualTokenBalance();
 
@@ -149,7 +98,7 @@ rule onPortfolioStartDecreasesVirtualTokenBalance() {
     assert virtualTokenBalance_new < virtualTokenBalance_old;
 }
 
-rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceOnlyWhenPendingFeesArePositive(method f) filtered { f -> isCheckpointFunction(f) } {
+rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceOnlyWhenPendingFeesArePositive(method f) filtered { f -> isCheckpointFunctionInClose(f) } {
     uint256 timestamp;
 
     env e1;
@@ -168,7 +117,7 @@ rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceOnlyWhenPendingFeesAreP
 }
 
 // more detailed version of a rule above
-rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceWhenPendingFeesArePositiveAndPortfolioIsClosed(method f) filtered { f -> isCheckpointFunction(f) } {
+rule updateCheckpointFunctionsDecreaseVirtualTokenBalanceWhenPendingFeesArePositiveAndPortfolioIsClosed(method f) filtered { f -> isCheckpointFunctionInClose(f) } {
     uint256 timestamp;
     address managerFeeBeneficiary_old = managerFeeBeneficiary();
     uint256 managerFeeRate_old = managerFeeRate();

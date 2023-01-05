@@ -20,6 +20,7 @@ methods {
     virtualTokenBalance() returns uint256 envfree
 
     portfolio.status() returns uint8 envfree
+    portfolio.virtualTokenBalance() returns uint256 envfree
 
     protocolConfig.protocolTreasury() returns address envfree
 
@@ -35,6 +36,7 @@ methods {
     calculateWaterfallForTrancheWithoutFee(uint256 trancheId) returns uint256 => NONDET
 
     convertToAssets(uint256 shares) returns uint256 => convertToAssetsGhost(shares)
+    convertToAssetsCeil(uint256 shares) returns uint256 => convertToAssetsCeilGhost(shares)
 }
 
 // RULES
@@ -68,17 +70,27 @@ definition isProxyFunction(method f) returns bool =
     f.selector == upgradeToAndCall(address,bytes).selector ||
     f.selector == initialize(string,string,address,address,address,address,address,uint256,address,uint256).selector;
 
-// functions that change token balance only by calling _updateCheckpoint(uint256) 
-definition isCheckpointFunction(method f) returns bool =
+// functions that change token balance in close only by calling _updateCheckpoint(uint256) 
+definition isCheckpointFunctionInClose(method f) returns bool =
     f.selector == configure((uint256,address,address,address,address)).selector ||
     f.selector == setManagerFeeRate(uint256).selector ||
     f.selector == setManagerFeeBeneficiary(address).selector ||
     f.selector == updateCheckpointFromPortfolio(uint256).selector || 
     f.selector == updateCheckpoint().selector;
 
+// functions that change token balance in live only by calling _updateCheckpoint(uint256) 
+definition isCheckpointFunctionInLive(method f) returns bool =
+    f.selector == configure((uint256,address,address,address,address)).selector ||
+    f.selector == setManagerFeeRate(uint256).selector ||
+    f.selector == setManagerFeeBeneficiary(address).selector ||
+    f.selector == onTransfer(uint256).selector ||
+    f.selector == updateCheckpointFromPortfolio(uint256).selector || 
+    f.selector == updateCheckpoint().selector;
+
 // GHOSTS
 
 ghost convertToAssetsGhost(uint256) returns uint256;
+ghost convertToAssetsCeilGhost(uint256) returns uint256;
 
 ghost uint256 tranchesCountGhost;
 hook Sstore portfolio.tranches.(offset 0) uint256 value STORAGE {
