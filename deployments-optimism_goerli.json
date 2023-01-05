@@ -1,38 +1,38 @@
 {
   "optimism_goerli": {
     "structuredPortfolio": {
-      "txHash": "0x09e1455802280c1b30c191f2190e58c23447b859ccdb94e7570fab844a7e2306",
-      "address": "0xE75a9C43bD79D0047e4170727c4B4cBa3D11f296",
+      "txHash": "0x7c017ccadbfd8a9f1008b3b74b09b1e5363fea84cd76f6f60ebbe4ba80c1d644",
+      "address": "0x8532c72146BC740e2DF77b3B0f98Dc0A68526E6f",
       "multisig": false
     },
     "trancheVault": {
-      "txHash": "0x04b1a6b3fee98c7ee63438b13d3b9578efa50aa7e1b8993715b2de1beb750b6a",
-      "address": "0x5C77d4595F87b77039A39c34bcC8DdBa6fD5c05F",
+      "txHash": "0x09e8211214100c9c5427b7f11f576a353e3591a058820efa9293b212b3e71ecd",
+      "address": "0xA98d9dC9FFaf7db5A1a99e3e3D0A8FFAa80529EE",
       "multisig": false
     },
     "carbon_protocolConfig": {
-      "txHash": "0x0247f29fd6844610ee2a8b27c93c853218b5a9219b6dd7735f215ce2fabae742",
-      "address": "0x27cB13d3f0c075f63dA076E40bb6122aD57E08af",
+      "txHash": "0x517b18da30c0100c22881cdc4ab14fa15e70c775192225d6e79977026c15cdb6",
+      "address": "0x664B448fed3B943809e4C9D0669Db7DBd2d97DC8",
       "multisig": false
     },
     "carbon_protocolConfig_proxy": {
-      "txHash": "0xc5f56d3dd71ce87c20dc1d597039e5d2799f4b087a93cd5910bf990a88fc8361",
-      "address": "0x3329C0Ea674a4D6E7f78FC12664cCe930b26e1aE",
+      "txHash": "0xb8ed883f2dd91f568be906ffb58c2d5ad33650c124659bc7b461a4aac19cd305",
+      "address": "0xe6355cB1ad088324126f7C93d818435F28cDBeC7",
       "multisig": false
     },
     "structuredPortfolioFactory": {
-      "txHash": "0x562055eba46aec87c36bb621f3e5ea7c6b4e866fd158296b12949bd87dd7e816",
-      "address": "0x1cbB00d82088d4c3F21a3bD1048006196e197e54",
+      "txHash": "0x9ad03e36645368fc2e1b46ff403bc2fb64e27ef855947665547596111ef05a47",
+      "address": "0x03C76b704944D950231aAb744E3964445A714AAD",
       "multisig": false
     },
     "carbon_defaultDepositController": {
-      "txHash": "0x716dbb8df283fc0f7813583bc09aae23a4f1a720231bf1cba19c4f7d92ff2963",
-      "address": "0x8076fC9E94160B727148991014C27817a65b722a",
+      "txHash": "0x2ca20715f33dcfa7c786b0ce140c61e3e0020bf597b148e8ff8cfd6f196382a7",
+      "address": "0xb28e40Ca5BF2B80B73b355316e4b8FcA02d7DB05",
       "multisig": false
     },
     "carbon_defaultWithdrawController": {
-      "txHash": "0xe2debd9524963ca2adb8cb336e3d43e69f8bbabbbe8f00dd16b3650bab7e1613",
-      "address": "0xf9651dDc172140034e2F555fF772f8C0E066d1aF",
+      "txHash": "0x68e5bd54a079582f1360d9d5e6d9a69116d92c8475d2fae741dd82423971131b",
+      "address": "0xF351748D14F32011D2b3FF1f5cEbB33E7C04E68B",
       "multisig": false
     },
     "carbon_defaultTransferController": {
