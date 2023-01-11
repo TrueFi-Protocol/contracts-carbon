@@ -16,11 +16,17 @@ interface ProtocolConfig {
 
 export const config: Config = {
   protocolConfig: {
+    mainnet: {
+      defaultProtocolFeeRate: 50,
+      protocolAdmin: '0x16cEa306506c387713C70b9C1205fd5aC997E78E', // Owner multisig,
+      protocolTreasury: '0x4f4AC7a7032A14243aEbDa98Ee04a5D7Fe293d07', // Timelock,
+      pauserAddress: '0xf0aE09d3ABdF3641e2eB4cD45cf56873296a02CB', // Config multisig,
+    },
     ganache: {
       defaultProtocolFeeRate: 10,
       protocolAdmin: ganacheDeployer,
       protocolTreasury: ganacheDeployer,
-      pauserAddress: ganacheDeployer
+      pauserAddress: ganacheDeployer,
     },
     optimism_goerli: {
       defaultProtocolFeeRate: 0,
