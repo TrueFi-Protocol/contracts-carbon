@@ -54,7 +54,8 @@ const defaultFixtureConfig: FixtureConfig = {
 }
 
 export const getStructuredPortfolioFactoryFixture = (fixtureConfig?: Partial<FixtureConfig>) => {
-  return async ([wallet, other]: Wallet[]) => {
+  return async (wallets: Wallet[]) => {
+    const [wallet, other] = wallets
     const { tokenDecimals, targetApys } = { ...defaultFixtureConfig, ...fixtureConfig }
     const token = await new MockToken__factory(wallet).deploy(tokenDecimals)
 
@@ -66,7 +67,7 @@ export const getStructuredPortfolioFactoryFixture = (fixtureConfig?: Partial<Fix
     const structuredPortfolioImplementation = await new StructuredPortfolioTest__factory(wallet).deploy()
     const trancheVaultImplementation = await new TrancheVaultTest__factory(wallet).deploy()
 
-    const { protocolConfig, protocolConfigParams } = await deployProtocolConfig(wallet)
+    const { protocolConfig, protocolConfigParams } = await deployProtocolConfig(wallets)
 
     const structuredPortfolioFactory = await new StructuredPortfolioFactory__factory(wallet).deploy(
       structuredPortfolioImplementation.address,
@@ -77,7 +78,7 @@ export const getStructuredPortfolioFactoryFixture = (fixtureConfig?: Partial<Fix
     const whitelistedManagerRole = await structuredPortfolioFactory.WHITELISTED_MANAGER_ROLE()
     await structuredPortfolioFactory.grantRole(whitelistedManagerRole, wallet.address)
 
-    const { fixedInterestOnlyLoans } = await deployFixedInterestOnlyLoans([wallet])
+    const { fixedInterestOnlyLoans } = await deployFixedInterestOnlyLoans(wallets)
 
     const { depositController, withdrawController, transferController } = await deployControllers(wallet)
 

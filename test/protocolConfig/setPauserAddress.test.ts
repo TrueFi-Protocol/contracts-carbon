@@ -11,18 +11,18 @@ describe('ProtocolConfig.setPauserAddress', () => {
   })
 
   it('only different value', async () => {
-    const { protocolConfig, protocolConfigParams: { pauserAddress } } = await loadFixture(protocolConfigFixture)
-    await expect(protocolConfig.setPauserAddress(pauserAddress)).to.be.revertedWith('PC: Pauser already set')
+    const { protocolConfig, protocolConfigParams: { pauser } } = await loadFixture(protocolConfigFixture)
+    await expect(protocolConfig.setPauserAddress(pauser.address)).to.be.revertedWith('PC: Pauser already set')
   })
 
   it('sets new value', async () => {
-    const { protocolConfig, other } = await loadFixture(protocolConfigFixture)
-    await protocolConfig.setPauserAddress(other.address)
-    expect(await protocolConfig.pauserAddress()).to.eq(other.address)
+    const { protocolConfig, wallet } = await loadFixture(protocolConfigFixture)
+    await protocolConfig.setPauserAddress(wallet.address)
+    expect(await protocolConfig.pauserAddress()).to.eq(wallet.address)
   })
 
   it('emits event', async () => {
-    const { protocolConfig, other } = await loadFixture(protocolConfigFixture)
-    await expect(protocolConfig.setPauserAddress(other.address)).to.emit(protocolConfig, 'PauserAddressChanged').withArgs(other.address)
+    const { protocolConfig, wallet } = await loadFixture(protocolConfigFixture)
+    await expect(protocolConfig.setPauserAddress(wallet.address)).to.emit(protocolConfig, 'PauserAddressChanged').withArgs(wallet.address)
   })
 })

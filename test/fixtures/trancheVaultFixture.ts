@@ -6,10 +6,11 @@ import { deployProtocolConfig } from './deployProtocolConfig'
 import { deployControllers } from 'fixtures/deployControllers'
 import { PortfolioStatus } from './structuredPortfolioFixture'
 
-export async function trancheVaultFixture([wallet, protocol]: Wallet[]) {
+export async function trancheVaultFixture(wallets: Wallet[]) {
+  const [wallet] = wallets
   const { depositController, withdrawController, transferController } = await deployControllers(wallet)
 
-  const { protocolConfig, protocolConfigParams } = await deployProtocolConfig(wallet, protocol)
+  const { protocolConfig, protocolConfigParams } = await deployProtocolConfig(wallets)
 
   const tokenDecimals = 6
   const token = await new MockToken__factory(wallet).deploy(tokenDecimals)

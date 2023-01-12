@@ -28,8 +28,8 @@ describe('StructuredPortfolio.addLoan', () => {
   })
 
   it('reverts when portfolio is paused', async () => {
-    const { structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
-    await structuredPortfolio.pause()
+    const { structuredPortfolio, protocolConfigParams: { pauser } } = await loadFixture(structuredPortfolioFixture)
+    await structuredPortfolio.connect(pauser).pause()
 
     await expect(structuredPortfolio.addLoan(loan))
       .to.be.revertedWith('Pausable: paused')

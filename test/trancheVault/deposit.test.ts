@@ -107,8 +107,8 @@ describe('TrancheVault.deposit', () => {
   })
 
   it('reverts when portfolio is paused', async () => {
-    const { equityTranche, wallet, structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
-    await structuredPortfolio.pause()
+    const { equityTranche, wallet, structuredPortfolio, protocolConfigParams: { pauser } } = await loadFixture(structuredPortfolioFixture)
+    await structuredPortfolio.connect(pauser).pause()
 
     await expect(equityTranche.deposit(100, wallet.address))
       .to.be.revertedWith('TV: Portfolio is paused')

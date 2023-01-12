@@ -6,23 +6,22 @@ interface ProtocolConfigParams {
   defaultProtocolFeeRate: number,
   protocolAdmin: string,
   protocolTreasury: string,
-  pauserAddress: string,
+  pauser: Wallet,
 }
 
-export async function deployProtocolConfig(wallet: Wallet) {
+export async function deployProtocolConfig([wallet, pauser]: Wallet[]) {
   const defaultProtocolFeeRate = 0
   const protocolAdmin = wallet.address
   const protocolTreasury = Wallet.createRandom().address
-  const pauserAddress = wallet.address
 
   const protocolConfigParams: ProtocolConfigParams = {
     defaultProtocolFeeRate,
     protocolAdmin,
     protocolTreasury,
-    pauserAddress,
+    pauser,
   }
 
-  const protocolConfig = await deployBehindProxy(new ProtocolConfig__factory(wallet), defaultProtocolFeeRate, protocolAdmin, protocolTreasury, pauserAddress)
+  const protocolConfig = await deployBehindProxy(new ProtocolConfig__factory(wallet), defaultProtocolFeeRate, protocolAdmin, protocolTreasury, pauser.address)
 
   return { protocolConfig, protocolConfigParams }
 }

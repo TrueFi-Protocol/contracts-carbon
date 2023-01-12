@@ -225,8 +225,8 @@ describe('StructuredPortfolio.close', () => {
   })
 
   it('reverts when portfolio is paused', async () => {
-    const { structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
-    await structuredPortfolio.pause()
+    const { structuredPortfolio, protocolConfigParams: { pauser } } = await loadFixture(structuredPortfolioLiveFixture)
+    await structuredPortfolio.connect(pauser).pause()
 
     await expect(structuredPortfolio.close())
       .to.be.revertedWith('Pausable: paused')

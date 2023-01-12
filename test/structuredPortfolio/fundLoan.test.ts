@@ -59,9 +59,10 @@ describe('StructuredPortfolio.fundLoan', () => {
       structuredPortfolio,
       addAndAcceptLoan,
       loan,
+      protocolConfigParams: { pauser },
     } = await loadFixture(structuredPortfolioLiveFixture)
     const loanId = await addAndAcceptLoan(loan)
-    await structuredPortfolio.pause()
+    await structuredPortfolio.connect(pauser).pause()
 
     await expect(structuredPortfolio.fundLoan(loanId))
       .to.be.revertedWith('Pausable: paused')

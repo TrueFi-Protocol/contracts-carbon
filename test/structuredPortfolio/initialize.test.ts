@@ -75,8 +75,9 @@ describe('StructuredPortfolio.initialize', () => {
       wallet,
       tranchesData,
       token,
+      protocolConfigParams: { pauser },
     } = await loadFixture(structuredPortfolioFactoryFixture)
-    const { fixedInterestOnlyLoans } = await deployFixedInterestOnlyLoans([wallet])
+    const { fixedInterestOnlyLoans } = await deployFixedInterestOnlyLoans([wallet, pauser])
     await expect(structuredPortfolioFactory
       .createPortfolio(token.address, fixedInterestOnlyLoans.address, { ...portfolioParams, duration: 0 }, tranchesData, { from: 0, to: 0 }))
       .to.be.revertedWith('SP: Duration cannot be zero')
@@ -162,10 +163,10 @@ describe('StructuredPortfolio.initialize', () => {
   })
 
   it('pauser role is taken from protocol config', async () => {
-    const { createPortfolio, protocolConfig, other } = await loadFixture(structuredPortfolioFactoryFixture)
-    await protocolConfig.setPauserAddress(other.address)
+    const { createPortfolio, protocolConfig, wallet } = await loadFixture(structuredPortfolioFactoryFixture)
+    await protocolConfig.setPauserAddress(wallet.address)
     const { portfolio } = await createPortfolio()
-    expect(await portfolio.hasRole(await portfolio.PAUSER_ROLE(), other.address)).to.be.true
+    expect(await portfolio.hasRole(await portfolio.PAUSER_ROLE(), wallet.address)).to.be.true
   })
 
   it('grants default admin role to protocol admin', async () => {

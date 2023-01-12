@@ -95,8 +95,8 @@ describe('StructuredPortfolio.updateCheckpoint', () => {
   })
 
   it('reverts when portfolio is paused', async () => {
-    const { structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
-    await structuredPortfolio.pause()
+    const { structuredPortfolio, protocolConfigParams: { pauser } } = await loadFixture(structuredPortfolioFixture)
+    await structuredPortfolio.connect(pauser).pause()
 
     await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('Pausable: paused')
   })

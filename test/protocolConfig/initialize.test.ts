@@ -5,6 +5,18 @@ import { setupFixtureLoader } from 'test/setup'
 describe('ProtocolConfig.initialize', () => {
   const loadFixture = setupFixtureLoader()
 
+  it('sets admin role for sender', async () => {
+    const { protocolConfig, wallet } = await loadFixture(protocolConfigFixture)
+    const adminRole = await protocolConfig.DEFAULT_ADMIN_ROLE()
+    expect(await protocolConfig.hasRole(adminRole, wallet.address)).to.be.true
+  })
+
+  it('sets pauser role for pauser address', async () => {
+    const { protocolConfig, protocolConfigParams: { pauser } } = await loadFixture(protocolConfigFixture)
+    const pauserRole = await protocolConfig.PAUSER_ROLE()
+    expect(await protocolConfig.hasRole(pauserRole, pauser.address)).to.be.true
+  })
+
   it('sets protocol fee rate', async () => {
     const { protocolConfig, protocolConfigParams: { defaultProtocolFeeRate } } = await loadFixture(protocolConfigFixture)
     expect(await protocolConfig.defaultProtocolFeeRate()).to.eq(defaultProtocolFeeRate)
@@ -21,7 +33,7 @@ describe('ProtocolConfig.initialize', () => {
   })
 
   it('sets pauser address', async () => {
-    const { protocolConfig, protocolConfigParams: { pauserAddress } } = await loadFixture(protocolConfigFixture)
-    expect(await protocolConfig.pauserAddress()).to.eq(pauserAddress)
+    const { protocolConfig, protocolConfigParams: { pauser } } = await loadFixture(protocolConfigFixture)
+    expect(await protocolConfig.pauserAddress()).to.eq(pauser.address)
   })
 })

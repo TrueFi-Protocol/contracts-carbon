@@ -12,8 +12,8 @@ export enum LoanStatus {
   Defaulted
 }
 
-export async function loansManagerFixture([wallet, borrower]: Wallet[]) {
-  const { fixedInterestOnlyLoans } = await deployFixedInterestOnlyLoans([wallet])
+export async function loansManagerFixture([wallet, borrower, pauser]: Wallet[]) {
+  const { fixedInterestOnlyLoans } = await deployFixedInterestOnlyLoans([wallet, pauser])
   const tokenDecimals = 6
   const token = await new MockToken__factory(wallet).deploy(tokenDecimals)
   const loansManager = await new LoansManagerTest__factory(wallet).deploy()
