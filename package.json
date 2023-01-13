@@ -4,6 +4,7 @@
   "description": "TrueFi Carbon",
   "scripts": {
     "clean": "rm -rf ./build && hardhat clean",
+    "build:fuzzing": "pnpm build && python3 fuzzing/scripts/build_fuzzing.py",
     "build:hardhat": "hardhat compile",
     "build:typechain": "typechain --target ethers-v5 --out-dir build/types 'build/*.json'",
     "build:verify": "ts-node ./spec/generateConfigs.ts",
@@ -14,6 +15,7 @@
     "build": "pnpm clean && pnpm build:hardhat && pnpm build:typechain && pnpm build:mars && pnpm run build:merge-deployments && pnpm run build:save-canary",
     "deployCarbon": "bash ./utils/bash/guardedRun.sh",
     "test": "mocha 'test/**/*.test.ts'",
+    "fuzz": "echidna-test .",
     "lint:fix": "prettier 'contracts/**/*.sol' --write --loglevel error && pnpm run lint:ts --fix",
     "lint:sol": "solhint 'contracts/**/*.sol' && prettier 'contracts/**/*.sol' --check --loglevel error",
     "lint:ts": "eslint 'test/**/*.ts' -c .eslintrc.json --cache",
