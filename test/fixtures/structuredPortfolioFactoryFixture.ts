@@ -4,6 +4,7 @@ import {
   MockLenderVerifier__factory,
   MockToken__factory,
   StructuredPortfolioFactory__factory,
+  StructuredPortfolioFactoryMock__factory,
   StructuredPortfolioTest__factory,
   TrancheVaultTest,
   TrancheVaultTest__factory,
@@ -46,17 +47,19 @@ interface PortfolioParams {
 export interface FixtureConfig {
   tokenDecimals: number,
   targetApys: number[],
+  echidna: boolean,
 }
 
 const defaultFixtureConfig: FixtureConfig = {
   tokenDecimals: 6,
   targetApys: [0, 500, 300],
+  echidna: false,
 }
 
 export const getStructuredPortfolioFactoryFixture = (fixtureConfig?: Partial<FixtureConfig>) => {
   return async (wallets: Wallet[]) => {
     const [wallet, other] = wallets
-    const { tokenDecimals, targetApys } = { ...defaultFixtureConfig, ...fixtureConfig }
+    const { tokenDecimals, targetApys, echidna } = { ...defaultFixtureConfig, ...fixtureConfig }
     const token = await new MockToken__factory(wallet).deploy(tokenDecimals)
 
     const parseTokenUnits = (amount: string | number) => utils.parseUnits(amount.toString(), tokenDecimals)
@@ -69,11 +72,17 @@ export const getStructuredPortfolioFactoryFixture = (fixtureConfig?: Partial<Fix
 
     const { protocolConfig, protocolConfigParams } = await deployProtocolConfig(wallets)
 
-    const structuredPortfolioFactory = await new StructuredPortfolioFactory__factory(wallet).deploy(
-      structuredPortfolioImplementation.address,
-      trancheVaultImplementation.address,
-      protocolConfig.address,
-    )
+    const structuredPortfolioFactory = echidna
+      ? await new StructuredPortfolioFactoryMock__factory(wallet).deploy(
+        structuredPortfolioImplementation.address,
+        trancheVaultImplementation.address,
+        protocolConfig.address,
+      )
+      : await new StructuredPortfolioFactory__factory(wallet).deploy(
+        structuredPortfolioImplementation.address,
+        trancheVaultImplementation.address,
+        protocolConfig.address,
+      )
 
     const whitelistedManagerRole = await structuredPortfolioFactory.WHITELISTED_MANAGER_ROLE()
     await structuredPortfolioFactory.grantRole(whitelistedManagerRole, wallet.address)

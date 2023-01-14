@@ -114,6 +114,7 @@ export const getStructuredPortfolioFixture = (fixtureConfig?: Partial<FixtureCon
 }
 
 export const structuredPortfolioFixture = getStructuredPortfolioFixture()
+export const echidnaStructuredPortfolioFixture = getStructuredPortfolioFixture({ echidna: true })
 
 export const getStructuredPortfolioLiveFixture = (fixtureConfig?: Partial<FixtureConfig>) => {
   return async ([wallet, borrower, ...rest]: Wallet[]) => {
