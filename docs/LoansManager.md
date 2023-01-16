@@ -10,7 +10,7 @@
 contract IFixedInterestOnlyLoans fixedInterestOnlyLoans
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -22,7 +22,7 @@ contract IFixedInterestOnlyLoans fixedInterestOnlyLoans
 contract IERC20WithDecimals asset
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -34,11 +34,11 @@ contract IERC20WithDecimals asset
 uint256[] activeLoanIds
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -50,11 +50,11 @@ uint256[] activeLoanIds
 mapping(uint256 => bool) issuedLoanIds
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 

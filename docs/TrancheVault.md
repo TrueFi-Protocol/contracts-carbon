@@ -30,7 +30,7 @@ Role used to access tranche controllers setters
 contract IStructuredPortfolio portfolio
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -42,7 +42,7 @@ contract IStructuredPortfolio portfolio
 contract IDepositController depositController
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -54,7 +54,7 @@ contract IDepositController depositController
 contract IWithdrawController withdrawController
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -66,7 +66,7 @@ contract IWithdrawController withdrawController
 contract ITransferController transferController
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -78,7 +78,7 @@ contract ITransferController transferController
 contract IProtocolConfig protocolConfig
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -90,7 +90,7 @@ contract IProtocolConfig protocolConfig
 uint256 waterfallIndex
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -102,7 +102,7 @@ uint256 waterfallIndex
 uint256 unpaidProtocolFee
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -114,7 +114,7 @@ uint256 unpaidProtocolFee
 uint256 unpaidManagerFee
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -126,7 +126,7 @@ uint256 unpaidManagerFee
 address managerFeeBeneficiary
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -138,7 +138,7 @@ address managerFeeBeneficiary
 uint256 managerFeeRate
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -170,7 +170,7 @@ Setup contract with given params
 
 Used by Initializable contract (can be called only once)
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _name | string | Contract name |
@@ -227,7 +227,7 @@ Returns the total amount of the underlying asset that is “managed” by Vault.
 function totalAssetsBeforeFees() public view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Total tranche assets including accrued but yet not paid fees |
@@ -262,7 +262,7 @@ function convertToSharesCeil(uint256 assets) public view returns (uint256)
 
 Converts given amount of token assets to TrancheVault LP tokens at the current price, without respecting fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Amount of assets to convert |
@@ -297,7 +297,7 @@ function convertToAssetsCeil(uint256 shares) public view returns (uint256)
 
 Converts given amount of TrancheVault LP tokens to token assets at the current price, without respecting fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Amount of TrancheVault LP tokens to convert |
@@ -544,7 +544,7 @@ function supportsInterface(bytes4 interfaceID) public view returns (bool)
 function getCheckpoint() external view returns (struct Checkpoint)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | struct Checkpoint |  |
@@ -586,7 +586,7 @@ Updates virtualTokenBalance and checkpoint after transferring assets from Struct
 
 Can be executed only by associated StructuredPortfolio
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Transferred assets amount |
@@ -617,7 +617,7 @@ function updateCheckpointFromPortfolio(uint256 newTotalAssets) external
 function totalPendingFees() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Sum of all unpaid fees and fees accrued since last checkpoint update |
@@ -638,7 +638,7 @@ function totalPendingFeesForAssets(uint256 _totalAssetsBeforeFees) public view r
 function pendingProtocolFee() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Sum of unpaid protocol fees and protocol fees accrued since last checkpoint update |
@@ -651,7 +651,7 @@ function pendingProtocolFee() external view returns (uint256)
 function pendingManagerFee() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Sum of unpaid manager fees and manager fees accrued since last checkpoint update |
@@ -668,7 +668,7 @@ DepositController address setter
 
 Can be executed only by TrancheVault manager
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newController | contract IDepositController | New DepositController address |
@@ -685,7 +685,7 @@ WithdrawController address setter
 
 Can be executed only by TrancheVault manager
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newController | contract IWithdrawController | New WithdrawController address |
@@ -702,7 +702,7 @@ TransferController address setter
 
 Can be executed only by TrancheVault manager
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newController | contract ITransferController | New TransferController address |
@@ -735,7 +735,7 @@ Sets address of StructuredPortfolio associated with TrancheVault
 
 Can be executed only once
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _portfolio | contract IStructuredPortfolio | StructuredPortfolio address |

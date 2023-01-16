@@ -20,7 +20,7 @@ Manager role used for access control
 contract ILenderVerifier lenderVerifier
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -32,7 +32,7 @@ contract ILenderVerifier lenderVerifier
 uint256 ceiling
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -44,7 +44,7 @@ uint256 ceiling
 uint256 depositFeeRate
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -56,11 +56,11 @@ uint256 depositFeeRate
 mapping(enum Status => bool) depositAllowed
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -88,12 +88,12 @@ function initialize(address manager, address _lenderVerifier, uint256 _depositFe
 function maxDeposit(address receiver) public view returns (uint256)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | receiver | address | Shares receiver address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 |  |
@@ -106,12 +106,12 @@ function maxDeposit(address receiver) public view returns (uint256)
 function maxMint(address receiver) external view returns (uint256)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | receiver | address | Shares receiver address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 |  |
@@ -142,12 +142,12 @@ function previewDeposit(uint256 assets) public view returns (uint256 shares)
 
 Simulates deposit assets conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Tested assets amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Shares amount that can be obtained from the given assets amount |
@@ -162,12 +162,12 @@ function previewMint(uint256 shares) public view returns (uint256)
 
 Simulates mint shares conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Tested shares amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 |  |
@@ -182,7 +182,7 @@ function setCeiling(uint256 newCeiling) public
 
 Ceiling setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newCeiling | uint256 | New ceiling value |
@@ -197,7 +197,7 @@ function setDepositAllowed(bool newDepositAllowed, enum Status portfolioStatus) 
 
 Deposit allowed setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newDepositAllowed | bool | Value indicating whether deposits should be allowed when related StructuredPortfolio is in given status |
@@ -213,7 +213,7 @@ function setDepositFeeRate(uint256 newFeeRate) public
 
 Deposit fee rate setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFeeRate | uint256 | New deposit fee rate (in BPS) |
@@ -228,7 +228,7 @@ function setLenderVerifier(contract ILenderVerifier newLenderVerifier) public
 
 Lender verifier setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newLenderVerifier | contract ILenderVerifier | New LenderVerifer contract address |
@@ -243,7 +243,7 @@ function configure(uint256 newCeiling, uint256 newFeeRate, contract ILenderVerif
 
 Allows to change ceiling, deposit fee rate, lender verifier and enable or disable deposits at once
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newCeiling | uint256 | New ceiling value |

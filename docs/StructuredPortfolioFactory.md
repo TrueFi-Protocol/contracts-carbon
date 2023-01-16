@@ -10,7 +10,7 @@
 bytes32 WHITELISTED_MANAGER_ROLE
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -22,11 +22,11 @@ bytes32 WHITELISTED_MANAGER_ROLE
 contract IStructuredPortfolio[] portfolios
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -38,7 +38,7 @@ contract IStructuredPortfolio[] portfolios
 address trancheImplementation
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -50,7 +50,7 @@ address trancheImplementation
 address portfolioImplementation
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -62,7 +62,7 @@ address portfolioImplementation
 contract IProtocolConfig protocolConfig
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -86,7 +86,7 @@ Creates a portfolio alongside with its tranche vaults
 
 Tranche vaults are ordered from the most volatile to the most stable
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | underlyingToken | contract IERC20WithDecimals |  |
@@ -103,7 +103,7 @@ Tranche vaults are ordered from the most volatile to the most stable
 function getPortfolios() external view returns (contract IStructuredPortfolio[])
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract IStructuredPortfolio[] | All created portfolios |

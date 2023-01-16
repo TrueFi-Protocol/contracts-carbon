@@ -10,7 +10,7 @@
 bytes32 MANAGER_ROLE
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -30,7 +30,7 @@ contract IProtocolConfig protocolConfig
 enum Status status
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -42,7 +42,7 @@ enum Status status
 string name
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -56,7 +56,7 @@ uint256 endDate
 
 Returns expected end date or actual end date if portfolio was closed prematurely.
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -68,7 +68,7 @@ Returns expected end date or actual end date if portfolio was closed prematurely
 uint256 startDate
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -82,7 +82,7 @@ uint256 startDeadline
 
 Timestamp after which anyone can close the portfolio if it's in capital formation.
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -94,7 +94,7 @@ Timestamp after which anyone can close the portfolio if it's in capital formatio
 uint256 minimumSize
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -156,7 +156,7 @@ function initialize(address manager, contract IERC20WithDecimals underlyingToken
 function getTranches() external view returns (contract ITrancheVault[])
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract ITrancheVault[] | Array of portfolio's tranches addresses |
@@ -205,7 +205,7 @@ function decreaseVirtualTokenBalance(uint256 decrement) external
 function totalAssets() public view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Total value locked in the contract including yield from outstanding loans |
@@ -218,7 +218,7 @@ function totalAssets() public view returns (uint256)
 function liquidAssets() public view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Underlying token balance of portfolio reduced by pending fees |
@@ -231,7 +231,7 @@ function liquidAssets() public view returns (uint256)
 function totalPendingFees() public view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Sum of all unsettled fees that tranches should pay |
@@ -244,7 +244,7 @@ function totalPendingFees() public view returns (uint256)
 function loansValue() public view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Sum of current values of all active loans |
@@ -274,7 +274,7 @@ function checkTranchesRatiosFromTranche(uint256 newTotalAssets) external view
 
 Reverts if tranche ratios are not met
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newTotalAssets | uint256 | new total assets value of the tranche calling this function. Is ignored if not called by tranche |
@@ -329,7 +329,7 @@ function calculateWaterfall() public view returns (uint256[])
 Distributes portfolio value among tranches respecting their target apys and fees.
 Returns zeros for CapitalFormation and Closed portfolio status.
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256[] | Array of current tranche values |
@@ -345,7 +345,7 @@ function calculateWaterfallWithoutFees() public view returns (uint256[])
 Distributes portfolio value among tranches respecting their target apys, but not fees.
 Returns zeros for CapitalFormation and Closed portfolio status.
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256[] | Array of current tranche values (with pending fees not deducted) |
@@ -376,7 +376,7 @@ Starts a loan with given id and transfers assets to loan recipient
 - can be executed only by StructuredPortfolio manager
 - can be executed only in Live status
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Id of the loan that should be started |
@@ -395,7 +395,7 @@ Allows sender to repay a loan with given id
 - can be executed only by loan recipient
 - automatically calculates amount to repay based on data stored in FixedInterestOnlyLoans contract
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Id of the loan that should be repaid |
@@ -412,7 +412,7 @@ Sets new grace period for the existing loan
 
 Can be executed only by StructuredPortfolio manager
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Id of the loan which grace period should be updated |
@@ -430,7 +430,7 @@ Cancels the loan with provided loan id
 
 Can be executed only by StructuredPortfolio manager
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Id of the loan to cancel |
@@ -447,7 +447,7 @@ Sets the status of a loan with given id to Defaulted and excludes it from active
 
 Can be executed only by StructuredPortfolio manager
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Id of the loan that should be defaulted |
@@ -460,7 +460,7 @@ Can be executed only by StructuredPortfolio manager
 function getActiveLoans() external view returns (uint256[])
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256[] | Array of all active loans' ids |

@@ -14,7 +14,7 @@ Setup contract with given params
 
 Used by Initializable contract (can be called only once)
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | manager | address | Address to which MANAGER_ROLE should be granted |
@@ -29,7 +29,7 @@ function onTransfer(address sender, address from, address to, uint256 value) ext
 
 Verifies TrancheVault shares transfers
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | sender | address | Transfer transaction sender address |
@@ -37,7 +37,7 @@ Verifies TrancheVault shares transfers
 | to | address | Transferred funds recipient address |
 | value | uint256 | Transferred assets amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | isTransferAllowed | bool | Value indicating whether TrancheVault shares transfer with given params is allowed |

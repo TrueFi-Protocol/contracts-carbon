@@ -24,7 +24,7 @@ event CeilingChanged(uint256 newCeiling)
 
 Event emitted when new ceiling is set
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newCeiling | uint256 | New ceiling value |
@@ -39,7 +39,7 @@ event DepositAllowedChanged(bool newDepositAllowed, enum Status portfolioStatus)
 
 Event emitted when deposits are disabled or enabled for a specific StructuredPortfolio status
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newDepositAllowed | bool | Value indicating whether deposits should be enabled or disabled |
@@ -55,7 +55,7 @@ event DepositFeeRateChanged(uint256 newFeeRate)
 
 Event emitted when deposit fee rate is switched
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFeeRate | uint256 | New deposit fee rate value (in BPS) |
@@ -70,7 +70,7 @@ event LenderVerifierChanged(contract ILenderVerifier newLenderVerifier)
 
 Event emitted when lender verifier is switched
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newLenderVerifier | contract ILenderVerifier | New lender verifier contract address |
@@ -83,7 +83,7 @@ Event emitted when lender verifier is switched
 function MANAGER_ROLE() external view returns (bytes32)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bytes32 | DepositController manager role used for access control |
@@ -96,7 +96,7 @@ function MANAGER_ROLE() external view returns (bytes32)
 function lenderVerifier() external view returns (contract ILenderVerifier)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract ILenderVerifier | Address of contract used for checking whether given address is allowed to put funds into an instrument according to implemented strategy |
@@ -109,7 +109,7 @@ function lenderVerifier() external view returns (contract ILenderVerifier)
 function ceiling() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Max asset capacity defined for TrancheVaults interracting with DepositController |
@@ -122,7 +122,7 @@ function ceiling() external view returns (uint256)
 function depositFeeRate() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Rate (in BPS) of the fee applied to the deposit amount |
@@ -135,12 +135,12 @@ function depositFeeRate() external view returns (uint256)
 function depositAllowed(enum Status status) external view returns (bool)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | status | enum Status | StructuredPortfolio status |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bool | Value indicating whether deposits are allowed when related StructuredPortfolio is in given status |
@@ -157,7 +157,7 @@ Setup contract with given params
 
 Used by Initializable contract (can be called only once)
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | manager | address | Address to which MANAGER_ROLE should be granted |
@@ -173,12 +173,12 @@ Used by Initializable contract (can be called only once)
 function maxDeposit(address receiver) external view returns (uint256 assets)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | receiver | address | Shares receiver address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Max assets amount that can be deposited with TrancheVault shares minted to given receiver |
@@ -191,12 +191,12 @@ function maxDeposit(address receiver) external view returns (uint256 assets)
 function maxMint(address receiver) external view returns (uint256 shares)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | receiver | address | Shares receiver address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Max TrancheVault shares amount given address can receive |
@@ -211,12 +211,12 @@ function previewDeposit(uint256 assets) external view returns (uint256 shares)
 
 Simulates deposit assets conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Tested assets amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Shares amount that can be obtained from the given assets amount |
@@ -231,12 +231,12 @@ function previewMint(uint256 shares) external view returns (uint256 assets)
 
 Simulates mint shares conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Tested shares amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Assets amount that needs to be deposited to obtain given shares amount |
@@ -251,14 +251,14 @@ function onDeposit(address sender, uint256 assets, address receiver) external re
 
 Simulates deposit result
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | sender | address | Supposed deposit transaction sender address |
 | assets | uint256 | Supposed assets amount |
 | receiver | address | Supposed shares receiver address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Shares amount that can be obtained from the deposit with given params |
@@ -274,14 +274,14 @@ function onMint(address sender, uint256 shares, address receiver) external retur
 
 Simulates mint result
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | sender | address | Supposed mint transaction sender address |
 | shares | uint256 | Supposed shares amount |
 | receiver | address | Supposed shares receiver address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Assets amount that needs to be provided to execute mint with given params |
@@ -297,7 +297,7 @@ function setCeiling(uint256 newCeiling) external
 
 Ceiling setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newCeiling | uint256 | New ceiling value |
@@ -312,7 +312,7 @@ function setDepositAllowed(bool newDepositAllowed, enum Status portfolioStatus) 
 
 Deposit allowed setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newDepositAllowed | bool | Value indicating whether deposits should be allowed when related StructuredPortfolio is in given status |
@@ -328,7 +328,7 @@ function setDepositFeeRate(uint256 newFeeRate) external
 
 Deposit fee rate setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFeeRate | uint256 | New deposit fee rate (in BPS) |
@@ -343,7 +343,7 @@ function setLenderVerifier(contract ILenderVerifier newLenderVerifier) external
 
 Lender verifier setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newLenderVerifier | contract ILenderVerifier | New LenderVerifer contract address |
@@ -358,7 +358,7 @@ function configure(uint256 newCeiling, uint256 newFeeRate, contract ILenderVerif
 
 Allows to change ceiling, deposit fee rate, lender verifier and enable or disable deposits at once
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newCeiling | uint256 | New ceiling value |

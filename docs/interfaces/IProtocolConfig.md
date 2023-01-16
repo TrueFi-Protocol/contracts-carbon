@@ -12,7 +12,7 @@ event DefaultProtocolFeeRateChanged(uint256 newProtocolFeeRate)
 
 Event emitted when new defaultProtocolFeeRate is set
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newProtocolFeeRate | uint256 | Newly set protocol fee rate (in BPS) |
@@ -27,7 +27,7 @@ event CustomProtocolFeeRateChanged(address contractAddress, uint16 newProtocolFe
 
 Event emitted when new custom fee rate for a specific address is set
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | contractAddress | address | Address of the contract for which new custom fee rate has been set |
@@ -43,7 +43,7 @@ event CustomProtocolFeeRateRemoved(address contractAddress)
 
 Event emitted when custom fee rate for a specific address is unset
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | contractAddress | address | Address of the contract for which custom fee rate has been unset |
@@ -58,7 +58,7 @@ event ProtocolAdminChanged(address newProtocolAdmin)
 
 Event emitted when new protocolAdmin address is set
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newProtocolAdmin | address | Newly set protocolAdmin address |
@@ -73,7 +73,7 @@ event ProtocolTreasuryChanged(address newProtocolTreasury)
 
 Event emitted when new protocolTreasury address is set
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newProtocolTreasury | address | Newly set protocolTreasury address |
@@ -88,7 +88,7 @@ event PauserAddressChanged(address newPauserAddress)
 
 Event emitted when new pauser address is set
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newPauserAddress | address | Newly set pauser address |
@@ -105,7 +105,7 @@ Setups the contract with given params
 
 Used by Initializable contract (can be called only once)
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _defaultProtocolFeeRate | uint256 | Default fee rate valid for every contract except those with custom fee rate set |
@@ -121,7 +121,7 @@ Used by Initializable contract (can be called only once)
 function protocolFeeRate() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Protocol fee rate valid for the message sender |
@@ -134,12 +134,12 @@ function protocolFeeRate() external view returns (uint256)
 function protocolFeeRate(address contractAddress) external view returns (uint256)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | contractAddress | address | Address of contract queried for it's protocol fee rate |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Protocol fee rate valid for the given address |
@@ -152,7 +152,7 @@ function protocolFeeRate(address contractAddress) external view returns (uint256
 function defaultProtocolFeeRate() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Default fee rate valid for every contract except those with custom fee rate set |
@@ -165,7 +165,7 @@ function defaultProtocolFeeRate() external view returns (uint256)
 function protocolAdmin() external view returns (address)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | address | Address of the account/contract that should be able to upgrade Upgradeable contracts |
@@ -178,7 +178,7 @@ function protocolAdmin() external view returns (address)
 function protocolTreasury() external view returns (address)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | address | Address of the account/contract to which collected fee should be transferred |
@@ -191,7 +191,7 @@ function protocolTreasury() external view returns (address)
 function pauserAddress() external view returns (address)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | address | Address of the account/contract that should be grnated PAUSER role on TrueFi Pausable contracts |
@@ -206,7 +206,7 @@ function setCustomProtocolFeeRate(address contractAddress, uint16 newFeeRate) ex
 
 Custom protocol fee rate setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | contractAddress | address | Address of the contract for which new custom fee rate should be set |
@@ -222,7 +222,7 @@ function removeCustomProtocolFeeRate(address contractAddress) external
 
 Removes custom protocol fee rate from the given contract address
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | contractAddress | address | Address of the contract for which custom fee rate should be unset |
@@ -237,7 +237,7 @@ function setDefaultProtocolFeeRate(uint256 newFeeRate) external
 
 Default protocol fee rate setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFeeRate | uint256 | New protocol fee rate (in BPS) to set |
@@ -252,7 +252,7 @@ function setProtocolAdmin(address newProtocolAdmin) external
 
 Protocol admin address setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newProtocolAdmin | address | New protocol admin address to set |
@@ -267,7 +267,7 @@ function setProtocolTreasury(address newProtocolTreasury) external
 
 Protocol treasury address setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newProtocolTreasury | address | New protocol treasury address to set |
@@ -282,7 +282,7 @@ function setPauserAddress(address newPauserAddress) external
 
 TrueFi contracts pauser address setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newPauserAddress | address | New pauser address to set |

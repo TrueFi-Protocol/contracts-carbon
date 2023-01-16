@@ -27,7 +27,7 @@ event LoanAdded(uint256 loanId)
 
 Event emitted when the loan is added
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
@@ -42,7 +42,7 @@ event LoanFunded(uint256 loanId)
 
 Event emitted when the loan is funded
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
@@ -57,7 +57,7 @@ event LoanRepaid(uint256 loanId, uint256 amount)
 
 Event emitted when the loan is repaid
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
@@ -73,7 +73,7 @@ event LoanDefaulted(uint256 loanId)
 
 Event emitted when the loan is marked as defaulted
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
@@ -88,7 +88,7 @@ event LoanGracePeriodUpdated(uint256 loanId, uint32 newGracePeriod)
 
 Event emitted when the loan grace period is updated
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
@@ -104,7 +104,7 @@ event LoanCancelled(uint256 loanId)
 
 Event emitted when the loan is cancelled
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
@@ -119,7 +119,7 @@ event ActiveLoanRemoved(uint256 loanId)
 
 Event emitted when the loan is fully repaid, cancelled or defaulted
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
@@ -132,7 +132,7 @@ Event emitted when the loan is fully repaid, cancelled or defaulted
 function fixedInterestOnlyLoans() external view returns (contract IFixedInterestOnlyLoans)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract IFixedInterestOnlyLoans | FixedInterestOnlyLoans contract address |
@@ -145,7 +145,7 @@ function fixedInterestOnlyLoans() external view returns (contract IFixedInterest
 function asset() external view returns (contract IERC20WithDecimals)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract IERC20WithDecimals | Underlying asset address |
@@ -158,12 +158,12 @@ function asset() external view returns (contract IERC20WithDecimals)
 function activeLoanIds(uint256 index) external view returns (uint256)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | index | uint256 | Index of loan in array |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Loan id |
@@ -176,12 +176,12 @@ function activeLoanIds(uint256 index) external view returns (uint256)
 function issuedLoanIds(uint256 loanId) external view returns (bool)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | loanId | uint256 | Loan id |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bool | Value indicating whether loan with given id was issued by this contract |

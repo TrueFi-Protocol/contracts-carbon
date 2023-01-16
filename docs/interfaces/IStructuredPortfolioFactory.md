@@ -31,7 +31,7 @@ Only whitelisted users can create portfolios
 function WHITELISTED_MANAGER_ROLE() external view returns (bytes32)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bytes32 | Whitelisted manager role used for access control, allowing user with this role too create StructuredPortfolio |
@@ -44,12 +44,12 @@ function WHITELISTED_MANAGER_ROLE() external view returns (bytes32)
 function portfolios(uint256 portfolioId) external view returns (contract IStructuredPortfolio)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | portfolioId | uint256 | Id of the portfolio created with this StructuredPortfolioFactory |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract IStructuredPortfolio | Address of the StructuredPortfolio with given portfolio id |
@@ -62,7 +62,7 @@ function portfolios(uint256 portfolioId) external view returns (contract IStruct
 function trancheImplementation() external view returns (address)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | address | Address of the Tranche contract implementation used for portfolio deployment |
@@ -75,7 +75,7 @@ function trancheImplementation() external view returns (address)
 function portfolioImplementation() external view returns (address)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | address | Address of the StructuredPortfolio contract implementation used for portfolio deployment |
@@ -88,7 +88,7 @@ function portfolioImplementation() external view returns (address)
 function protocolConfig() external view returns (contract IProtocolConfig)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract IProtocolConfig | Address of the ProtocolConfig |
@@ -103,7 +103,7 @@ event PortfolioCreated(contract IStructuredPortfolio newPortfolio, address manag
 
 Event fired on portfolio creation
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newPortfolio | contract IStructuredPortfolio | Address of the newly created portfolio |
@@ -122,7 +122,7 @@ Creates a portfolio alongside with its tranche vaults
 
 Tranche vaults are ordered from the most volatile to the most stable
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | underlyingToken | contract IERC20WithDecimals |  |
@@ -139,7 +139,7 @@ Tranche vaults are ordered from the most volatile to the most stable
 function getPortfolios() external view returns (contract IStructuredPortfolio[])
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | contract IStructuredPortfolio[] | All created portfolios |

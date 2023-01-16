@@ -20,7 +20,7 @@ Manager role used for access control
 uint256 floor
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -32,7 +32,7 @@ uint256 floor
 uint256 withdrawFeeRate
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -44,11 +44,11 @@ uint256 withdrawFeeRate
 mapping(enum Status => bool) withdrawAllowed
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 
@@ -76,12 +76,12 @@ function initialize(address manager, uint256 _withdrawFeeRate, uint256 _floor) e
 function maxWithdraw(address owner) public view returns (uint256)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | owner | address | Shares owner address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 |  |
@@ -94,12 +94,12 @@ function maxWithdraw(address owner) public view returns (uint256)
 function maxRedeem(address owner) external view returns (uint256)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | owner | address | Shares owner address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 |  |
@@ -130,12 +130,12 @@ function previewRedeem(uint256 shares) public view returns (uint256)
 
 Simulates redeem shares conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Tested shares amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 |  |
@@ -150,12 +150,12 @@ function previewWithdraw(uint256 assets) public view returns (uint256)
 
 Simulates withdraw assets conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Tested assets amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 |  |
@@ -170,7 +170,7 @@ function setFloor(uint256 newFloor) public
 
 Floor setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFloor | uint256 | New floor value |
@@ -185,7 +185,7 @@ function setWithdrawAllowed(bool newWithdrawAllowed, enum Status portfolioStatus
 
 Withdraw allowed setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newWithdrawAllowed | bool | Value indicating whether withdrawals should be allowed when related StructuredPortfolio is in given status |
@@ -201,7 +201,7 @@ function setWithdrawFeeRate(uint256 newFeeRate) public
 
 Withdraw fee rate setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFeeRate | uint256 | New withdraw fee rate (in BPS) |
@@ -216,7 +216,7 @@ function configure(uint256 newFloor, uint256 newFeeRate, struct WithdrawAllowed 
 
 Allows to change floor, withdraw fee rate and enable or disable withdrawals at once
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFloor | uint256 | New floor value |

@@ -24,7 +24,7 @@ event FloorChanged(uint256 newFloor)
 
 Event emitted when new floor is set
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFloor | uint256 | New floor value |
@@ -39,7 +39,7 @@ event WithdrawAllowedChanged(bool newWithdrawAllowed, enum Status portfolioStatu
 
 Event emitted when withdrawals are disabled or enabled for a specific StructuredPortfolio status
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newWithdrawAllowed | bool | Value indicating whether withdrawals should be enabled or disabled |
@@ -55,7 +55,7 @@ event WithdrawFeeRateChanged(uint256 newFeeRate)
 
 Event emitted when withdraw fee rate is switched
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFeeRate | uint256 | New withdraw fee rate value (in BPS) |
@@ -68,7 +68,7 @@ Event emitted when withdraw fee rate is switched
 function MANAGER_ROLE() external view returns (bytes32)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bytes32 | WithdrawController manager role used for access control |
@@ -81,7 +81,7 @@ function MANAGER_ROLE() external view returns (bytes32)
 function floor() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Min assets amount that needs to stay in TrancheVault interracting with WithdrawController when related StructuredPortfolio is not in Closed state |
@@ -94,7 +94,7 @@ function floor() external view returns (uint256)
 function withdrawFeeRate() external view returns (uint256)
 ```
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | uint256 | Rate (in BPS) of the fee applied to the withdraw amount |
@@ -107,12 +107,12 @@ function withdrawFeeRate() external view returns (uint256)
 function withdrawAllowed(enum Status status) external view returns (bool)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | status | enum Status | StructuredPortfolio status |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bool | Value indicating whether withdrawals are allowed when related StructuredPortfolio is in given status |
@@ -129,7 +129,7 @@ Setup contract with given params
 
 Used by Initializable contract (can be called only once)
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | manager | address | Address to which MANAGER_ROLE should be granted |
@@ -144,12 +144,12 @@ Used by Initializable contract (can be called only once)
 function maxWithdraw(address owner) external view returns (uint256 assets)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | owner | address | Shares owner address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Max assets amount that can be withdrawn from TrancheVault for shares of given owner |
@@ -162,12 +162,12 @@ function maxWithdraw(address owner) external view returns (uint256 assets)
 function maxRedeem(address owner) external view returns (uint256 shares)
 ```
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | owner | address | Shares owner address |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Max TrancheVault shares amount given owner can burn to withdraw assets |
@@ -182,12 +182,12 @@ function previewWithdraw(uint256 assets) external view returns (uint256 shares)
 
 Simulates withdraw assets conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Tested assets amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Shares amount that needs to be burnt to obtain given assets amount |
@@ -202,12 +202,12 @@ function previewRedeem(uint256 shares) external view returns (uint256 assets)
 
 Simulates redeem shares conversion including fees
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Tested shares amount |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Assets amount that will be obtained from the given shares burnt |
@@ -222,7 +222,7 @@ function onWithdraw(address sender, uint256 assets, address receiver, address ow
 
 Simulates withdraw result
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | sender | address | Supposed withdraw transaction sender address |
@@ -230,7 +230,7 @@ Simulates withdraw result
 | receiver | address | Supposed assets receiver address |
 | owner | address | Supposed shares owner |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | shares | uint256 | Shares amount that needs to be burnt to make a withdrawal with given params |
@@ -246,7 +246,7 @@ function onRedeem(address sender, uint256 shares, address receiver, address owne
 
 Simulates redeem result
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | sender | address | Supposed redeem transaction sender address |
@@ -254,7 +254,7 @@ Simulates redeem result
 | receiver | address | Supposed assets receiver address |
 | owner | address | Supposed shares owner |
 
-#####Returns
+##### Returns
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | assets | uint256 | Assets amount that will be obtained from the redeem with given params |
@@ -270,7 +270,7 @@ function setFloor(uint256 newFloor) external
 
 Floor setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFloor | uint256 | New floor value |
@@ -285,7 +285,7 @@ function setWithdrawAllowed(bool newWithdrawAllowed, enum Status portfolioStatus
 
 Withdraw allowed setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newWithdrawAllowed | bool | Value indicating whether withdrawals should be allowed when related StructuredPortfolio is in given status |
@@ -301,7 +301,7 @@ function setWithdrawFeeRate(uint256 newFeeRate) external
 
 Withdraw fee rate setter
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFeeRate | uint256 | New withdraw fee rate (in BPS) |
@@ -316,7 +316,7 @@ function configure(uint256 newFloor, uint256 newFeeRate, struct WithdrawAllowed 
 
 Allows to change floor, withdraw fee rate and enable or disable withdrawals at once
 
-#####Arguments
+##### Arguments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | newFloor | uint256 | New floor value |
