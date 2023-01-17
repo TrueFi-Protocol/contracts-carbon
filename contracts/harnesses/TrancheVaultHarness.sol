@@ -26,4 +26,16 @@ contract TrancheVaultHarness is TrancheVault {
         require(from != address(this) && from != address(portfolio));
         token.safeTransferFrom(from, to, amount);
     }
+
+    function setCustomProtocolFeeRateHarness(address contractAddress, uint16 newFeeRate) public {
+        protocolConfig.setCustomProtocolFeeRate(contractAddress, newFeeRate);
+    }
+
+    function removeCustomProtocolFeeRateHarness(address contractAddress) public {
+        protocolConfig.removeCustomProtocolFeeRate(contractAddress);
+    }
+
+    function setDefaultProtocolFeeRate(uint256 newFeeRate) public {
+        protocolConfig.setDefaultProtocolFeeRate(newFeeRate);
+    }
 }

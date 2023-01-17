@@ -12,6 +12,7 @@ methods {
     transferController() returns address envfree
 
     balanceOf(address) returns uint256 envfree
+    getCheckpoint() returns ((uint256,uint256,uint256)) envfree
     getRoleAdmin(bytes32) returns bytes32 envfree
     hasRole(bytes32, address) returns bool envfree
     managerFeeBeneficiary() returns address envfree
@@ -69,6 +70,24 @@ definition isProxyFunction(method f) returns bool =
     f.selector == upgradeTo(address).selector ||
     f.selector == upgradeToAndCall(address,bytes).selector ||
     f.selector == initialize(string,string,address,address,address,address,address,uint256,address,uint256).selector;
+
+definition isProtocolConfigHarnessFunction(method f) returns bool =
+    f.selector == setCustomProtocolFeeRateHarness(address,uint16).selector ||
+    f.selector == removeCustomProtocolFeeRateHarness(address).selector ||
+    f.selector == setDefaultProtocolFeeRate(uint256).selector;
+
+// functions that call _updateCheckpoint(uint256) 
+definition isCheckpointFunction(method f) returns bool =
+    f.selector == deposit(uint256, address).selector ||
+    f.selector == mint(uint256, address).selector ||
+    f.selector == withdraw(uint256, address, address).selector ||
+    f.selector == redeem(uint256, address, address).selector ||
+    f.selector == onPortfolioStart().selector ||
+    f.selector == configure((uint256,address,address,address,address)).selector ||
+    f.selector == setManagerFeeRate(uint256).selector ||
+    f.selector == setManagerFeeBeneficiary(address).selector ||
+    f.selector == updateCheckpointFromPortfolio(uint256).selector || 
+    f.selector == updateCheckpoint().selector;
 
 // functions that change token balance in close only by calling _updateCheckpoint(uint256) 
 definition isCheckpointFunctionInClose(method f) returns bool =
