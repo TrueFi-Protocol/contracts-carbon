@@ -101,7 +101,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function updateCheckpoints() public whenNotPaused {
-        require(status == Status.Live, "SP: Portfolio is not live");
+        require(status != Status.CapitalFormation, "SP: No checkpoints before start");
 
         if (someLoansDefaulted) {
             _updateCheckpointsAndLoansDeficit();
@@ -351,6 +351,9 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function calculateWaterfallWithoutFees() public view returns (uint256[] memory) {
         uint256[] memory waterfall = new uint256[](tranches.length);
         if (status != Status.Live) {
+            for (uint256 i = 0; i < waterfall.length; i++) {
+                waterfall[i] = tranches[i].totalAssetsBeforeFees();
+            }
             return waterfall;
         }
 

@@ -460,6 +460,44 @@ describe('StructuredPortfolio.repayLoan', () => {
       expect(await equityTranche.totalAssets()).to.be.closeTo(expectedEquityValue, DELTA)
     })
 
+    it('loan defaulted after portfolio duration', async () => {
+      const {
+        getLoan,
+        parseTokenUnits,
+        addAndFundLoan,
+        structuredPortfolio,
+        repayLoanInFull,
+        withInterest,
+        senior,
+        junior,
+        totalDeposit,
+        seniorTranche,
+        juniorTranche,
+        equityTranche,
+        portfolioDuration,
+      } = await loadFixture(structuredPortfolioLiveFixture)
+      const loan = getLoan({
+        principal: parseTokenUnits(6e6),
+        periodPayment: parseTokenUnits(1e6),
+        gracePeriod: 0,
+      })
+
+      const loanId = await addAndFundLoan(loan)
+      await timeTravel(portfolioDuration)
+
+      await structuredPortfolio.close()
+      await structuredPortfolio.markLoanAsDefaulted(loanId)
+      await repayLoanInFull(loanId)
+
+      const expectedSeniorValue = withInterest(senior.initialDeposit, senior.targetApy, portfolioDuration)
+      const expectedJuniorValue = withInterest(junior.initialDeposit, junior.targetApy, portfolioDuration)
+      const expectedEquityValue = totalDeposit.add(loan.periodPayment).sub(expectedSeniorValue).sub(expectedJuniorValue)
+
+      expect(await seniorTranche.totalAssets()).to.be.closeTo(expectedSeniorValue, DELTA)
+      expect(await juniorTranche.totalAssets()).to.be.closeTo(expectedJuniorValue, DELTA)
+      expect(await equityTranche.totalAssets()).to.be.closeTo(expectedEquityValue, DELTA)
+    })
+
     it('multiple repayments', async () => {
       const {
         structuredPortfolio,

@@ -11,13 +11,7 @@ describe('StructuredPortfolio.updateCheckpoint', () => {
 
   it('reverts in capital formation', async () => {
     const { structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
-    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('SP: Portfolio is not live')
-  })
-
-  it('reverts in Closed status', async () => {
-    const { structuredPortfolio, startAndClosePortfolio } = await loadFixture(structuredPortfolioFixture)
-    await startAndClosePortfolio()
-    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('SP: Portfolio is not live')
+    await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('SP: No checkpoints before start')
   })
 
   it('updates checkpoint', async () => {

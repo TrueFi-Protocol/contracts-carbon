@@ -9,20 +9,29 @@ import { expect } from 'chai'
 import { sum } from 'utils/sum'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
 import { parseUSDC } from 'utils/parseUSDC'
+import { setNextBlockTimestamp } from 'utils/setNextBlockTimestamp'
 
 describe('StructuredPortfolio.calculateWaterfall', () => {
   const loadFixture = setupFixtureLoader()
 
   const DELTA = 1e5
 
-  it('capital formation, returns 0s', async () => {
-    const { structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
+  it('capital formation, returns deposits', async () => {
+    const { structuredPortfolio, depositToTranche, tranches, parseTokenUnits } = await loadFixture(structuredPortfolioFixture)
+
+    const seniorDeposit = parseTokenUnits(1000)
+    const juniorDeposit = parseTokenUnits(1000)
+    const equityDeposit = parseTokenUnits(1000)
+
+    await depositToTranche(tranches[2], seniorDeposit)
+    await depositToTranche(tranches[1], juniorDeposit)
+    await depositToTranche(tranches[0], equityDeposit)
 
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
 
-    expect(waterfallValues[2]).to.eq(0)
-    expect(waterfallValues[1]).to.eq(0)
-    expect(waterfallValues[0]).to.eq(0)
+    expect(waterfallValues[2]).to.eq(seniorDeposit)
+    expect(waterfallValues[1]).to.eq(juniorDeposit)
+    expect(waterfallValues[0]).to.eq(equityDeposit)
   })
 
   it('returns 0 for no deposit on tranche', async () => {
@@ -41,15 +50,22 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
     expect(waterfallValues[0]).to.be.closeTo(amount.mul(2).sub(juniorExpectedAmount), DELTA)
   })
 
-  it('portfolio status Closed, returns 0s', async () => {
-    const { structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
-    await structuredPortfolio.close()
+  it('closed, returns deposits', async () => {
+    const { structuredPortfolio, initialDeposits, portfolioStartTimestamp, withInterest, tranchesData } = await loadFixture(structuredPortfolioLiveFixture)
 
+    await setNextBlockTimestamp(portfolioStartTimestamp + YEAR)
+    await structuredPortfolio.close()
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
 
-    expect(waterfallValues[2]).to.eq(0)
-    expect(waterfallValues[1]).to.eq(0)
-    expect(waterfallValues[0]).to.eq(0)
+    const expectedSenior = withInterest(initialDeposits[2], tranchesData[2].targetApy, YEAR)
+    const expectedJunior = withInterest(initialDeposits[1], tranchesData[1].targetApy, YEAR)
+
+    const totalAssets = await structuredPortfolio.totalAssets()
+    const expectedEquity = totalAssets.sub(expectedSenior).sub(expectedJunior)
+
+    expect(waterfallValues[2]).to.eq(expectedSenior)
+    expect(waterfallValues[1]).to.eq(expectedJunior)
+    expect(waterfallValues[0]).to.eq(expectedEquity)
   })
 
   it('portfolio didn\'t change value, no time has passed', async () => {

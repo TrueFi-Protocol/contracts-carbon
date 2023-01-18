@@ -3,6 +3,7 @@ import { structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixt
 import { setupFixtureLoader } from 'test/setup'
 import { DAY } from 'utils/constants'
 import { timeTravel } from 'utils/timeTravel'
+import { LoanStatus } from 'fixtures/loansManagerFixture'
 
 describe('StructuredPortfolio.markLoanAsDefaulted', () => {
   const loadFixture = setupFixtureLoader()
@@ -24,5 +25,17 @@ describe('StructuredPortfolio.markLoanAsDefaulted', () => {
 
     await structuredPortfolio.markLoanAsDefaulted(loanId)
     expect(await structuredPortfolio.someLoansDefaultedTest()).to.be.true
+  })
+
+  it('can be used in closed', async () => {
+    const { addAndFundLoan, structuredPortfolio, portfolioDuration, fixedInterestOnlyLoans } = await loadFixture(structuredPortfolioLiveFixture)
+
+    const loanId = await addAndFundLoan()
+    await timeTravel(portfolioDuration)
+    await structuredPortfolio.close()
+
+    await expect(structuredPortfolio.markLoanAsDefaulted(loanId)).not.to.be.reverted
+    const loanData = await fixedInterestOnlyLoans.loanData(loanId)
+    expect(loanData.status).to.eq(LoanStatus.Defaulted)
   })
 })
