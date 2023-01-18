@@ -2,9 +2,10 @@ import { expect } from 'chai'
 import { BigNumber } from 'ethers'
 import { getStructuredPortfolioFixture, structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { YEAR } from 'utils/constants'
+import { ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
 import { timeTravel } from 'utils/timeTravel'
+import { setNextBlockTimestamp } from 'utils/setNextBlockTimestamp'
 
 describe('StructuredPortfolio.updateCheckpoint', () => {
   const loadFixture = setupFixtureLoader()
@@ -12,6 +13,27 @@ describe('StructuredPortfolio.updateCheckpoint', () => {
   it('reverts in capital formation', async () => {
     const { structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
     await expect(structuredPortfolio.updateCheckpoints()).to.be.revertedWith('SP: No checkpoints before start')
+  })
+
+  it('collects fees in closed state', async () => {
+    const { structuredPortfolio, depositToTranche, parseTokenUnits, maxCapitalFormationDuration, createPortfolioTx, protocolConfig, seniorTranche } = await loadFixture(structuredPortfolioFixture)
+    const protocolFee = 500
+    await protocolConfig.setDefaultProtocolFeeRate(protocolFee)
+
+    const depositAmount = parseTokenUnits(1000)
+    await depositToTranche(seniorTranche, depositAmount)
+
+    const portfolioCreationTimestamp = await getTxTimestamp(createPortfolioTx)
+    await setNextBlockTimestamp(portfolioCreationTimestamp + maxCapitalFormationDuration)
+    const tx = await structuredPortfolio.close()
+    const closeTimestamp = await getTxTimestamp(tx)
+    await setNextBlockTimestamp(closeTimestamp + YEAR)
+
+    expect(await seniorTranche.totalAssets()).to.eq(depositAmount)
+    await structuredPortfolio.updateCheckpoints()
+
+    const expectedFee = depositAmount.mul(protocolFee).div(ONE_IN_BPS)
+    expect(await seniorTranche.totalAssets()).to.eq(depositAmount.sub(expectedFee))
   })
 
   it('updates checkpoint', async () => {

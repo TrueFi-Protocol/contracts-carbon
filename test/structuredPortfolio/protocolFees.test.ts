@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
+import { DAY, MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
 import { timeTravel } from 'utils/timeTravel'
 import { BigNumber } from 'ethers'
@@ -189,6 +189,27 @@ describe('StructuredPortfolio: protocol fees', () => {
     await withdrawFromTranche(seniorTranche, 1)
 
     expect(await token.balanceOf(protocolTreasury)).to.be.gt(balanceAfterClose)
+  })
+
+  it('protocol fees paid when updating checkpoint from portfolio in Closed', async () => {
+    const { seniorTranche, protocolConfig, depositToTranche, parseTokenUnits, addAndFundLoan, getLoan, structuredPortfolio, portfolioDuration, token, protocolConfigParams: { protocolTreasury } } = await loadFixture(structuredPortfolioFixture)
+    await protocolConfig.setDefaultProtocolFeeRate(500)
+
+    await depositToTranche(seniorTranche, parseTokenUnits(1e6))
+
+    await structuredPortfolio.start()
+    const loanId = await addAndFundLoan(getLoan({ periodCount: 1, periodDuration: portfolioDuration + DAY }))
+
+    await timeTravel(portfolioDuration)
+    await structuredPortfolio.close()
+
+    await timeTravel(MONTH)
+
+    const protocolBalanceBeforeDefault = await token.balanceOf(protocolTreasury)
+    await expect(structuredPortfolio.markLoanAsDefaulted(loanId)).to.emit(seniorTranche, 'ProtocolFeePaid')
+    const protocolBalanceAfterDefault = await token.balanceOf(protocolTreasury)
+
+    expect(protocolBalanceAfterDefault.gt(protocolBalanceBeforeDefault)).to.be.true
   })
 
   describe('manager + protocol fee', () => {

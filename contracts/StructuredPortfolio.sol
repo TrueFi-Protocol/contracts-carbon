@@ -102,47 +102,24 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
     function updateCheckpoints() public whenNotPaused {
         require(status != Status.CapitalFormation, "SP: No checkpoints before start");
-
-        if (someLoansDefaulted) {
-            _updateCheckpointsAndLoansDeficit();
-        } else {
-            _updateCheckpoints();
-        }
-    }
-
-    function _updateCheckpointsAndLoansDeficit() internal {
-        uint256[] memory _totalAssetsBefore = new uint256[](tranches.length);
-        for (uint256 i = 0; i < tranches.length; i++) {
-            _totalAssetsBefore[i] = tranches[i].getCheckpoint().totalAssets;
-        }
-
-        uint256[] memory _totalAssetsAfter = _updateCheckpoints();
-
-        uint256 timestamp = _limitedBlockTimestamp();
-        for (uint256 i = 1; i < _totalAssetsAfter.length; i++) {
-            uint256 currentDeficit = _defaultedLoansDeficit(tranchesData[i], timestamp);
-
-            int256 deficitDelta = SafeCast.toInt256(_totalAssetsBefore[i]) - SafeCast.toInt256(_totalAssetsAfter[i]);
-            uint256 newDeficit = _getNewLoansDeficit(currentDeficit, deficitDelta);
-
-            tranchesData[i].loansDeficitCheckpoint = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
-        }
-    }
-
-    function _updateCheckpoints() internal returns (uint256[] memory) {
         uint256[] memory _totalAssetsAfter = calculateWaterfall();
+        _updateLoansDeficit(_totalAssetsAfter);
         for (uint256 i = 0; i < _totalAssetsAfter.length; i++) {
             tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i]);
         }
-        return _totalAssetsAfter;
     }
 
-    function _getNewLoansDeficit(uint256 currentDeficit, int256 delta) internal pure returns (uint256) {
-        require(delta > type(int256).min, "SP: Delta out of range");
-        if (delta < 0 && currentDeficit < uint256(-delta)) {
-            return 0;
+    function _updateLoansDeficit(uint256[] memory _realTotalAssets) internal {
+        if (!someLoansDefaulted) {
+            return;
         }
-        return _addSigned(currentDeficit, delta);
+
+        uint256 timestamp = _limitedBlockTimestamp();
+        for (uint256 i = 1; i < _realTotalAssets.length; i++) {
+            uint256 _assumedTotalAssets = _assumedTrancheValue(i, timestamp);
+            uint256 newDeficit = _assumedTotalAssets - _realTotalAssets[i];
+            tranchesData[i].loansDeficitCheckpoint = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
+        }
     }
 
     function increaseVirtualTokenBalance(uint256 increment) external {
@@ -290,6 +267,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         }
 
         _changePortfolioStatus(Status.Closed);
+        updateCheckpoints();
 
         if (!isAfterEndDate) {
             endDate = block.timestamp;
@@ -297,29 +275,16 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function _closeTranches() internal {
+        updateCheckpoints();
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
+        uint256[] memory waterfall = _calculateWaterfall(virtualTokenBalance);
 
-        uint256[] memory waterfallTranchesAssets = calculateWaterfall();
-        uint256[] memory distributedAssets = new uint256[](waterfallTranchesAssets.length);
-        uint256 assetsLeft = virtualTokenBalance;
-
-        for (uint256 i = waterfallTranchesAssets.length - 1; i > 0; i--) {
-            tranchesData[i].maxValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
-
-            uint256 trancheDistributedAssets = _min(waterfallTranchesAssets[i], assetsLeft);
-            distributedAssets[i] = trancheDistributedAssets;
-            tranches[i].updateCheckpointFromPortfolio(trancheDistributedAssets);
-
-            assetsLeft -= trancheDistributedAssets;
-        }
-
-        distributedAssets[0] = _min(waterfallTranchesAssets[0], assetsLeft);
-        tranches[0].updateCheckpointFromPortfolio(distributedAssets[0]);
-
-        for (uint256 i = 0; i < distributedAssets.length; i++) {
-            uint256 trancheDistributedAssets = distributedAssets[i];
-            tranchesData[i].distributedAssets = trancheDistributedAssets;
-            _transfer(tranches[i], trancheDistributedAssets);
+        for (uint256 i = 0; i < waterfall.length; i++) {
+            if (i != 0) {
+                tranchesData[i].maxValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
+            }
+            tranchesData[i].distributedAssets = waterfall[i];
+            _transfer(tranches[i], waterfall[i]);
         }
     }
 
@@ -340,7 +305,11 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function calculateWaterfall() public view returns (uint256[] memory) {
-        uint256[] memory waterfall = calculateWaterfallWithoutFees();
+        return _calculateWaterfall(virtualTokenBalance + loansValue());
+    }
+
+    function _calculateWaterfall(uint256 assetsLeft) internal view returns (uint256[] memory) {
+        uint256[] memory waterfall = _calculateWaterfallWithoutFees(assetsLeft);
         for (uint256 i = 0; i < waterfall.length; i++) {
             uint256 pendingFees = tranches[i].totalPendingFeesForAssets(waterfall[i]);
             waterfall[i] = _saturatingSub(waterfall[i], pendingFees);
@@ -349,6 +318,10 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function calculateWaterfallWithoutFees() public view returns (uint256[] memory) {
+        return _calculateWaterfallWithoutFees(virtualTokenBalance + loansValue());
+    }
+
+    function _calculateWaterfallWithoutFees(uint256 assetsLeft) internal view returns (uint256[] memory) {
         uint256[] memory waterfall = new uint256[](tranches.length);
         if (status != Status.Live) {
             for (uint256 i = 0; i < waterfall.length; i++) {
@@ -357,7 +330,6 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
             return waterfall;
         }
 
-        uint256 assetsLeft = virtualTokenBalance + loansValue();
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
 
         for (uint256 i = waterfall.length - 1; i > 0; i--) {
