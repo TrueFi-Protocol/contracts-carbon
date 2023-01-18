@@ -177,7 +177,7 @@ describe('StructuredPortfolio: protocol fees', () => {
     expect(await token.balanceOf(protocolTreasury)).to.eq(0)
   })
 
-  it('collected in Closed status', async () => {
+  it('collected in Closed status after transition from Live', async () => {
     const { seniorTranche, depositToTranche, withdrawFromTranche, protocolConfig, parseTokenUnits, token, protocolConfigParams: { protocolTreasury }, startAndClosePortfolio } = await loadFixture(structuredPortfolioFixture)
     await protocolConfig.setDefaultProtocolFeeRate(500)
 
@@ -210,6 +210,20 @@ describe('StructuredPortfolio: protocol fees', () => {
     const protocolBalanceAfterDefault = await token.balanceOf(protocolTreasury)
 
     expect(protocolBalanceAfterDefault.gt(protocolBalanceBeforeDefault)).to.be.true
+  })
+
+  it('collected in Closed status after transition from CapitalFormation', async () => {
+    const { seniorTranche, depositToTranche, protocolConfig, parseTokenUnits, token, protocolConfigParams: { protocolTreasury }, structuredPortfolio } = await loadFixture(structuredPortfolioFixture)
+    await protocolConfig.setDefaultProtocolFeeRate(500)
+
+    await depositToTranche(seniorTranche, parseTokenUnits(1e6))
+    await structuredPortfolio.close()
+
+    const balanceAfterClose = await token.balanceOf(protocolTreasury)
+    await timeTravel(MONTH)
+    await seniorTranche.updateCheckpoint()
+
+    expect(await token.balanceOf(protocolTreasury)).to.be.gt(balanceAfterClose)
   })
 
   describe('manager + protocol fee', () => {
