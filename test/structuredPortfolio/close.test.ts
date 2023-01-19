@@ -205,7 +205,7 @@ describe('StructuredPortfolio.close', () => {
   })
 
   describe('capital formation', () => {
-    it('does not transfer if portfolio is in capital formation', async () => {
+    it('does not transfer assets', async () => {
       const { structuredPortfolio, token } = await loadFixture(structuredPortfolioFixture)
 
       const balanceBefore = await token.balanceOf(structuredPortfolio.address)

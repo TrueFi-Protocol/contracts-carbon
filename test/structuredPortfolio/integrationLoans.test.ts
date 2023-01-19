@@ -5,7 +5,7 @@ import { setupFixtureLoader } from 'test/setup'
 import { MONTH, YEAR } from 'utils/constants'
 import { timeTravel } from 'utils/timeTravel'
 
-describe('StructuredPortfolio: integration tests', () => {
+describe('StructuredPortfolio: loans integration tests', () => {
   const loadFixture = setupFixtureLoader()
 
   async function fixture() {
