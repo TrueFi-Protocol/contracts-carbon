@@ -113,7 +113,7 @@ describe('StructuredPortfolio.repayLoan', () => {
       await structuredPortfolio.markLoanAsDefaulted(loanId)
       await structuredPortfolio.close()
 
-      await repayLoanInFull(loanId, loan)
+      await repayLoanInFull(loanId)
 
       for (let i = 0; i < tranches.length; i++) {
         const { distributedAssets } = await structuredPortfolio.tranchesData(i)
@@ -142,7 +142,7 @@ describe('StructuredPortfolio.repayLoan', () => {
       await structuredPortfolio.close()
 
       const equityTotalAssetsBefore = await equityTranche.totalAssets()
-      await repayLoanInFull(loanId, loan)
+      await repayLoanInFull(loanId)
       const repayAmount = getFullRepayAmount(loan)
 
       expect(await equityTranche.totalAssets()).to.be.closeTo(equityTotalAssetsBefore.add(repayAmount), DELTA)
@@ -179,7 +179,7 @@ describe('StructuredPortfolio.repayLoan', () => {
       const juniorTrancheTargetValue = (await structuredPortfolio.tranchesData(1)).maxValueOnClose
       expect(juniorTotalAssetsBefore.lt(juniorTrancheTargetValue)).to.be.true
 
-      await repayLoanInFull(loanId, loan)
+      await repayLoanInFull(loanId)
       const repayAmount = getFullRepayAmount(loan)
 
       const juniorShare = juniorTrancheTargetValue.sub(juniorTotalAssetsBefore)
@@ -229,7 +229,7 @@ describe('StructuredPortfolio.repayLoan', () => {
       const seniorTotalAssetsBefore = await seniorTranche.totalAssets()
       const juniorTotalAssetsBefore = await juniorTranche.totalAssets()
 
-      await repayLoanInFull(loanToRepayId, loanToRepay)
+      await repayLoanInFull(loanToRepayId)
       const repayAmount = getFullRepayAmount(loanToRepay)
 
       expect(await seniorTranche.totalAssets()).to.eq(seniorTotalAssetsBefore)
@@ -279,7 +279,7 @@ describe('StructuredPortfolio.repayLoan', () => {
       const seniorTrancheTargetValue = (await structuredPortfolio.tranchesData(2)).maxValueOnClose
       expect(seniorTotalAssetsBefore.lt(seniorTrancheTargetValue)).to.be.true
 
-      await repayLoanInFull(loanToRepayId, loanToRepay)
+      await repayLoanInFull(loanToRepayId)
       const repayAmount = getFullRepayAmount(loanToRepay)
 
       const seniorShare = seniorTrancheTargetValue.sub(seniorTotalAssetsBefore)
@@ -328,7 +328,7 @@ describe('StructuredPortfolio.repayLoan', () => {
 
       const seniorTotalAssetsBefore = await seniorTranche.totalAssets()
 
-      await repayLoanInFull(loanToRepayId, loanToRepay)
+      await repayLoanInFull(loanToRepayId)
       const repayAmount = getFullRepayAmount(loanToRepay)
 
       expect(await seniorTranche.totalAssets()).to.eq(seniorTotalAssetsBefore.add(repayAmount))
@@ -366,7 +366,7 @@ describe('StructuredPortfolio.repayLoan', () => {
       expect(await juniorTranche.totalAssets()).to.eq(0)
       expect(await equityTranche.totalAssets()).to.eq(0)
 
-      await repayLoanInFull(loanToRepayId, loanToRepay)
+      await repayLoanInFull(loanToRepayId)
       const repayAmount = getFullRepayAmount(loanToRepay)
 
       const seniorTrancheTargetValue = (await structuredPortfolio.tranchesData(2)).maxValueOnClose

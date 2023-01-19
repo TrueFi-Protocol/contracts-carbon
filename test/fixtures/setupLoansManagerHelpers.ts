@@ -47,9 +47,10 @@ export async function setupLoansManagerHelpers(loansManager: LoansManagerTest | 
     return { ...basicLoan, ...loan }
   }
 
-  async function repayLoanInFull(loanId: BigNumber, loan: Loan = basicLoan) {
+  async function repayLoanInFull(loanId: BigNumber) {
     await token.connect(borrower).approve(loansManager.address, constants.MaxUint256)
-    for (let i = 0; i < loan.periodCount; i++) {
+    const { periodCount } = await fixedInterestOnlyLoans.loanData(loanId)
+    for (let i = 0; i < periodCount; i++) {
       await loansManager.connect(borrower).repayLoan(loanId)
     }
   }
