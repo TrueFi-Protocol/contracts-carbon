@@ -162,7 +162,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function maxDeposit(address receiver) external view returns (uint256) {
-        return _min(_maxDeposit(receiver), _maxDepositComplyingWithRatio());
+        return Math.min(_maxDeposit(receiver), _maxDepositComplyingWithRatio());
     }
 
     function previewDeposit(uint256 assets) public view returns (uint256) {
@@ -214,7 +214,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         if (maxRatioLimit == type(uint256).max) {
             return _maxMint(receiver);
         }
-        return _min(_maxMint(receiver), previewDeposit(maxRatioLimit));
+        return Math.min(_maxMint(receiver), previewDeposit(maxRatioLimit));
     }
 
     function previewMint(uint256 shares) public view returns (uint256) {
@@ -240,7 +240,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function maxWithdraw(address owner) external view returns (uint256) {
-        return _min(_maxWithdraw(owner), _maxWithdrawComplyingWithRatio());
+        return Math.min(_maxWithdraw(owner), _maxWithdrawComplyingWithRatio());
     }
 
     function previewWithdraw(uint256 assets) public view returns (uint256) {
@@ -295,7 +295,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function maxRedeem(address owner) external view returns (uint256) {
-        return _min(_maxRedeem(owner), convertToShares(_maxWithdrawComplyingWithRatio()));
+        return Math.min(_maxRedeem(owner), convertToShares(_maxWithdrawComplyingWithRatio()));
     }
 
     function previewRedeem(uint256 shares) public view returns (uint256) {
@@ -446,7 +446,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
             if (i >= waterfallIndex) {
                 uint256 lowerBound = (waterfallValues[i + 1] * portfolio.getTrancheData(i + 1).minSubordinateRatio) / BASIS_PRECISION;
                 uint256 minTrancheValue = _saturatingSub(lowerBound, subordinateValueWithoutTranche);
-                maxThreshold = _max(minTrancheValue, maxThreshold);
+                maxThreshold = Math.max(minTrancheValue, maxThreshold);
             }
         }
         return maxThreshold;
@@ -657,14 +657,6 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         require(sharesAllowance >= shares, "TV: Insufficient allowance");
         _burn(owner, shares);
         _approve(owner, msg.sender, sharesAllowance - shares);
-    }
-
-    function _max(uint256 x, uint256 y) internal pure returns (uint256) {
-        return x < y ? y : x;
-    }
-
-    function _min(uint256 x, uint256 y) internal pure returns (uint256) {
-        return x > y ? y : x;
     }
 
     function _saturatingSub(uint256 x, uint256 y) internal pure returns (uint256) {
