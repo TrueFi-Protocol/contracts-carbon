@@ -116,8 +116,8 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
         uint256 timestamp = _limitedBlockTimestamp();
         for (uint256 i = 1; i < _realTotalAssets.length; i++) {
-            uint256 _assumedTotalAssets = _assumedTrancheValue(i, timestamp);
-            uint256 newDeficit = _assumedTotalAssets - _realTotalAssets[i];
+            uint256 assumedTotalAssets = _assumedTrancheValue(i, timestamp);
+            uint256 newDeficit = assumedTotalAssets - _realTotalAssets[i];
             tranchesData[i].loansDeficitCheckpoint = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
         }
     }

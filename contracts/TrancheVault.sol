@@ -555,7 +555,8 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function _pendingProtocolFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
-        return _accruedProtocolFee(_totalAssetsBeforeFees) + unpaidProtocolFee;
+        uint256 accruedProtocolFee = _accruedFee(checkpoint.protocolFeeRate, _totalAssetsBeforeFees);
+        return accruedProtocolFee + unpaidProtocolFee;
     }
 
     function pendingManagerFee() external view returns (uint256) {
@@ -563,18 +564,11 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
     }
 
     function _pendingManagerFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
-        return _accruedManagerFee(_totalAssetsBeforeFees) + unpaidManagerFee;
-    }
-
-    function _accruedProtocolFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
-        return _accruedFee(checkpoint.protocolFeeRate, _totalAssetsBeforeFees);
-    }
-
-    function _accruedManagerFee(uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
         if (portfolio.status() != Status.Live) {
-            return 0;
+            return unpaidManagerFee;
         }
-        return _accruedFee(managerFeeRate, _totalAssetsBeforeFees);
+        uint256 accruedManagerFee = _accruedFee(managerFeeRate, _totalAssetsBeforeFees);
+        return accruedManagerFee + unpaidManagerFee;
     }
 
     function _accruedFee(uint256 feeRate, uint256 _totalAssetsBeforeFees) internal view returns (uint256) {
