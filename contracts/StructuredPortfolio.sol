@@ -109,15 +109,18 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         }
     }
 
-    function _updateLoansDeficit(uint256[] memory _realTotalAssets) internal {
+    function _updateLoansDeficit(uint256[] memory realTotalAssets) internal {
         if (!someLoansDefaulted) {
             return;
         }
 
         uint256 timestamp = _limitedBlockTimestamp();
-        for (uint256 i = 1; i < _realTotalAssets.length; i++) {
+        for (uint256 i = 1; i < realTotalAssets.length; i++) {
             uint256 assumedTotalAssets = _assumedTrancheValue(i, timestamp);
-            uint256 newDeficit = assumedTotalAssets - _realTotalAssets[i];
+            uint256 assumedPendingFees = tranches[i].totalPendingFeesForAssets(assumedTotalAssets);
+            uint256 assumedTotalAssetsAfterFees = _saturatingSub(assumedTotalAssets, assumedPendingFees);
+
+            uint256 newDeficit = _saturatingSub(assumedTotalAssetsAfterFees, realTotalAssets[i]);
             tranchesData[i].loansDeficitCheckpoint = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
         }
     }
