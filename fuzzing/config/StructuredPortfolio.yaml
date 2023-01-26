@@ -3,3 +3,4 @@ multi-abi: false
 contractAddr: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 corpusDir: "echidna-corpus"
 initialize: build/fuzzing/StructuredPortfolioFuzzingProxy_updateCheckpoints
+seqLen: 30

@@ -28,14 +28,36 @@ import {StructuredPortfolioTest} from "../test/StructuredPortfolioTest.sol";
 contract StructuredPortfolioFuzzingProxy {
     StructuredPortfolio public portfolio;
     ITrancheVault[] public tranches;
+    IFixedInterestOnlyLoans public fixedInterestOnlyLoans;
+
+    bool public echidna_check_waterfallContinuous;
 
     constructor() {
         portfolio = StructuredPortfolio(address(0x1a6A77844d98cf38dD94446A2247843f58B4e227));
+        fixedInterestOnlyLoans = portfolio.fixedInterestOnlyLoans();
         tranches = [ITrancheVault(address(0)), ITrancheVault(address(0)), ITrancheVault(address(0))];
+
+        echidna_check_waterfallContinuous = true;
     }
 
     function markLoanAsDefaulted(uint256 loanId) public {
         portfolio.markLoanAsDefaulted(loanId % 2);
+    }
+
+    function _echidna_check_waterfallContinuous() public {
+        uint256[] memory waterfall_old = portfolio.calculateWaterfall();
+        portfolio.updateCheckpoints();
+        uint256[] memory waterfall_new = portfolio.calculateWaterfall();
+
+        for (uint256 i = 0; i < waterfall_old.length; i++) {
+            if (waterfall_new[i] != waterfall_old[i]) {
+                echidna_check_waterfallContinuous = false;
+            }
+        }
+    }
+
+    function updateCheckpoints() public {
+        portfolio.updateCheckpoints();
     }
 
     uint256 DAY = 1 * 60 * 60 * 24;
