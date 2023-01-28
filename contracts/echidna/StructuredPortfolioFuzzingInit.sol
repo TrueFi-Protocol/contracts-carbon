@@ -11,31 +11,25 @@
 
 pragma solidity ^0.8.16;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {Upgradeable} from "../proxy/Upgradeable.sol";
 import {IERC20WithDecimals} from "../interfaces/IERC20WithDecimals.sol";
-import {IFixedInterestOnlyLoans, FixedInterestOnlyLoanStatus} from "../interfaces/IFixedInterestOnlyLoans.sol";
 import {FixedInterestOnlyLoans} from "../test/FixedInterestOnlyLoans.sol";
 import {FixedInterestOnlyLoansTest} from "../test/FixedInterestOnlyLoansTest.sol";
-import {ITrancheVault, Checkpoint} from "../interfaces/ITrancheVault.sol";
 import {TrancheVault} from "../TrancheVault.sol";
 import {TrancheVaultTest2} from "../test/TrancheVaultTest2.sol";
-import {IProtocolConfig} from "../interfaces/IProtocolConfig.sol";
 import {ProtocolConfig} from "../ProtocolConfig.sol";
 import {ProtocolConfigTest} from "../test/ProtocolConfigTest.sol";
 import {AllowAllLenderVerifier} from "../lenderVerifiers/AllowAllLenderVerifier.sol";
-import {IDepositController} from "../interfaces/IDepositController.sol";
 import {DepositController} from "../controllers/DepositController.sol";
-import {IWithdrawController} from "../interfaces/IWithdrawController.sol";
 import {WithdrawController} from "../controllers/WithdrawController.sol";
 import {TransferController} from "../controllers/TransferController.sol";
 import {MockToken} from "../mocks/MockToken.sol";
-import {IStructuredPortfolio, Status, TrancheData, TrancheInitData, PortfolioParams, ExpectedEquityRate, LoansDeficitCheckpoint, BASIS_PRECISION, YEAR} from "../interfaces/IStructuredPortfolio.sol";
+import {TrancheInitData, PortfolioParams, ExpectedEquityRate, YEAR} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio} from "../StructuredPortfolio.sol";
 import {StructuredPortfolioTest2} from "../test/StructuredPortfolioTest2.sol";
-import {LoansManager, AddLoanParams} from "../LoansManager.sol";
+import {AddLoanParams} from "../LoansManager.sol";
 import {StructuredPortfolioTest} from "../test/StructuredPortfolioTest.sol";
+import {FuzzingBorrower} from "./FuzzingBorrower.sol";
+import {FuzzingLender} from "./FuzzingLender.sol";
 
 uint256 constant DAY = 1 days;
 
@@ -48,6 +42,8 @@ contract StructuredPortfolioFuzzingInit {
     TrancheVault public juniorTranche;
     TrancheVault public seniorTranche;
     StructuredPortfolio public structuredPortfolio;
+    FuzzingBorrower public borrower;
+    FuzzingLender public lender;
 
     constructor() {
         _initializeToken();
@@ -58,6 +54,13 @@ contract StructuredPortfolioFuzzingInit {
         juniorTranche = _initializeTranche("Junior Tranche", "JNT", 1, 10**9 * 10**6);
         seniorTranche = _initializeTranche("Senior Tranche", "SNT", 2, 10**9 * 10**6);
         _initializePortfolio();
+
+        _initializeLender();
+        _initializeBorrower();
+
+        _fillTranches();
+        _startPortfolio();
+        _createAndFundLoans();
     }
 
     function _initializeToken() internal {
@@ -155,5 +158,53 @@ contract StructuredPortfolioFuzzingInit {
             tranchesInitData,
             ExpectedEquityRate(200, 2000)
         );
+    }
+
+    function _initializeLender() internal {
+        lender = new FuzzingLender();
+        token.mint(address(lender), 1e10 * 10**6);
+    }
+
+    function _initializeBorrower() internal {
+        borrower = new FuzzingBorrower();
+        token.mint(address(lender), 1e10 * 10**6);
+    }
+
+    function _fillTranches() internal {
+        lender.deposit(equityTranche, 2e6 * 10**6);
+        lender.deposit(juniorTranche, 3e6 * 10**6);
+        lender.deposit(seniorTranche, 5e6 * 10**6);
+    }
+
+    function _startPortfolio() internal {
+        structuredPortfolio.start();
+    }
+
+    function _createAndFundLoans() internal {
+        AddLoanParams memory params1 = AddLoanParams(
+            100_000 * 10**6, /* principal */
+            3, /* periodCount */
+            2_000 * 10**6, /* periodPayment */
+            uint32(DAY), /* periodDuration */
+            address(borrower), /* recipient */
+            uint32(DAY), /* gracePeriod */
+            true /* canBeRepaidAfterDefault */
+        );
+        structuredPortfolio.addLoan(params1);
+        borrower.acceptLoan(fixedInterestOnlyLoans, 0);
+        structuredPortfolio.fundLoan(0);
+
+        AddLoanParams memory params2 = AddLoanParams(
+            80_000 * 10**6, /* principal */
+            10, /* periodCount */
+            2_000 * 10**6, /* periodPayment */
+            uint32(DAY), /* periodDuration */
+            address(borrower), /* recipient */
+            uint32(DAY), /* gracePeriod */
+            true /* canBeRepaidAfterDefault */
+        );
+        structuredPortfolio.addLoan(params2);
+        borrower.acceptLoan(fixedInterestOnlyLoans, 1);
+        structuredPortfolio.fundLoan(1);
     }
 }

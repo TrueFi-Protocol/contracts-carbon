@@ -11,31 +11,9 @@
 
 pragma solidity ^0.8.16;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {Upgradeable} from "../proxy/Upgradeable.sol";
-import {IERC20WithDecimals} from "../interfaces/IERC20WithDecimals.sol";
-import {IFixedInterestOnlyLoans, FixedInterestOnlyLoanStatus} from "../interfaces/IFixedInterestOnlyLoans.sol";
 import {FixedInterestOnlyLoans} from "../test/FixedInterestOnlyLoans.sol";
-import {FixedInterestOnlyLoansTest} from "../test/FixedInterestOnlyLoansTest.sol";
-import {ITrancheVault, Checkpoint} from "../interfaces/ITrancheVault.sol";
-import {TrancheVault} from "../TrancheVault.sol";
-import {TrancheVaultTest2} from "../test/TrancheVaultTest2.sol";
-import {IProtocolConfig} from "../interfaces/IProtocolConfig.sol";
-import {ProtocolConfig} from "../ProtocolConfig.sol";
-import {ProtocolConfigTest} from "../test/ProtocolConfigTest.sol";
-import {AllowAllLenderVerifier} from "../lenderVerifiers/AllowAllLenderVerifier.sol";
-import {IDepositController} from "../interfaces/IDepositController.sol";
-import {DepositController} from "../controllers/DepositController.sol";
-import {IWithdrawController} from "../interfaces/IWithdrawController.sol";
-import {WithdrawController} from "../controllers/WithdrawController.sol";
-import {TransferController} from "../controllers/TransferController.sol";
-import {MockToken} from "../mocks/MockToken.sol";
-import {IStructuredPortfolio, Status, TrancheData, TrancheInitData, PortfolioParams, ExpectedEquityRate, LoansDeficitCheckpoint, BASIS_PRECISION, YEAR} from "../interfaces/IStructuredPortfolio.sol";
+import {Status} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio} from "../StructuredPortfolio.sol";
-import {StructuredPortfolioTest2} from "../test/StructuredPortfolioTest2.sol";
-import {LoansManager, AddLoanParams} from "../LoansManager.sol";
-import {StructuredPortfolioTest} from "../test/StructuredPortfolioTest.sol";
 import {StructuredPortfolioFuzzingInit} from "./StructuredPortfolioFuzzingInit.sol";
 
 contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
