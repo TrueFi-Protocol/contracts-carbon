@@ -24,7 +24,7 @@ import {WithdrawController} from "../controllers/WithdrawController.sol";
 import {TransferController} from "../controllers/TransferController.sol";
 import {MockToken} from "../mocks/MockToken.sol";
 import {TrancheInitData, PortfolioParams, ExpectedEquityRate, YEAR} from "../interfaces/IStructuredPortfolio.sol";
-import {StructuredPortfolio} from "../StructuredPortfolio.sol";
+import {StructuredPortfolio, Status} from "../StructuredPortfolio.sol";
 import {StructuredPortfolioTest2} from "../test/StructuredPortfolioTest2.sol";
 import {AddLoanParams} from "../LoansManager.sol";
 import {StructuredPortfolioTest} from "../test/StructuredPortfolioTest.sol";
@@ -100,12 +100,14 @@ contract StructuredPortfolioFuzzingInit {
             50, /* _depositFeeRate */
             ceiling
         );
+        depositController.setDepositAllowed(true, Status.Live);
         WithdrawController withdrawController = new WithdrawController();
         withdrawController.initialize(
             address(this), /* manager */
             50, /* _withdrawFeeRate */
             10**6 /* _floor */
         );
+        withdrawController.setWithdrawAllowed(true, Status.Live);
         TransferController transferController = new TransferController();
 
         TrancheVault tranche = new TrancheVaultTest2(
@@ -182,9 +184,9 @@ contract StructuredPortfolioFuzzingInit {
 
     function _createAndFundLoans() internal {
         AddLoanParams memory params1 = AddLoanParams(
-            100_000 * 10**6, /* principal */
+            3e6 * 10**6, /* principal */
             3, /* periodCount */
-            2_000 * 10**6, /* periodPayment */
+            2e4 * 10**6, /* periodPayment */
             uint32(DAY), /* periodDuration */
             address(borrower), /* recipient */
             uint32(DAY), /* gracePeriod */
@@ -195,9 +197,9 @@ contract StructuredPortfolioFuzzingInit {
         structuredPortfolio.fundLoan(0);
 
         AddLoanParams memory params2 = AddLoanParams(
-            80_000 * 10**6, /* principal */
+            6e6 * 10**6, /* principal */
             10, /* periodCount */
-            2_000 * 10**6, /* periodPayment */
+            2e4 * 10**6, /* periodPayment */
             uint32(DAY), /* periodDuration */
             address(borrower), /* recipient */
             uint32(DAY), /* gracePeriod */

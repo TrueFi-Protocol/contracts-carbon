@@ -15,6 +15,10 @@ import {FixedInterestOnlyLoans} from "../test/FixedInterestOnlyLoans.sol";
 import {Status} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio} from "../StructuredPortfolio.sol";
 import {StructuredPortfolioFuzzingInit} from "./StructuredPortfolioFuzzingInit.sol";
+import {ITrancheVault} from "../interfaces/ITrancheVault.sol";
+import {AddLoanParams} from "../interfaces/ILoansManager.sol";
+
+uint256 constant DAY = 1 days;
 
 contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
     bool public echidna_check_waterfallContinuous = true;
@@ -27,8 +31,57 @@ contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
         return structuredPortfolio.status() == Status.CapitalFormation;
     }
 
-    function markLoanAsDefaulted(uint256 loanId) public {
-        structuredPortfolio.markLoanAsDefaulted(loanId % 2);
+    function markLoanAsDefaulted(uint256 rawLoanId) public {
+        uint256 loanId = rawLoanId % structuredPortfolio.getActiveLoans().length;
+        structuredPortfolio.markLoanAsDefaulted(loanId);
+    }
+
+    function deposit(uint256 rawAmount, uint8 rawTrancheId) public {
+        uint256 trancheId = rawTrancheId % 3;
+        uint256 amount = rawAmount % token.balanceOf(address(lender));
+        ITrancheVault tranche;
+        if (trancheId == 0) {
+            tranche = equityTranche;
+        } else if (trancheId == 1) {
+            tranche = juniorTranche;
+        } else {
+            tranche = seniorTranche;
+        }
+
+        lender.deposit(tranche, amount);
+    }
+
+    function addLoan(AddLoanParams calldata rawParams) external {
+        AddLoanParams memory params = AddLoanParams(
+            rawParams.principal % structuredPortfolio.virtualTokenBalance(),
+            rawParams.periodCount % 10,
+            rawParams.periodPayment % (structuredPortfolio.virtualTokenBalance() / 10),
+            rawParams.periodDuration % uint32(7 * DAY),
+            address(borrower), /* recipient */
+            uint32(DAY), /* gracePeriod */
+            true /* canBeRepaidAfterDefault */
+        );
+
+        structuredPortfolio.addLoan(params);
+    }
+
+    function acceptLoan(uint256 rawLoanId) external {
+        uint256 loanId = rawLoanId % 5;
+        borrower.acceptLoan(fixedInterestOnlyLoans, loanId);
+    }
+
+    function fundLoan(uint256 rawLoanId) external {
+        uint256 loanId = rawLoanId % 5;
+        structuredPortfolio.fundLoan(loanId);
+    }
+
+    function repayLoan(uint256 rawLoanId) external {
+        uint256 loanId = rawLoanId % 5;
+        borrower.repayLoan(structuredPortfolio, fixedInterestOnlyLoans, loanId);
+    }
+
+    function close() public {
+        structuredPortfolio.close();
     }
 
     function _echidna_check_waterfallContinuous() public {
@@ -45,30 +98,5 @@ contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
 
     function updateCheckpoints() public {
         structuredPortfolio.updateCheckpoints();
-    }
-
-    uint256 DAY = 1 * 60 * 60 * 24;
-    uint256 first;
-    uint256 second;
-    uint256 third;
-
-    function setFirst() public {
-        first = block.timestamp;
-    }
-
-    function setSecond() public {
-        require(first != 0);
-        second = block.timestamp;
-        require(second > first + 2 * DAY);
-    }
-
-    function setThird() public {
-        require(second != 0);
-        third = block.timestamp;
-        require(third > second + 2 * DAY);
-    }
-
-    function echidna_check_thirdIsZero() public view returns (bool) {
-        return third == 0;
     }
 }

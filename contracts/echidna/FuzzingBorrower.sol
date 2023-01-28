@@ -12,9 +12,20 @@
 pragma solidity ^0.8.16;
 
 import {FixedInterestOnlyLoans} from "../test/FixedInterestOnlyLoans.sol";
+import {IStructuredPortfolio} from "../StructuredPortfolio.sol";
 
 contract FuzzingBorrower {
     function acceptLoan(FixedInterestOnlyLoans fixedInterestOnlyLoans, uint256 loanId) external {
         fixedInterestOnlyLoans.acceptLoan(loanId);
+    }
+
+    function repayLoan(
+        IStructuredPortfolio portfolio,
+        FixedInterestOnlyLoans fixedInterestOnlyLoans,
+        uint256 loanId
+    ) external {
+        uint256 amount = fixedInterestOnlyLoans.expectedRepaymentAmount(loanId);
+        fixedInterestOnlyLoans.asset(loanId).approve(address(portfolio), amount);
+        portfolio.repayLoan(loanId);
     }
 }

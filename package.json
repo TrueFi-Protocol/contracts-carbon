@@ -16,6 +16,7 @@
     "deployCarbon": "bash ./utils/bash/guardedRun.sh",
     "test": "mocha 'test/**/*.test.ts'",
     "fuzz": "echidna-test .",
+    "fuzz:explore": "rm -rf echidna-corpus/ && echidna-test . --test-mode exploration --test-limit 1000",
     "lint:fix": "prettier 'contracts/**/*.sol' --write --loglevel error && pnpm run lint:ts --fix",
     "lint:sol": "solhint 'contracts/**/*.sol' && prettier 'contracts/**/*.sol' --check --loglevel error",
     "lint:ts": "eslint 'test/**/*.ts' -c .eslintrc.json --cache",
