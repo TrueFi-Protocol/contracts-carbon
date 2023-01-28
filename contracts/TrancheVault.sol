@@ -74,7 +74,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         uint256 _waterfallIndex,
         address manager,
         uint256 _managerFeeRate
-    ) external initializer {
+    ) public initializer {
         __ERC20_init(_name, _symbol);
         __Upgradeable_init(_protocolConfig.protocolAdmin(), address(0));
 

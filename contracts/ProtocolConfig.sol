@@ -32,7 +32,7 @@ contract ProtocolConfig is Upgradeable, IProtocolConfig {
         address _protocolAdmin,
         address _protocolTreasury,
         address _pauserAddress
-    ) external initializer {
+    ) public initializer {
         __Upgradeable_init(msg.sender, _pauserAddress);
         defaultProtocolFeeRate = _defaultProtocolFeeRate;
         protocolAdmin = _protocolAdmin;

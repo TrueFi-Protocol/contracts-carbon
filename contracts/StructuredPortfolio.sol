@@ -52,8 +52,8 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         IProtocolConfig _protocolConfig,
         PortfolioParams memory portfolioParams,
         TrancheInitData[] memory tranchesInitData,
-        ExpectedEquityRate calldata _expectedEquityRate
-    ) external initializer {
+        ExpectedEquityRate memory _expectedEquityRate
+    ) public initializer {
         _initialize(_fixedInterestOnlyLoans, underlyingToken);
         __Upgradeable_init(_protocolConfig.protocolAdmin(), _protocolConfig.pauserAddress());
         _grantRole(MANAGER_ROLE, manager);

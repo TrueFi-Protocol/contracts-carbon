@@ -39,7 +39,7 @@ contract FixedInterestOnlyLoans is ERC721Upgradeable, Upgradeable, IFixedInteres
         _;
     }
 
-    function initialize(IProtocolConfig _protocolConfig) external initializer {
+    function initialize(IProtocolConfig _protocolConfig) public initializer {
         __Upgradeable_init(msg.sender, _protocolConfig.pauserAddress());
         __ERC721_init("FixedInterestOnlyLoans", "FIOL");
     }
