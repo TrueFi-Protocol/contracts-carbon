@@ -103,17 +103,22 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function updateCheckpoints() public whenNotPaused {
         require(status != Status.CapitalFormation, "SP: No checkpoints before start");
         uint256[] memory _totalAssetsAfter = calculateWaterfall();
-        _updateLoansDeficit(_totalAssetsAfter);
+        LoansDeficitCheckpoint[] memory deficits = _calculateLoansDeficit(_totalAssetsAfter);
         for (uint256 i = 0; i < _totalAssetsAfter.length; i++) {
             tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i]);
         }
+        if (someLoansDefaulted) {
+            for (uint256 i = 1; i < deficits.length; i++) {
+                tranchesData[i].loansDeficitCheckpoint = deficits[i];
+            }
+        }
     }
 
-    function _updateLoansDeficit(uint256[] memory realTotalAssets) internal {
+    function _calculateLoansDeficit(uint256[] memory realTotalAssets) internal view returns (LoansDeficitCheckpoint[] memory) {
+        LoansDeficitCheckpoint[] memory deficits = new LoansDeficitCheckpoint[](realTotalAssets.length);
         if (!someLoansDefaulted) {
-            return;
+            return deficits;
         }
-
         uint256 timestamp = _limitedBlockTimestamp();
         for (uint256 i = 1; i < realTotalAssets.length; i++) {
             uint256 assumedTotalAssets = _assumedTrancheValue(i, timestamp);
@@ -121,8 +126,9 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
             uint256 assumedTotalAssetsAfterFees = _saturatingSub(assumedTotalAssets, assumedPendingFees);
 
             uint256 newDeficit = _saturatingSub(assumedTotalAssetsAfterFees, realTotalAssets[i]);
-            tranchesData[i].loansDeficitCheckpoint = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
+            deficits[i] = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
         }
+        return deficits;
     }
 
     function increaseVirtualTokenBalance(uint256 increment) external {

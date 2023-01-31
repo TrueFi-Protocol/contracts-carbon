@@ -327,5 +327,59 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       expect(deficit).to.be.gt(0)
       expect(deficit).to.be.lt(parseTokenUnits(0.2))
     })
+
+    it('fees calculated correctly with deficit', async () => {
+      const {
+        addAndFundLoan,
+        protocolConfig,
+        getLoan,
+        structuredPortfolio,
+        seniorTranche,
+        initialDeposits,
+        withInterest,
+        portfolioStartTimestamp,
+      } = await loadFixture(structuredPortfolioLiveFixture)
+
+      const loanPrincipal = initialDeposits[0].add(initialDeposits[1]).add(initialDeposits[2].div(2))
+      const loanId = await addAndFundLoan(
+        getLoan({
+          periodCount: 1,
+          principal: loanPrincipal,
+          periodPayment: BigNumber.from(1),
+          periodDuration: 1,
+          gracePeriod: 0,
+        }),
+      )
+      await addAndFundLoan(
+        getLoan({
+          periodCount: 1,
+          principal: initialDeposits[2].div(2),
+          periodPayment: initialDeposits[2].div(2),
+          periodDuration: YEAR / 2,
+          gracePeriod: 0,
+        }),
+      )
+      await timeTravel(1)
+      await structuredPortfolio.markLoanAsDefaulted(loanId)
+
+      // start accruing fees
+      const protocolFeeRate = 100
+      await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
+      const updateCheckPoint = await structuredPortfolio.updateCheckpoints()
+      const feeStartTimestamp = await getTxTimestamp(updateCheckPoint)
+
+      const timeElapsed = YEAR
+
+      expect(await seniorTranche.unpaidProtocolFee()).to.eq(0)
+      await setNextBlockTimestamp(portfolioStartTimestamp + timeElapsed)
+      await structuredPortfolio.updateCheckpoints()
+
+      const seniorAssumedValue = initialDeposits[2]
+      const seniorAssumedValueFee = withInterest(seniorAssumedValue, protocolFeeRate, portfolioStartTimestamp + timeElapsed - feeStartTimestamp).sub(seniorAssumedValue)
+      const seniorAssumedValueAfterFee = seniorAssumedValue.sub(seniorAssumedValueFee)
+
+      expect('updateCheckpointFromPortfolio').to.be.calledOnContractWith(seniorTranche, [seniorAssumedValueAfterFee])
+      expect(await seniorTranche.unpaidProtocolFee()).to.eq(seniorAssumedValueFee)
+    })
   })
 })
