@@ -393,67 +393,16 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         _updateCheckpoint(newTotalAssets);
     }
 
-    function _maxTrancheValueComplyingWithRatio() internal view returns (uint256) {
-        if (portfolio.status() != Status.Live) {
-            return type(uint256).max;
-        }
-
-        if (waterfallIndex == 0) {
-            return type(uint256).max;
-        }
-
-        uint256[] memory waterfallValues = portfolio.calculateWaterfall();
-
-        uint256 subordinateValue = 0;
-        for (uint256 i = 0; i < waterfallIndex; i++) {
-            subordinateValue += waterfallValues[i];
-        }
-
-        uint256 minSubordinateRatio = portfolio.getTrancheData(waterfallIndex).minSubordinateRatio;
-        if (minSubordinateRatio == 0) {
-            return type(uint256).max;
-        }
-
-        return (subordinateValue * BASIS_PRECISION) / minSubordinateRatio;
-    }
-
     function _maxDepositComplyingWithRatio() internal view returns (uint256) {
-        uint256 maxTrancheValueComplyingWithRatio = _maxTrancheValueComplyingWithRatio();
+        uint256 maxTrancheValueComplyingWithRatio = portfolio.maxTrancheValueComplyingWithRatio(waterfallIndex);
         if (maxTrancheValueComplyingWithRatio == type(uint256).max) {
             return type(uint256).max;
         }
         return _saturatingSub(maxTrancheValueComplyingWithRatio, totalAssets());
     }
 
-    function _minTrancheValueComplyingWithRatio() internal view returns (uint256) {
-        if (portfolio.status() != Status.Live) {
-            return 0;
-        }
-
-        uint256[] memory waterfallValues = portfolio.calculateWaterfall();
-        uint256 tranchesCount = waterfallValues.length;
-        if (waterfallIndex == tranchesCount - 1) {
-            return 0;
-        }
-
-        uint256 subordinateValueWithoutTranche = 0;
-        uint256 maxThreshold = 0;
-        for (uint256 i = 0; i < tranchesCount - 1; i++) {
-            uint256 trancheValue = waterfallValues[i];
-            if (i != waterfallIndex) {
-                subordinateValueWithoutTranche += trancheValue;
-            }
-            if (i >= waterfallIndex) {
-                uint256 lowerBound = (waterfallValues[i + 1] * portfolio.getTrancheData(i + 1).minSubordinateRatio) / BASIS_PRECISION;
-                uint256 minTrancheValue = _saturatingSub(lowerBound, subordinateValueWithoutTranche);
-                maxThreshold = Math.max(minTrancheValue, maxThreshold);
-            }
-        }
-        return maxThreshold;
-    }
-
     function _maxWithdrawComplyingWithRatio() internal view returns (uint256) {
-        uint256 minTrancheValueComplyingWithRatio = _minTrancheValueComplyingWithRatio();
+        uint256 minTrancheValueComplyingWithRatio = portfolio.minTrancheValueComplyingWithRatio(waterfallIndex);
         return _saturatingSub(totalAssets(), minTrancheValueComplyingWithRatio);
     }
 

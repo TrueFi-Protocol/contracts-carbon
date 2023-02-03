@@ -295,4 +295,8 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
      * Is ignored if not called by tranche
      */
     function checkTranchesRatiosFromTranche(uint256 newTotalAssets) external view;
+
+    function maxTrancheValueComplyingWithRatio(uint256 trancheIdx) external view returns (uint256);
+
+    function minTrancheValueComplyingWithRatio(uint256 trancheIdx) external view returns (uint256);
 }

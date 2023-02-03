@@ -230,6 +230,53 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         _checkTranchesRatios(_tranchesTotalAssets());
     }
 
+    function maxTrancheValueComplyingWithRatio(uint256 trancheIdx) external view returns (uint256) {
+        if (status != Status.Live || trancheIdx == 0) {
+            return type(uint256).max;
+        }
+
+        uint256[] memory waterfallValues = calculateWaterfall();
+
+        uint256 subordinateValue = 0;
+        for (uint256 i = 0; i < trancheIdx; i++) {
+            subordinateValue += waterfallValues[i];
+        }
+
+        uint256 minSubordinateRatio = tranchesData[trancheIdx].minSubordinateRatio;
+        if (minSubordinateRatio == 0) {
+            return type(uint256).max;
+        }
+
+        return (subordinateValue * BASIS_PRECISION) / minSubordinateRatio;
+    }
+
+    function minTrancheValueComplyingWithRatio(uint256 trancheIdx) external view returns (uint256) {
+        if (status != Status.Live) {
+            return 0;
+        }
+
+        uint256[] memory trancheValues = calculateWaterfall();
+        uint256 tranchesCount = trancheValues.length;
+        if (trancheIdx == tranchesCount - 1) {
+            return 0;
+        }
+
+        uint256 subordinateValueWithoutTranche = 0;
+        uint256 maxThreshold = 0;
+        for (uint256 i = 0; i < tranchesCount - 1; i++) {
+            uint256 trancheValue = trancheValues[i];
+            if (i != trancheIdx) {
+                subordinateValueWithoutTranche += trancheValue;
+            }
+            if (i >= trancheIdx) {
+                uint256 lowerBound = (trancheValues[i + 1] * tranchesData[i + 1].minSubordinateRatio) / BASIS_PRECISION;
+                uint256 minTrancheValue = _saturatingSub(lowerBound, subordinateValueWithoutTranche);
+                maxThreshold = _max(minTrancheValue, maxThreshold);
+            }
+        }
+        return maxThreshold;
+    }
+
     function _tranchesTotalAssets() internal view returns (uint256[] memory) {
         if (status == Status.Live) {
             return calculateWaterfall();
@@ -486,6 +533,10 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function _changePortfolioStatus(Status newStatus) internal {
         status = newStatus;
         emit PortfolioStatusChanged(newStatus);
+    }
+
+    function _max(uint256 x, uint256 y) internal pure returns (uint256) {
+        return x < y ? y : x;
     }
 
     function _min(uint256 x, uint256 y) internal pure returns (uint256) {

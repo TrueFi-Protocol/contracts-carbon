@@ -21,12 +21,4 @@ contract TrancheVaultTest is TrancheVault {
     function mockDecreaseVirtualTokenBalance(uint256 amount) external {
         virtualTokenBalance -= amount;
     }
-
-    function maxTrancheValueComplyingWithRatio() external view returns (uint256) {
-        return _maxTrancheValueComplyingWithRatio();
-    }
-
-    function minTrancheValueComplyingWithRatio() external view returns (uint256) {
-        return _minTrancheValueComplyingWithRatio();
-    }
 }
