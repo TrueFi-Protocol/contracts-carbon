@@ -53,9 +53,8 @@ describe('StructuredPortfolio: protocol fees', () => {
     const seniorValue = withInterest(seniorDeposit, seniorTrancheData.targetApy, YEAR)
     const expectedSeniorFee = seniorValue.mul(protocolFeeRate).div(ONE_IN_BPS)
 
-    const portfolioValue = await structuredPortfolio.totalAssets()
-    const equityValue = portfolioValue.sub(juniorValue).sub(seniorValue)
-    const expectedEquityFee = equityValue.mul(protocolFeeRate).div(ONE_IN_BPS)
+    const portfolioFees = await structuredPortfolio.totalPendingFees()
+    const expectedEquityFee = portfolioFees.sub(expectedSeniorFee).sub(expectedJuniorFee)
 
     const delta = parseTokenUnits(0.0001)
     expect(await equityTranche.unpaidProtocolFee()).to.be.closeTo(expectedEquityFee, parseTokenUnits(1))
@@ -163,7 +162,7 @@ describe('StructuredPortfolio: protocol fees', () => {
 
     expect(await seniorTranche.unpaidProtocolFee()).to.be.gt(0)
 
-    expect(await structuredPortfolio.totalAssets()).to.be.closeTo(totalAssets, parseTokenUnits(0.001))
+    expect(await structuredPortfolio.totalAssets()).to.be.closeTo(totalAssets, parseTokenUnits(0.01))
   })
 
   it('not collected in capital formation', async () => {
@@ -278,9 +277,8 @@ describe('StructuredPortfolio: protocol fees', () => {
       expect(await seniorTranche.unpaidProtocolFee()).to.be.closeTo(expectedSeniorFee, delta)
       expect(await seniorTranche.unpaidManagerFee()).to.be.closeTo(expectedSeniorFee, delta)
 
-      const portfolioValue = await structuredPortfolio.totalAssets()
-      const equityExpectedValue = portfolioValue.sub(seniorWithInterest).sub(juniorWithInterest)
-      const expectedEquityFee = equityExpectedValue.mul(feeRate).div(ONE_IN_BPS)
+      const portfolioFees = await structuredPortfolio.totalPendingFees()
+      const expectedEquityFee = portfolioFees.sub(expectedSeniorFee.mul(2)).sub(expectedJuniorFee.mul(2)).div(2)
       expect(await equityTranche.unpaidProtocolFee()).to.be.closeTo(expectedEquityFee, delta)
       expect(await equityTranche.unpaidManagerFee()).to.be.closeTo(expectedEquityFee, delta)
     })

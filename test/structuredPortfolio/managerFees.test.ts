@@ -52,9 +52,8 @@ describe('StructuredPortfolio: manager fees', () => {
     const seniorValue = withInterest(seniorDeposit, seniorTrancheData.targetApy, YEAR)
     const expectedSeniorFee = seniorValue.mul(managerFee).div(ONE_IN_BPS)
 
-    const portfolioValue = await structuredPortfolio.totalAssets()
-    const equityValue = portfolioValue.sub(juniorValue).sub(seniorValue)
-    const expectedEquityFee = equityValue.mul(managerFee).div(ONE_IN_BPS)
+    const portfolioFees = await structuredPortfolio.totalPendingFees()
+    const expectedEquityFee = portfolioFees.sub(expectedSeniorFee).sub(expectedJuniorFee)
 
     const delta = parseTokenUnits(0.01)
     expect(await equityTranche.unpaidManagerFee()).to.be.closeTo(expectedEquityFee, delta)
@@ -209,7 +208,10 @@ describe('StructuredPortfolio: manager fees', () => {
 
     expect(await seniorTranche.unpaidManagerFee()).to.be.gt(0)
 
-    expect(await structuredPortfolio.totalAssets()).to.be.closeTo(seniorDeposit, parseTokenUnits(0.01))
+    const seniorFees = seniorDeposit.mul(managerFee).div(ONE_IN_BPS)
+    const expectedSeniorValue = seniorDeposit.sub(seniorFees)
+
+    expect(await structuredPortfolio.totalAssets()).to.be.closeTo(expectedSeniorValue, parseTokenUnits(0.01))
   })
 
   it('not collected in capital formation', async () => {

@@ -1,7 +1,9 @@
 import { expect } from 'chai'
 import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
+import { ONE_IN_BPS, YEAR } from 'utils/constants'
 import { parseUSDC } from 'utils/parseUSDC'
+import { timeTravel } from 'utils/timeTravel'
 
 describe('StructuredPortfolio.totalAssets', () => {
   const loadFixture = setupFixtureLoader()
@@ -68,5 +70,42 @@ describe('StructuredPortfolio.totalAssets', () => {
 
     expect(await equityTranche.maxWithdraw(wallet.address)).to.eq(1)
     expect(await equityTranche.maxWithdraw(other.address)).to.eq(amount)
+  })
+
+  it('fee subtracted from loans value', async () => {
+    const {
+      addAndFundLoan,
+      protocolConfig,
+      getLoan,
+      structuredPortfolio,
+      totalDeposit,
+      parseTokenUnits,
+    } = await loadFixture(structuredPortfolioLiveFixture)
+
+    const loanPrincipal = totalDeposit
+    const loanInterest = loanPrincipal
+    await addAndFundLoan(
+      getLoan({
+        periodCount: 1,
+        principal: loanPrincipal,
+        periodPayment: loanInterest,
+        periodDuration: 1,
+        gracePeriod: 0,
+      }),
+    )
+
+    // start accruing fees
+    const protocolFeeRate = 100
+    await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
+    await structuredPortfolio.updateCheckpoints()
+
+    await timeTravel(YEAR)
+
+    const loanValue = loanPrincipal.add(loanInterest)
+
+    const protocolFee = loanValue.mul(protocolFeeRate).div(ONE_IN_BPS)
+    const expectedTotalAssets = loanValue.sub(protocolFee)
+    await structuredPortfolio.updateCheckpoints()
+    expect(await structuredPortfolio.totalAssets()).to.closeTo(expectedTotalAssets, parseTokenUnits(0.01))
   })
 })
