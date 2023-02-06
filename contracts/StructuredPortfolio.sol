@@ -121,11 +121,13 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         }
         uint256 timestamp = _limitedBlockTimestamp();
         for (uint256 i = 1; i < realTotalAssets.length; i++) {
-            uint256 assumedTotalAssets = _assumedTrancheValue(i, timestamp);
+            (uint256 assumedTotalAssets, uint256 defaultedLoansDeficit) = _assumedTrancheValue(i, timestamp);
+
             uint256 assumedPendingFees = tranches[i].totalPendingFeesForAssets(assumedTotalAssets);
             uint256 assumedTotalAssetsAfterFees = _saturatingSub(assumedTotalAssets, assumedPendingFees);
 
-            uint256 newDeficit = _saturatingSub(assumedTotalAssetsAfterFees, realTotalAssets[i]);
+            uint256 assumedAssetsWithDeficit = assumedTotalAssetsAfterFees + defaultedLoansDeficit;
+            uint256 newDeficit = _saturatingSub(assumedAssetsWithDeficit, realTotalAssets[i]);
             deficits[i] = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
         }
         return deficits;
@@ -337,7 +339,8 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
         for (uint256 i = 0; i < waterfall.length; i++) {
             if (i != 0) {
-                tranchesData[i].maxValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
+                (uint256 totalAssets, uint256 loansDeficit) = _assumedTrancheValue(i, limitedBlockTimestamp);
+                tranchesData[i].maxValueOnClose = totalAssets + loansDeficit;
             }
             tranchesData[i].distributedAssets = waterfall[i];
             _transfer(tranches[i], waterfall[i]);
@@ -389,7 +392,8 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
 
         for (uint256 i = waterfall.length - 1; i > 0; i--) {
-            uint256 assumedTrancheValue = _assumedTrancheValue(i, limitedBlockTimestamp);
+            (uint256 totalAssets, uint256 loansDeficit) = _assumedTrancheValue(i, limitedBlockTimestamp);
+            uint256 assumedTrancheValue = totalAssets + loansDeficit;
 
             if (assumedTrancheValue >= assetsLeft) {
                 waterfall[i] = assetsLeft;
@@ -405,14 +409,14 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         return waterfall;
     }
 
-    function _assumedTrancheValue(uint256 trancheIdx, uint256 timestamp) internal view returns (uint256) {
+    function _assumedTrancheValue(uint256 trancheIdx, uint256 timestamp) internal view returns (uint256, uint256) {
         Checkpoint memory checkpoint = tranches[trancheIdx].getCheckpoint();
         TrancheData memory trancheData = tranchesData[trancheIdx];
 
         uint256 assumedTotalAssets = _assumedTotalAssets(checkpoint, trancheData, timestamp);
         uint256 defaultedLoansDeficit = _defaultedLoansDeficit(trancheData, timestamp);
 
-        return assumedTotalAssets + defaultedLoansDeficit;
+        return (assumedTotalAssets, defaultedLoansDeficit);
     }
 
     function _assumedTotalAssets(

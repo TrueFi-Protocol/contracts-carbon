@@ -381,5 +381,43 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       expect('updateCheckpointFromPortfolio').to.be.calledOnContractWith(seniorTranche, [seniorAssumedValueAfterFee])
       expect(await seniorTranche.unpaidProtocolFee()).to.eq(seniorAssumedValueFee)
     })
+
+    it('fees do not accrue on deficit', async () => {
+      const { structuredPortfolio, parseTokenUnits, tranches, depositToTranche, addAndFundLoan, getLoan, repayLoanInFull, withInterest, tranchesData } = await loadFixture(structuredPortfolioFixture)
+      const depositAmount = parseTokenUnits(100)
+      const loanAmount = parseTokenUnits(10)
+      for (const tranche of tranches) {
+        await depositToTranche(tranche, depositAmount)
+        await tranche.setManagerFeeRate(1000)
+      }
+      await structuredPortfolio.start()
+
+      const loanId = await addAndFundLoan(getLoan({
+        principal: depositAmount.mul(3),
+        periodPayment: loanAmount,
+        periodCount: 1,
+        periodDuration: 1,
+        gracePeriod: 0,
+      }))
+
+      await timeTravel(1)
+
+      await structuredPortfolio.markLoanAsDefaulted(loanId)
+
+      await timeTravel(2 * YEAR)
+
+      await repayLoanInFull(loanId)
+
+      const totalPortfolioValue = await structuredPortfolio.totalAssets()
+      const expectedSeniorAmount = withInterest(depositAmount, tranchesData[2].targetApy, 2 * YEAR)
+      const expectedJuniorAmount = withInterest(depositAmount, tranchesData[1].targetApy, 2 * YEAR)
+      const expectedEquityAmount = totalPortfolioValue.sub(expectedSeniorAmount).sub(expectedJuniorAmount)
+
+      const delta = 1000
+      const expectedAmounts = await structuredPortfolio.calculateWaterfall()
+      expect(expectedAmounts[0]).to.be.closeTo(expectedEquityAmount, delta)
+      expect(expectedAmounts[1]).to.be.closeTo(expectedJuniorAmount, delta)
+      expect(expectedAmounts[2]).to.be.closeTo(expectedSeniorAmount, delta)
+    })
   })
 })
