@@ -29,6 +29,7 @@ struct Checkpoint {
     uint256 totalAssets;
     uint256 protocolFeeRate;
     uint256 timestamp;
+    uint256 unpaidFees;
 }
 
 struct Configuration {

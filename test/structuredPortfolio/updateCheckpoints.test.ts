@@ -419,5 +419,39 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       expect(expectedAmounts[1]).to.be.closeTo(expectedJuniorAmount, delta)
       expect(expectedAmounts[2]).to.be.closeTo(expectedSeniorAmount, delta)
     })
+
+    it('no interest on unpaid fees', async () => {
+      const { structuredPortfolio, parseTokenUnits, tranches, depositToTranche, addAndFundLoan, getLoan, withInterest, tranchesData } = await loadFixture(structuredPortfolioFixture)
+      const depositAmount = parseTokenUnits(100)
+      const loanAmount = parseTokenUnits(10)
+      for (const tranche of tranches) {
+        await depositToTranche(tranche, depositAmount)
+        await tranche.setManagerFeeRate(1000)
+      }
+      await structuredPortfolio.start()
+
+      await addAndFundLoan(getLoan({
+        principal: depositAmount.mul(3),
+        periodPayment: loanAmount,
+        periodCount: 1,
+        periodDuration: 1,
+        gracePeriod: 0,
+      }))
+
+      await timeTravel(YEAR)
+      await structuredPortfolio.updateCheckpoints()
+      for (const tranche of tranches) {
+        await tranche.setManagerFeeRate(0)
+      }
+
+      const expectedSenior = withInterest(await tranches[2].totalAssets(), tranchesData[2].targetApy, YEAR)
+      const expectedJunior = withInterest(await tranches[1].totalAssets(), tranchesData[1].targetApy, YEAR)
+
+      await timeTravel(YEAR)
+      await structuredPortfolio.updateCheckpoints()
+
+      expect(await tranches[2].totalAssets()).to.be.closeTo(expectedSenior, 100)
+      expect(await tranches[1].totalAssets()).to.be.closeTo(expectedJunior, 100)
+    })
   })
 })
