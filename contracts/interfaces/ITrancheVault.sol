@@ -203,7 +203,7 @@ interface ITrancheVault is IERC4626Upgradeable, IERC165 {
      * - is used by StructuredPortfolio only in Live portfolio status
      * @param _totalAssets Total assets amount to save in the checkpoint
      */
-    function updateCheckpointFromPortfolio(uint256 _totalAssets) external;
+    function updateCheckpointFromPortfolio(uint256 _totalAssets, uint256 deficit) external;
 
     /// @return Total tranche assets including accrued but yet not paid fees
     function totalAssetsBeforeFees() external view returns (uint256);

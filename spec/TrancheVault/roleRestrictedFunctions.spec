@@ -64,7 +64,7 @@ rule managerOnlyFunctionsCanOnlyBeCalledByManager(method f) filtered { f -> (isM
 
 definition isPortfolioOnlyFunction(method f) returns bool =
     f.selector == onPortfolioStart().selector ||
-    f.selector == updateCheckpointFromPortfolio(uint256).selector;
+    f.selector == updateCheckpointFromPortfolio(uint256,uint256).selector;
 
 rule portfolioOnlyFunctionsCanOnlyBeCalledByPortfolio(method f) filtered { f -> (isPortfolioOnlyFunction(f))} {
     env e;

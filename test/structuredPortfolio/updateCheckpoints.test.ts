@@ -377,8 +377,9 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       const seniorAssumedValue = initialDeposits[2]
       const seniorAssumedValueFee = withInterest(seniorAssumedValue, protocolFeeRate, portfolioStartTimestamp + timeElapsed - feeStartTimestamp).sub(seniorAssumedValue)
       const seniorAssumedValueAfterFee = seniorAssumedValue.sub(seniorAssumedValueFee)
+      const seniorDeficit = (await structuredPortfolio.tranchesData(2)).loansDeficitCheckpoint.deficit
 
-      expect('updateCheckpointFromPortfolio').to.be.calledOnContractWith(seniorTranche, [seniorAssumedValueAfterFee])
+      expect('updateCheckpointFromPortfolio').to.be.calledOnContractWith(seniorTranche, [seniorAssumedValueAfterFee, seniorDeficit])
       expect(await seniorTranche.unpaidProtocolFee()).to.eq(seniorAssumedValueFee)
     })
 

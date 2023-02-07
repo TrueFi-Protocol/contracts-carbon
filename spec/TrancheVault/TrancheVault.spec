@@ -76,7 +76,7 @@ definition isProtocolConfigHarnessFunction(method f) returns bool =
     f.selector == removeCustomProtocolFeeRateHarness(address).selector ||
     f.selector == setDefaultProtocolFeeRate(uint256).selector;
 
-// functions that call _updateCheckpoint(uint256) 
+// functions that call _updateCheckpoint(uint256)
 definition isCheckpointFunction(method f) returns bool =
     f.selector == deposit(uint256, address).selector ||
     f.selector == mint(uint256, address).selector ||
@@ -86,24 +86,24 @@ definition isCheckpointFunction(method f) returns bool =
     f.selector == configure((uint256,address,address,address,address)).selector ||
     f.selector == setManagerFeeRate(uint256).selector ||
     f.selector == setManagerFeeBeneficiary(address).selector ||
-    f.selector == updateCheckpointFromPortfolio(uint256).selector || 
+    f.selector == updateCheckpointFromPortfolio(uint256,uint256).selector ||
     f.selector == updateCheckpoint().selector;
 
-// functions that change token balance in close only by calling _updateCheckpoint(uint256) 
+// functions that change token balance in close only by calling _updateCheckpoint(uint256)
 definition isCheckpointFunctionInClose(method f) returns bool =
     f.selector == configure((uint256,address,address,address,address)).selector ||
     f.selector == setManagerFeeRate(uint256).selector ||
     f.selector == setManagerFeeBeneficiary(address).selector ||
-    f.selector == updateCheckpointFromPortfolio(uint256).selector || 
+    f.selector == updateCheckpointFromPortfolio(uint256,uint256).selector ||
     f.selector == updateCheckpoint().selector;
 
-// functions that change token balance in live only by calling _updateCheckpoint(uint256) 
+// functions that change token balance in live only by calling _updateCheckpoint(uint256)
 definition isCheckpointFunctionInLive(method f) returns bool =
     f.selector == configure((uint256,address,address,address,address)).selector ||
     f.selector == setManagerFeeRate(uint256).selector ||
     f.selector == setManagerFeeBeneficiary(address).selector ||
     f.selector == onTransfer(uint256).selector ||
-    f.selector == updateCheckpointFromPortfolio(uint256).selector || 
+    f.selector == updateCheckpointFromPortfolio(uint256,uint256).selector ||
     f.selector == updateCheckpoint().selector;
 
 // GHOSTS

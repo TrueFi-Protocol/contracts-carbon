@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
+import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
-import { timeTravel } from 'utils/timeTravel'
+import { setNextBlockTimestamp, timeTravel } from 'utils/timeTravel'
 import { BigNumber } from 'ethers'
 
 describe('StructuredPortfolio: manager fees', () => {
@@ -239,5 +239,48 @@ describe('StructuredPortfolio: manager fees', () => {
     await withdrawFromTranche(seniorTranche, 1)
 
     expect(await token.balanceOf(another.address)).to.eq(balanceAfterClose)
+  })
+
+  it('caps pending fees to tranche assets', async () => {
+    const { juniorTranche, structuredPortfolio, portfolioStartTimestamp, senior, junior, totalDeposit, parseTokenUnits } = await loadFixture(structuredPortfolioLiveFixture)
+    const managerFee = 12000
+    await juniorTranche.setManagerFeeRate(managerFee)
+
+    await setNextBlockTimestamp(portfolioStartTimestamp + YEAR)
+    await structuredPortfolio.updateCheckpoints()
+
+    const waterfall = await structuredPortfolio.calculateWaterfall()
+
+    const expectedSenior = senior.calculateTargetValue()
+    const expectedJunior = junior.calculateTargetValue()
+    const expectedEquity = totalDeposit.sub(expectedSenior).sub(expectedJunior)
+
+    const delta = parseTokenUnits(0.01)
+    expect(waterfall[0]).to.be.closeTo(expectedEquity, delta)
+    expect(waterfall[1]).to.eq(0)
+    expect(waterfall[2]).to.be.closeTo(expectedSenior, delta)
+  })
+
+  it('caps pending fees to tranche assets for multiple fee types', async () => {
+    const { juniorTranche, structuredPortfolio, portfolioStartTimestamp, senior, junior, totalDeposit, parseTokenUnits, protocolConfig } = await loadFixture(structuredPortfolioLiveFixture)
+    const managerFee = 6000
+    await juniorTranche.setManagerFeeRate(managerFee)
+    const protocolFee = 6000
+    await protocolConfig.setCustomProtocolFeeRate(juniorTranche.address, protocolFee)
+    await structuredPortfolio.updateCheckpoints()
+
+    await setNextBlockTimestamp(portfolioStartTimestamp + YEAR)
+    await structuredPortfolio.updateCheckpoints()
+
+    const waterfall = await structuredPortfolio.calculateWaterfall()
+
+    const expectedSenior = senior.calculateTargetValue()
+    const expectedJunior = junior.calculateTargetValue()
+    const expectedEquity = totalDeposit.sub(expectedSenior).sub(expectedJunior)
+
+    const delta = parseTokenUnits(0.01)
+    expect(waterfall[0]).to.be.closeTo(expectedEquity, delta)
+    expect(waterfall[1]).to.eq(0)
+    expect(waterfall[2]).to.be.closeTo(expectedSenior, delta)
   })
 })

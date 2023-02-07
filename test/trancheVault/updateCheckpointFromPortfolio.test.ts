@@ -10,7 +10,7 @@ describe('TrancheVault.updateCheckpointFromPortfolio', () => {
 
   it('only portfolio', async () => {
     const { tranche } = await loadFixture(trancheVaultFixture)
-    await expect(tranche.updateCheckpointFromPortfolio(100)).to.be.revertedWith('TV: Sender is not portfolio')
+    await expect(tranche.updateCheckpointFromPortfolio(100, 0)).to.be.revertedWith('TV: Sender is not portfolio')
   })
 
   it('reverts if protocolTreasury is TrancheVault', async () => {

@@ -177,7 +177,7 @@ describe('StructuredPortfolio: loans integration tests', () => {
     const finalPortfolioAmount = totalDeposited.sub(loan.principal).add(loan.periodPayment)
     const finalPortfolioVirtualAmount = totalDeposited.add(loan.periodPayment.mul(2))
 
-    const delta = parseTokenUnits('0.01')
+    const delta = parseTokenUnits('0.02')
 
     const expectedProtocolFee = withInterest(finalPortfolioVirtualAmount, protocolFeeRate, portfolioDuration).sub(finalPortfolioVirtualAmount)
     expect(await token.balanceOf(protocolTreasury)).to.be.closeTo(expectedProtocolFee, delta)

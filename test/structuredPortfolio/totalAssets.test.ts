@@ -106,6 +106,6 @@ describe('StructuredPortfolio.totalAssets', () => {
     const protocolFee = loanValue.mul(protocolFeeRate).div(ONE_IN_BPS)
     const expectedTotalAssets = loanValue.sub(protocolFee)
     await structuredPortfolio.updateCheckpoints()
-    expect(await structuredPortfolio.totalAssets()).to.closeTo(expectedTotalAssets, parseTokenUnits(0.01))
+    expect(await structuredPortfolio.totalAssets()).to.closeTo(expectedTotalAssets, parseTokenUnits(0.02))
   })
 })

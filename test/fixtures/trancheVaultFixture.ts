@@ -55,6 +55,16 @@ export async function trancheVaultFixture(wallets: Wallet[]) {
   const portfolio = await deployMockContract(wallet, StructuredPortfolio__factory.abi)
   await portfolio.mock.status.returns(PortfolioStatus.CapitalFormation)
   await portfolio.mock.paused.returns(false)
+  await portfolio.mock.getTrancheData.returns({
+    targetApy: 0,
+    minSubordinateRatio: 0,
+    distributedAssets: 0,
+    maxValueOnClose: 0,
+    loansDeficitCheckpoint: {
+      deficit: 0,
+      timestamp: 0,
+    },
+  })
   await tranche.setPortfolio(portfolio.address)
 
   async function depositToTranche(amount: BigNumberish, receiver = wallet.address) {

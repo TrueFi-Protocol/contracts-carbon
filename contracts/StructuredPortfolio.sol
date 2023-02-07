@@ -105,7 +105,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         uint256[] memory _totalAssetsAfter = calculateWaterfall();
         LoansDeficitCheckpoint[] memory deficits = _calculateLoansDeficit(_totalAssetsAfter);
         for (uint256 i = 0; i < _totalAssetsAfter.length; i++) {
-            tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i]);
+            tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i], deficits[i].deficit);
         }
         if (someLoansDefaulted) {
             for (uint256 i = 1; i < deficits.length; i++) {
