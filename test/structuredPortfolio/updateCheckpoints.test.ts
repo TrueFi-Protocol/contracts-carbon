@@ -422,37 +422,48 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
     })
 
     it('no interest on unpaid fees', async () => {
-      const { structuredPortfolio, parseTokenUnits, tranches, depositToTranche, addAndFundLoan, getLoan, withInterest, tranchesData } = await loadFixture(structuredPortfolioFixture)
+      const { structuredPortfolio, parseTokenUnits, tranches, depositToTranche, addAndFundLoan, getLoan, withInterest, seniorTrancheData, juniorTrancheData } = await loadFixture(structuredPortfolioFixture)
       const depositAmount = parseTokenUnits(100)
-      const loanAmount = parseTokenUnits(10)
+      const managerFeeRate = 1000
       for (const tranche of tranches) {
         await depositToTranche(tranche, depositAmount)
-        await tranche.setManagerFeeRate(1000)
+        await tranche.setManagerFeeRate(managerFeeRate)
       }
-      await structuredPortfolio.start()
+      const startTx = await structuredPortfolio.start()
 
       await addAndFundLoan(getLoan({
         principal: depositAmount.mul(3),
-        periodPayment: loanAmount,
+        periodPayment: parseTokenUnits(10),
         periodCount: 1,
         periodDuration: 1,
         gracePeriod: 0,
       }))
 
-      await timeTravel(YEAR)
+      await setNextBlockTimestamp(await getTxTimestamp(startTx) + YEAR)
       await structuredPortfolio.updateCheckpoints()
       for (const tranche of tranches) {
         await tranche.setManagerFeeRate(0)
       }
 
-      const expectedSenior = withInterest(await tranches[2].totalAssets(), tranchesData[2].targetApy, YEAR)
-      const expectedJunior = withInterest(await tranches[1].totalAssets(), tranchesData[1].targetApy, YEAR)
+      const seniorAfterYearBeforeFees = withInterest(depositAmount, seniorTrancheData.targetApy, YEAR)
+      const seniorFee = withInterest(seniorAfterYearBeforeFees, managerFeeRate, YEAR).sub(seniorAfterYearBeforeFees)
+      const seniorAfterYearAfterFees = seniorAfterYearBeforeFees.sub(seniorFee)
 
-      await timeTravel(YEAR)
+      const juniorAfterYearBeforeFees = withInterest(depositAmount, juniorTrancheData.targetApy, YEAR)
+      const juniorFee = withInterest(juniorAfterYearBeforeFees, managerFeeRate, YEAR).sub(juniorAfterYearBeforeFees)
+      const juniorAfterYearAfterFees = juniorAfterYearBeforeFees.sub(juniorFee)
+
+      expect(await tranches[2].totalAssets()).to.be.closeTo(seniorAfterYearAfterFees, 100)
+      expect(await tranches[1].totalAssets()).to.be.closeTo(juniorAfterYearAfterFees, 100)
+
+      await setNextBlockTimestamp(await getTxTimestamp(startTx) + 2 * YEAR)
       await structuredPortfolio.updateCheckpoints()
 
-      expect(await tranches[2].totalAssets()).to.be.closeTo(expectedSenior, 100)
-      expect(await tranches[1].totalAssets()).to.be.closeTo(expectedJunior, 100)
+      const seniorAfterTwoYears = withInterest(seniorAfterYearAfterFees, seniorTrancheData.targetApy, YEAR)
+      const juniorAfterTwoYears = withInterest(juniorAfterYearAfterFees, juniorTrancheData.targetApy, YEAR)
+
+      expect(await tranches[2].totalAssets()).to.be.closeTo(seniorAfterTwoYears, 100)
+      expect(await tranches[1].totalAssets()).to.be.closeTo(juniorAfterTwoYears, 100)
     })
   })
 })
