@@ -45,6 +45,8 @@ contract StructuredPortfolioFuzzingInit {
     FuzzingBorrower public borrower;
     FuzzingLender public lender;
 
+    uint256 internal activeLoansCount;
+
     constructor() {
         _initializeToken();
         _initializeProtocolConfig();
@@ -194,6 +196,7 @@ contract StructuredPortfolioFuzzingInit {
         );
         structuredPortfolio.addLoan(params1);
         borrower.acceptLoan(fixedInterestOnlyLoans, 0);
+        activeLoansCount += 1;
         structuredPortfolio.fundLoan(0);
 
         AddLoanParams memory params2 = AddLoanParams(
@@ -207,6 +210,7 @@ contract StructuredPortfolioFuzzingInit {
         );
         structuredPortfolio.addLoan(params2);
         borrower.acceptLoan(fixedInterestOnlyLoans, 1);
+        activeLoansCount += 1;
         structuredPortfolio.fundLoan(1);
     }
 }
