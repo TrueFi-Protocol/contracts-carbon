@@ -461,5 +461,34 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       expect(await tranches[2].totalAssets()).to.be.closeTo(seniorAfterTwoYears, 100)
       expect(await tranches[1].totalAssets()).to.be.closeTo(juniorAfterTwoYears, 100)
     })
+
+    it('fees are only deducted from assets in portfolio', async () => {
+      const { structuredPortfolio, parseTokenUnits, tranches, depositToTranche, addAndFundLoan, getLoan } = await loadFixture(structuredPortfolioFixture)
+      const depositAmount = parseTokenUnits(100)
+      const loanAmount = BigNumber.from(1)
+      for (const tranche of tranches) {
+        await depositToTranche(tranche, depositAmount)
+        await tranche.setManagerFeeRate(500)
+      }
+      await structuredPortfolio.start()
+
+      const loanId = await addAndFundLoan(getLoan({
+        principal: parseTokenUnits(150),
+        periodPayment: loanAmount,
+        periodCount: 1,
+        periodDuration: 1,
+        gracePeriod: 0,
+      }))
+      await timeTravel(1)
+      await structuredPortfolio.markLoanAsDefaulted(loanId)
+      const juniorDeficitBefore = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint.deficit
+      expect(juniorDeficitBefore).to.eq(parseTokenUnits(50))
+
+      await timeTravel(YEAR)
+      await structuredPortfolio.updateCheckpoints()
+      const juniorDeficitAfter = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint.deficit
+      // 3% senior interest + 5% junior interest from assets and deficit
+      expect(juniorDeficitAfter).to.eq(parseTokenUnits(58))
+    })
   })
 })

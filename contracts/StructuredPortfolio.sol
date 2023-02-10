@@ -11,6 +11,7 @@
 
 pragma solidity ^0.8.16;
 
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Upgradeable} from "./proxy/Upgradeable.sol";
@@ -102,8 +103,8 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
     function updateCheckpoints() public whenNotPaused {
         require(status != Status.CapitalFormation, "SP: No checkpoints before start");
-        uint256[] memory _totalAssetsAfter = calculateWaterfall();
-        LoansDeficitCheckpoint[] memory deficits = _calculateLoansDeficit(_totalAssetsAfter);
+        (uint256[] memory _totalAssetsAfter, uint256[] memory pendingFees) = _calculateWaterfall(virtualTokenBalance + loansValue());
+        LoansDeficitCheckpoint[] memory deficits = _calculateLoansDeficit(_totalAssetsAfter, pendingFees);
         for (uint256 i = 0; i < _totalAssetsAfter.length; i++) {
             tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i], deficits[i].deficit);
         }
@@ -114,20 +115,21 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         }
     }
 
-    function _calculateLoansDeficit(uint256[] memory realTotalAssets) internal view returns (LoansDeficitCheckpoint[] memory) {
+    function _calculateLoansDeficit(uint256[] memory realTotalAssets, uint256[] memory pendingFees)
+        internal
+        view
+        returns (LoansDeficitCheckpoint[] memory)
+    {
         LoansDeficitCheckpoint[] memory deficits = new LoansDeficitCheckpoint[](realTotalAssets.length);
         if (!someLoansDefaulted) {
             return deficits;
         }
         uint256 timestamp = _limitedBlockTimestamp();
         for (uint256 i = 1; i < realTotalAssets.length; i++) {
-            (uint256 assumedTotalAssets, uint256 defaultedLoansDeficit) = _assumedTrancheValue(i, timestamp);
-
-            uint256 assumedPendingFees = tranches[i].totalPendingFeesForAssets(assumedTotalAssets);
-            uint256 assumedTotalAssetsAfterFees = _saturatingSub(assumedTotalAssets, assumedPendingFees);
-
-            uint256 assumedAssetsWithDeficit = assumedTotalAssetsAfterFees + defaultedLoansDeficit;
-            uint256 newDeficit = _saturatingSub(assumedAssetsWithDeficit, realTotalAssets[i]);
+            Checkpoint memory checkpoint = tranches[i].getCheckpoint();
+            uint256 assumedTotalAssets = _assumedTrancheValue(i, timestamp);
+            uint256 assumedTotalAssetsAfterFees = _saturatingSub(assumedTotalAssets, Math.max(pendingFees[i], checkpoint.unpaidFees));
+            uint256 newDeficit = _saturatingSub(assumedTotalAssetsAfterFees, realTotalAssets[i]);
             deficits[i] = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
         }
         return deficits;
@@ -145,7 +147,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         uint256 tranchesCount = tranches.length;
         for (uint256 i = 0; i < tranchesCount; i++) {
             if (msg.sender == address(tranches[i])) {
-                virtualTokenBalance = _addSigned(virtualTokenBalance, delta);
+                virtualTokenBalance = delta < 0 ? virtualTokenBalance - uint256(-delta) : virtualTokenBalance + uint256(delta);
                 return;
             }
         }
@@ -275,7 +277,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
             if (i >= trancheIdx) {
                 uint256 lowerBound = (trancheValues[i + 1] * tranchesData[i + 1].minSubordinateRatio) / BASIS_PRECISION;
                 uint256 minTrancheValue = _saturatingSub(lowerBound, subordinateValueWithoutTranche);
-                maxThreshold = _max(minTrancheValue, maxThreshold);
+                maxThreshold = Math.max(minTrancheValue, maxThreshold);
             }
         }
         return maxThreshold;
@@ -337,12 +339,11 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function _closeTranches() internal {
         updateCheckpoints();
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
-        uint256[] memory waterfall = _calculateWaterfall(virtualTokenBalance);
+        (uint256[] memory waterfall, ) = _calculateWaterfall(virtualTokenBalance);
 
         for (uint256 i = 0; i < waterfall.length; i++) {
             if (i != 0) {
-                (uint256 _totalAssets, uint256 _loansDeficit) = _assumedTrancheValue(i, limitedBlockTimestamp);
-                tranchesData[i].maxValueOnClose = _totalAssets + _loansDeficit;
+                tranchesData[i].maxValueOnClose = _assumedTrancheValue(i, limitedBlockTimestamp);
             }
             tranchesData[i].distributedAssets = waterfall[i];
             _transfer(tranches[i], waterfall[i]);
@@ -366,16 +367,19 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function calculateWaterfall() public view returns (uint256[] memory) {
-        return _calculateWaterfall(virtualTokenBalance + loansValue());
+        (uint256[] memory waterfall, ) = _calculateWaterfall(virtualTokenBalance + loansValue());
+        return waterfall;
     }
 
-    function _calculateWaterfall(uint256 assetsLeft) internal view returns (uint256[] memory) {
+    function _calculateWaterfall(uint256 assetsLeft) internal view returns (uint256[] memory, uint256[] memory) {
         uint256[] memory waterfall = _calculateWaterfallWithoutFees(assetsLeft);
+        uint256[] memory fees = new uint256[](tranches.length);
         for (uint256 i = 0; i < waterfall.length; i++) {
             uint256 pendingFees = tranches[i].totalPendingFeesForAssets(waterfall[i]);
             waterfall[i] = _saturatingSub(waterfall[i], pendingFees);
+            fees[i] = pendingFees;
         }
-        return waterfall;
+        return (waterfall, fees);
     }
 
     function calculateWaterfallWithoutFees() public view returns (uint256[] memory) {
@@ -394,8 +398,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
 
         for (uint256 i = waterfall.length - 1; i > 0; i--) {
-            (uint256 _totalAssets, uint256 _loansDeficit) = _assumedTrancheValue(i, limitedBlockTimestamp);
-            uint256 assumedTrancheValue = _totalAssets + _loansDeficit;
+            uint256 assumedTrancheValue = _assumedTrancheValue(i, limitedBlockTimestamp);
 
             if (assumedTrancheValue >= assetsLeft) {
                 waterfall[i] = assetsLeft;
@@ -411,31 +414,23 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         return waterfall;
     }
 
-    function _assumedTrancheValue(uint256 trancheIdx, uint256 timestamp) internal view returns (uint256, uint256) {
+    function _assumedTrancheValue(uint256 trancheIdx, uint256 timestamp) internal view returns (uint256) {
         Checkpoint memory checkpoint = tranches[trancheIdx].getCheckpoint();
         TrancheData memory trancheData = tranchesData[trancheIdx];
+        uint256 targetApy = trancheData.targetApy;
 
-        uint256 assumedTotalAssets = _assumedTotalAssets(checkpoint, trancheData, timestamp) + checkpoint.unpaidFees;
-        uint256 defaultedLoansDeficit = _defaultedLoansDeficit(trancheData, timestamp);
+        uint256 timePassedSinceCheckpoint = _saturatingSub(timestamp, checkpoint.timestamp);
+        uint256 assumedTotalAssets = _withInterest(checkpoint.totalAssets, targetApy, timePassedSinceCheckpoint) +
+            checkpoint.unpaidFees;
 
-        return (assumedTotalAssets, defaultedLoansDeficit);
-    }
-
-    function _assumedTotalAssets(
-        Checkpoint memory checkpoint,
-        TrancheData memory trancheData,
-        uint256 timestamp
-    ) internal pure returns (uint256) {
-        uint256 timePassed = _saturatingSub(timestamp, checkpoint.timestamp);
-        return _withInterest(checkpoint.totalAssets, trancheData.targetApy, timePassed);
-    }
-
-    function _defaultedLoansDeficit(TrancheData memory trancheData, uint256 timestamp) internal pure returns (uint256) {
-        if (trancheData.loansDeficitCheckpoint.deficit == 0) {
-            return 0;
+        uint256 defaultedLoansDeficit;
+        uint256 checkpointDeficit = trancheData.loansDeficitCheckpoint.deficit;
+        if (checkpointDeficit != 0) {
+            uint256 timePassed = _saturatingSub(timestamp, trancheData.loansDeficitCheckpoint.timestamp);
+            defaultedLoansDeficit = _withInterest(checkpointDeficit, targetApy, timePassed);
         }
-        uint256 timePassed = _saturatingSub(timestamp, trancheData.loansDeficitCheckpoint.timestamp);
-        return _withInterest(trancheData.loansDeficitCheckpoint.deficit, trancheData.targetApy, timePassed);
+
+        return assumedTotalAssets + defaultedLoansDeficit;
     }
 
     function _withInterest(
@@ -493,7 +488,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
                 continue;
             }
 
-            uint256 trancheShare = _min(trancheFreeCapacity, undistributedAssets);
+            uint256 trancheShare = Math.min(trancheFreeCapacity, undistributedAssets);
             undistributedAssets -= trancheShare;
             _repayInClosed(i, trancheShare);
         }
@@ -541,20 +536,8 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         emit PortfolioStatusChanged(newStatus);
     }
 
-    function _max(uint256 x, uint256 y) internal pure returns (uint256) {
-        return x < y ? y : x;
-    }
-
-    function _min(uint256 x, uint256 y) internal pure returns (uint256) {
-        return x > y ? y : x;
-    }
-
     function _saturatingSub(uint256 x, uint256 y) internal pure returns (uint256) {
         return x > y ? x - y : 0;
-    }
-
-    function _addSigned(uint256 x, int256 y) internal pure returns (uint256) {
-        return y < 0 ? x - uint256(-y) : x + uint256(y);
     }
 
     function _sum(uint256[] memory components) internal pure returns (uint256) {
@@ -566,7 +549,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function _limitedBlockTimestamp() internal view returns (uint256) {
-        return _min(block.timestamp, endDate);
+        return Math.min(block.timestamp, endDate);
     }
 
     function _requireManagerRole() internal view {
