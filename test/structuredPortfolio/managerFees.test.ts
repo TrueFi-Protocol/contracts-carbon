@@ -3,7 +3,7 @@ import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixt
 import { setupFixtureLoader } from 'test/setup'
 import { MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
-import { setNextBlockTimestamp, timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelTo } from 'utils/timeTravel'
 import { BigNumber } from 'ethers'
 
 describe('StructuredPortfolio: manager fees', () => {
@@ -246,7 +246,7 @@ describe('StructuredPortfolio: manager fees', () => {
     const managerFee = 12000
     await juniorTranche.setManagerFeeRate(managerFee)
 
-    await setNextBlockTimestamp(portfolioStartTimestamp + YEAR)
+    await timeTravelTo(portfolioStartTimestamp + YEAR)
     await structuredPortfolio.updateCheckpoints()
 
     const waterfall = await structuredPortfolio.calculateWaterfall()
@@ -269,7 +269,7 @@ describe('StructuredPortfolio: manager fees', () => {
     await protocolConfig.setCustomProtocolFeeRate(juniorTranche.address, protocolFee)
     await structuredPortfolio.updateCheckpoints()
 
-    await setNextBlockTimestamp(portfolioStartTimestamp + YEAR)
+    await timeTravelTo(portfolioStartTimestamp + YEAR)
     await structuredPortfolio.updateCheckpoints()
 
     const waterfall = await structuredPortfolio.calculateWaterfall()

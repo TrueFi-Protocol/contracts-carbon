@@ -18,10 +18,10 @@ describe('StructuredPortfolio.markLoanAsDefaulted', () => {
   })
 
   it('sets someLoansDefaulted to true', async () => {
-    const { addAndFundLoan, structuredPortfolio } = await loadFixture(structuredPortfolioLiveFixture)
+    const { addAndFundLoan, structuredPortfolio, loan: { periodDuration, gracePeriod } } = await loadFixture(structuredPortfolioLiveFixture)
 
     const loanId = await addAndFundLoan()
-    await timeTravel(DAY * 2)
+    await timeTravel(periodDuration + gracePeriod + 1)
 
     await structuredPortfolio.markLoanAsDefaulted(loanId)
     expect(await structuredPortfolio.someLoansDefaultedTest()).to.be.true

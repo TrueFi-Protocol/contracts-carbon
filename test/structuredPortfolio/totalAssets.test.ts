@@ -3,8 +3,7 @@ import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixt
 import { setupFixtureLoader } from 'test/setup'
 import { ONE_IN_BPS, YEAR } from 'utils/constants'
 import { parseUSDC } from 'utils/parseUSDC'
-import { setNextBlockTimestamp } from 'utils/timeTravel'
-import { getTxTimestamp } from 'utils/getTxTimestamp'
+import { timeTravelFrom } from 'utils/timeTravel'
 
 describe('StructuredPortfolio.totalAssets', () => {
   const loadFixture = setupFixtureLoader()
@@ -100,7 +99,7 @@ describe('StructuredPortfolio.totalAssets', () => {
     await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
     const tx = await structuredPortfolio.updateCheckpoints()
 
-    await setNextBlockTimestamp(await getTxTimestamp(tx) + YEAR)
+    await timeTravelFrom(tx, YEAR)
 
     const loanValue = loanPrincipal.add(loanInterest)
 

@@ -3,7 +3,7 @@ import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixt
 import { trancheVaultFixture } from 'fixtures/trancheVaultFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { MONTH, YEAR } from 'utils/constants'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravelAndMine } from 'utils/timeTravel'
 
 describe('TrancheVault.totalAssets', () => {
   const loadFixture = setupFixtureLoader()
@@ -41,7 +41,7 @@ describe('TrancheVault.totalAssets', () => {
 
     await structuredPortfolio.close()
     const equityBalance = await token.balanceOf(equityTranche.address)
-    await timeTravel(MONTH)
+    await timeTravelAndMine(MONTH)
 
     const expectedProtocolFee = withInterest(equityBalance, protocolFeeRate, MONTH).sub(equityBalance)
     const delta = parseTokenUnits(0.01)
@@ -61,7 +61,7 @@ describe('TrancheVault.totalAssets', () => {
     const loanId = await addAndFundLoan(loan)
     await repayLoanInFull(loanId)
 
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
 
     expect(await seniorTranche.totalAssets()).to.be.closeTo(senior.calculateTargetValue(), DELTA)
   })

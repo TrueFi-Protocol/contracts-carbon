@@ -4,8 +4,7 @@ import { getStructuredPortfolioFixture, structuredPortfolioFixture, structuredPo
 import { setupFixtureLoader } from 'test/setup'
 import { ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
-import { timeTravel } from 'utils/timeTravel'
-import { setNextBlockTimestamp } from 'utils/setNextBlockTimestamp'
+import { timeTravel, timeTravelAndMine, timeTravelFrom, timeTravelTo } from 'utils/timeTravel'
 
 describe('StructuredPortfolio.updateCheckpoints', () => {
   const loadFixture = setupFixtureLoader()
@@ -23,11 +22,9 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
     const depositAmount = parseTokenUnits(1000)
     await depositToTranche(seniorTranche, depositAmount)
 
-    const portfolioCreationTimestamp = await getTxTimestamp(createPortfolioTx)
-    await setNextBlockTimestamp(portfolioCreationTimestamp + maxCapitalFormationDuration)
-    const tx = await structuredPortfolio.close()
-    const closeTimestamp = await getTxTimestamp(tx)
-    await setNextBlockTimestamp(closeTimestamp + YEAR)
+    await timeTravelFrom(createPortfolioTx, maxCapitalFormationDuration + 1)
+    const closeTx = await structuredPortfolio.close()
+    await timeTravelFrom(closeTx, YEAR)
 
     expect(await seniorTranche.totalAssets()).to.eq(depositAmount)
     await structuredPortfolio.updateCheckpoints()
@@ -170,11 +167,11 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       })
       const loanAId = await addAndFundLoan(loanA)
 
-      await timeTravel(1)
+      await timeTravel(loanA.periodDuration + loanA.gracePeriod + 1)
 
       await structuredPortfolio.markLoanAsDefaulted(loanAId)
 
-      await timeTravel(YEAR)
+      await timeTravelAndMine(YEAR)
       for (let i = 0; i < tranches.length; i++) {
         totalAssets.push(await tranches[i].totalAssets())
       }
@@ -286,16 +283,15 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
 
       // drain equity tranche and small amount from junior to cause deficit on default
       const loanPrincipal = equity.initialDeposit.add(BigNumber.from(1e3))
-      const loanId = await addAndFundLoan(
-        getLoan({
-          periodCount: 1,
-          principal: loanPrincipal,
-          periodPayment: BigNumber.from(1),
-          periodDuration: 1,
-          gracePeriod: 0,
-        }),
-      )
-      await timeTravel(1)
+      const loan = getLoan({
+        periodCount: 1,
+        principal: loanPrincipal,
+        periodPayment: BigNumber.from(1),
+        periodDuration: 1,
+        gracePeriod: 0,
+      })
+      const loanId = await addAndFundLoan(loan)
+      await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
       await structuredPortfolio.markLoanAsDefaulted(loanId)
       expect((await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint.deficit).to.be.gt(0)
 
@@ -304,7 +300,7 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
       await structuredPortfolio.updateCheckpoints()
 
-      await timeTravel(2 * YEAR)
+      await timeTravelAndMine(2 * YEAR)
 
       const seniorInterest = withInterest(senior.initialDeposit, senior.targetApy, 2 * YEAR).sub(senior.initialDeposit)
       const expectedJuniorBeforeFees = junior.initialDeposit.sub(seniorInterest)
@@ -350,16 +346,15 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
           gracePeriod: 0,
         }),
       )
-      await addAndFundLoan(
-        getLoan({
-          periodCount: 1,
-          principal: initialDeposits[2].div(2),
-          periodPayment: initialDeposits[2].div(2),
-          periodDuration: YEAR / 2,
-          gracePeriod: 0,
-        }),
-      )
-      await timeTravel(1)
+      const loan = getLoan({
+        periodCount: 1,
+        principal: initialDeposits[2].div(2),
+        periodPayment: initialDeposits[2].div(2),
+        periodDuration: YEAR / 2,
+        gracePeriod: 0,
+      })
+      await addAndFundLoan(loan)
+      await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
       await structuredPortfolio.markLoanAsDefaulted(loanId)
 
       // start accruing fees
@@ -371,7 +366,7 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       const timeElapsed = YEAR
 
       expect(await seniorTranche.unpaidProtocolFee()).to.eq(0)
-      await setNextBlockTimestamp(portfolioStartTimestamp + timeElapsed)
+      await timeTravelTo(portfolioStartTimestamp + timeElapsed)
       await structuredPortfolio.updateCheckpoints()
 
       const seniorAssumedValue = initialDeposits[2]
@@ -393,15 +388,16 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       }
       await structuredPortfolio.start()
 
-      const loanId = await addAndFundLoan(getLoan({
+      const loan = getLoan({
         principal: depositAmount.mul(3),
         periodPayment: loanAmount,
         periodCount: 1,
         periodDuration: 1,
         gracePeriod: 0,
-      }))
+      })
+      const loanId = await addAndFundLoan(loan)
 
-      await timeTravel(1)
+      await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
 
       await structuredPortfolio.markLoanAsDefaulted(loanId)
 

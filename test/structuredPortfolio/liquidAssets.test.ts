@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { YEAR } from 'utils/constants'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravelAndMine } from 'utils/timeTravel'
 
 describe('StructuredPortfolio.liquidAssets', () => {
   const loadFixture = setupFixtureLoader()
@@ -22,7 +22,7 @@ describe('StructuredPortfolio.liquidAssets', () => {
     await depositToTranche(seniorTranche, depositAmount)
 
     await structuredPortfolio.start()
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
 
     const accruedFee = withInterest(depositAmount, protocolFeeRate, YEAR).sub(depositAmount)
 

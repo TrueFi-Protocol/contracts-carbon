@@ -3,13 +3,12 @@ import {
   structuredPortfolioLiveFixture,
 } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelAndMine, timeTravelTo } from 'utils/timeTravel'
 import { YEAR, MINUTE, ONE_IN_BPS } from 'utils/constants'
 import { expect } from 'chai'
 import { sum } from 'utils/sum'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
 import { parseUSDC } from 'utils/parseUSDC'
-import { setNextBlockTimestamp } from 'utils/setNextBlockTimestamp'
 
 describe('StructuredPortfolio.calculateWaterfall', () => {
   const loadFixture = setupFixtureLoader()
@@ -41,7 +40,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
     await depositToTranche(equityTranche, amount)
 
     await structuredPortfolio.start()
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
 
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
     expect(waterfallValues[2]).to.eq(0)
@@ -53,7 +52,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
   it('closed, returns deposits', async () => {
     const { structuredPortfolio, initialDeposits, portfolioStartTimestamp, withInterest, tranchesData } = await loadFixture(structuredPortfolioLiveFixture)
 
-    await setNextBlockTimestamp(portfolioStartTimestamp + YEAR)
+    await timeTravelTo(portfolioStartTimestamp + YEAR)
     await structuredPortfolio.close()
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
 
@@ -86,7 +85,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
 
     const targetApys = tranchesData.map(({ targetApy }) => targetApy)
 
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
 
     const expectedPortfolioValue = sum(...initialDeposits, mintedTokens)
@@ -105,7 +104,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
 
     const targetApys = tranchesData.map(({ targetApy }) => targetApy)
 
-    await timeTravel(YEAR / 2)
+    await timeTravelAndMine(YEAR / 2)
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
 
     const expectedPortfolioValue = sum(...initialDeposits, mintedTokens)
@@ -121,7 +120,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
 
     const targetApys = tranchesData.map(({ targetApy }) => targetApy)
 
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
 
     const expectedPortfolioValue = totalDeposit
@@ -204,7 +203,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
     await mintToPortfolio(mintedTokens)
 
     const waterfallValuesBefore = await structuredPortfolio.calculateWaterfall()
-    await timeTravel(MINUTE)
+    await timeTravelAndMine(MINUTE)
     const waterfallValuesAfter = await structuredPortfolio.calculateWaterfall()
 
     expect(waterfallValuesBefore[2]).to.lt(waterfallValuesAfter[2])
@@ -217,7 +216,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
 
     const targetApys = tranchesData.map(({ targetApy }) => targetApy)
 
-    await timeTravel(portfolioDuration + YEAR)
+    await timeTravelAndMine(portfolioDuration + YEAR)
     const waterfallValues = await structuredPortfolio.calculateWaterfall()
 
     const expectedSeniorValue = withInterest(initialDeposits[2], targetApys[2], portfolioDuration)
@@ -258,7 +257,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
 
     const targetApys = [tranchesData[0].targetApy, tranchesData[1].targetApy]
 
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
     const waterfallValues = await portfolio.calculateWaterfall()
 
     const expectedPortfolioValue = sum(initialDeposits[0], initialDeposits[1], mintedTokens)
@@ -286,7 +285,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
 
     const mintedTokens = parseTokenUnits(1e9)
     await mintToPortfolio(mintedTokens, portfolio)
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
     const waterfallValues = await portfolio.calculateWaterfall()
 
     const expectedEquityValue = sum(initialDeposits[0], mintedTokens)
@@ -303,7 +302,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
       await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
       await structuredPortfolio.updateCheckpoints()
 
-      await timeTravel(YEAR)
+      await timeTravelAndMine(YEAR)
 
       const seniorValue = withInterest(senior.initialDeposit, senior.targetApy, YEAR)
       const juniorValue = withInterest(junior.initialDeposit, junior.targetApy, YEAR)
@@ -410,7 +409,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
       const maxLoanValue = (await structuredPortfolio.liquidAssets()).sub(parseUSDC(1))
       const loan = getLoan({ principal: maxLoanValue })
       await addAndFundLoan(loan)
-      await timeTravel(YEAR)
+      await timeTravelAndMine(YEAR)
       const waterfallBeforeFees = await structuredPortfolio.calculateWaterfall()
       for (let i = 0; i < 5; i++) {
         await depositToTranche(juniorTranche, 10)
@@ -431,7 +430,7 @@ describe('StructuredPortfolio.calculateWaterfall', () => {
       const maxLoanValue = (await structuredPortfolio.totalAssets()).sub(parseUSDC(100))
       const loan = getLoan({ principal: maxLoanValue })
       await addAndFundLoan(loan)
-      await timeTravel(YEAR)
+      await timeTravelAndMine(YEAR)
       const waterfallBeforeFees = await structuredPortfolio.calculateWaterfall()
       for (let i = 0; i < 5; i++) {
         await structuredPortfolio.updateCheckpoints()

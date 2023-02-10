@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { PortfolioStatus, structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelTo } from 'utils/timeTravel'
 import { DAY, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
 
@@ -34,9 +34,9 @@ describe('StructuredPortfolio.close', () => {
   })
 
   it('distribute assets correctly when no loan has been issued', async () => {
-    const { portfolioDuration, structuredPortfolio, senior, junior, seniorTranche, juniorTranche, equityTranche, withInterest, totalDeposit } = await loadFixture(structuredPortfolioLiveFixture)
+    const { portfolioDuration, structuredPortfolio, senior, junior, seniorTranche, juniorTranche, equityTranche, withInterest, totalDeposit, portfolioStartTimestamp } = await loadFixture(structuredPortfolioLiveFixture)
 
-    await timeTravel(portfolioDuration)
+    await timeTravelTo(portfolioStartTimestamp + portfolioDuration)
     await structuredPortfolio.close()
 
     const expectedSeniorAssets = withInterest(senior.initialDeposit, senior.targetApy, portfolioDuration)
@@ -54,8 +54,8 @@ describe('StructuredPortfolio.close', () => {
   })
 
   it('can close after end date when there are active loans', async () => {
-    const { structuredPortfolio, addAndFundLoan, portfolioDuration } = await loadFixture(structuredPortfolioLiveFixture)
-    await timeTravel(portfolioDuration)
+    const { structuredPortfolio, addAndFundLoan, portfolioDuration, portfolioStartTimestamp } = await loadFixture(structuredPortfolioLiveFixture)
+    await timeTravelTo(portfolioStartTimestamp + portfolioDuration + 1)
     await addAndFundLoan()
     await structuredPortfolio.close()
     expect(await structuredPortfolio.status()).to.eq(PortfolioStatus.Closed)
@@ -72,9 +72,9 @@ describe('StructuredPortfolio.close', () => {
   })
 
   it('user can close after end date', async () => {
-    const { structuredPortfolio, other, PortfolioStatus, portfolioDuration } = await loadFixture(structuredPortfolioLiveFixture)
+    const { structuredPortfolio, other, PortfolioStatus, portfolioDuration, portfolioStartTimestamp } = await loadFixture(structuredPortfolioLiveFixture)
 
-    await timeTravel(portfolioDuration)
+    await timeTravelTo(portfolioStartTimestamp + portfolioDuration + 1)
 
     await structuredPortfolio.connect(other).close()
     expect(await structuredPortfolio.status()).to.equal(PortfolioStatus.Closed)

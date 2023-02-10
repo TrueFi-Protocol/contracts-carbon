@@ -5,7 +5,7 @@ import { setupFixtureLoader } from 'test/setup'
 import { MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
 import { convertToAssets } from 'utils/convertToAssets'
 import { extractEventArgFromTx } from 'utils/extractEventArgFromTx'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelAndMine } from 'utils/timeTravel'
 import { waffle } from 'hardhat'
 
 describe('TrancheVault.redeem', () => {
@@ -244,7 +244,7 @@ describe('TrancheVault.redeem', () => {
       const expectedAssetsAfterMonth2 = withInterest(expectedAssetsAfterMonth1, targetApy, MONTH).sub(amount)
       expect(await juniorTranche.totalAssets()).to.be.closeTo(expectedAssetsAfterMonth2, delta)
 
-      await timeTravel(MONTH)
+      await timeTravelAndMine(MONTH)
       const expectedAssetsAfterMonth3 = withInterest(expectedAssetsAfterMonth2, targetApy, MONTH)
       expect(await juniorTranche.totalAssets()).to.be.closeTo(expectedAssetsAfterMonth3, delta)
     })
@@ -314,7 +314,7 @@ describe('TrancheVault.redeem', () => {
       await depositToTranche(juniorTranche, parseTokenUnits(200), other.address)
       await depositToTranche(juniorTranche, parseTokenUnits(300), another.address)
 
-      await timeTravel(YEAR)
+      await timeTravelAndMine(YEAR)
 
       const pendingProtocolFee = await juniorTranche.pendingProtocolFee()
       expect(pendingProtocolFee).to.be.gt(0)

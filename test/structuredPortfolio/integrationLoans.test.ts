@@ -3,7 +3,7 @@ import { constants } from 'ethers'
 import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { MONTH, YEAR } from 'utils/constants'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelFrom } from 'utils/timeTravel'
 
 describe('StructuredPortfolio: loans integration tests', () => {
   const loadFixture = setupFixtureLoader()
@@ -82,7 +82,7 @@ describe('StructuredPortfolio: loans integration tests', () => {
     const loanToDefaultId = await addAndFundLoan(loan)
     const loanToRepayId = await addAndFundLoan(loan)
 
-    await timeTravel(portfolioDuration)
+    await timeTravel(portfolioDuration + 1)
     await structuredPortfolio.close()
 
     await structuredPortfolio.markLoanAsDefaulted(loanToDefaultId)
@@ -159,7 +159,7 @@ describe('StructuredPortfolio: loans integration tests', () => {
     const loanToDefaultId = await addAndFundLoan(loan)
     const loanToRepayId = await addAndFundLoan(loan)
 
-    await timeTravel(portfolioDuration)
+    await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
 
     await structuredPortfolio.markLoanAsDefaulted(loanToDefaultId)
     await repayLoanInFull(loanToRepayId)
@@ -220,7 +220,7 @@ describe('StructuredPortfolio: loans integration tests', () => {
 
     await enableFees()
     const totalDeposited = await depositToTranches()
-    await startPortfolioAndEnableLiveActions()
+    const startTx = await startPortfolioAndEnableLiveActions()
 
     const loan = getLoan({
       principal: depositAmount.mul(2),
@@ -232,7 +232,7 @@ describe('StructuredPortfolio: loans integration tests', () => {
 
     const earlyLoanId = await addAndFundLoan(loan)
 
-    await timeTravel(portfolioDuration)
+    await timeTravelFrom(startTx, portfolioDuration)
 
     const lateLoanId = await addAndFundLoan(loan)
     await structuredPortfolio.markLoanAsDefaulted(earlyLoanId)
@@ -338,14 +338,14 @@ describe('StructuredPortfolio: loans integration tests', () => {
     } = await fixture()
 
     await depositToTranches()
-    await startPortfolioAndEnableLiveActions()
+    const startTx = await startPortfolioAndEnableLiveActions()
 
     const loan = getLoan({ principal: await token.balanceOf(structuredPortfolio.address) })
     const loanId = await addAndFundLoan(loan)
 
     await enableFees()
 
-    await timeTravel(portfolioDuration)
+    await timeTravelFrom(startTx, portfolioDuration + 1)
     await structuredPortfolio.close()
 
     for (const tranche of tranches) {

@@ -3,7 +3,7 @@ import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { DAY, MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelAndMine } from 'utils/timeTravel'
 import { BigNumber } from 'ethers'
 
 describe('StructuredPortfolio: protocol fees', () => {
@@ -153,7 +153,7 @@ describe('StructuredPortfolio: protocol fees', () => {
     await depositToTranche(seniorTranche, depositAmount)
     await startPortfolioAndEnableLiveActions()
 
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
     const totalAssets = await structuredPortfolio.totalAssets()
     const amountToBurn = (totalAssets).sub(1e3)
     await addAndFundLoan(getLoan({ principal: amountToBurn, periodPayment: BigNumber.from(1) }))

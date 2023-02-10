@@ -3,7 +3,7 @@ import { setupFixtureLoader } from 'test/setup'
 import { structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { parseUSDC } from 'utils/parseUSDC'
 import { DAY } from 'utils/constants'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelAndMine } from 'utils/timeTravel'
 
 describe('StructuredPortfolio.loansValue', () => {
   const loadFixture = setupFixtureLoader()
@@ -35,7 +35,7 @@ describe('StructuredPortfolio.loansValue', () => {
     await addAndFundLoan(loan)
 
     const partialInterest = periodPayment.div(4)
-    await timeTravel(DAY / 4)
+    await timeTravelAndMine(DAY / 4)
 
     expect(await structuredPortfolio.loansValue())
       .to.be.closeTo(principal.add(partialInterest), parseUSDC(0.01))
@@ -54,7 +54,7 @@ describe('StructuredPortfolio.loansValue', () => {
     await structuredPortfolio.connect(other).repayLoan(loanId)
     await timeTravel(DAY)
     await structuredPortfolio.connect(other).repayLoan(loanId)
-    await timeTravel(DAY * 2)
+    await timeTravelAndMine(DAY * 2)
 
     expect(await structuredPortfolio.loansValue())
       .to.equal(principal.add(periodPayment))
@@ -70,7 +70,7 @@ describe('StructuredPortfolio.loansValue', () => {
     await addAndFundLoan(loan)
 
     const partialInterest = periodPayment.div(4)
-    await timeTravel(DAY + DAY / 4)
+    await timeTravelAndMine(DAY + DAY / 4)
 
     expect(await structuredPortfolio.loansValue())
       .to.be.closeTo(principal.add(periodPayment).add(partialInterest), parseUSDC(0.01))
@@ -89,7 +89,7 @@ describe('StructuredPortfolio.loansValue', () => {
     await structuredPortfolio.connect(other).repayLoan(loanId)
 
     const partialInterest = periodPayment.div(4)
-    await timeTravel(DAY / 4)
+    await timeTravelAndMine(DAY / 4)
 
     expect(await structuredPortfolio.loansValue())
       .to.be.closeTo(principal.add(partialInterest), parseUSDC(0.01))
@@ -133,7 +133,7 @@ describe('StructuredPortfolio.loansValue', () => {
 
     const loan = getLoan({ principal, periodPayment, periodCount: 1 })
     await addAndFundLoan(loan)
-    await timeTravel(2 * DAY)
+    await timeTravelAndMine(loan.periodDuration * loan.periodCount + loan.gracePeriod + 1)
 
     expect(await structuredPortfolio.loansValue())
       .to.equal(principal.add(periodPayment))
@@ -170,7 +170,7 @@ describe('StructuredPortfolio.loansValue', () => {
 
     await timeTravel(DAY)
     await structuredPortfolio.connect(other).repayLoan(firstLoanId)
-    await timeTravel(DAY / 4)
+    await timeTravelAndMine(DAY / 4)
 
     const unpaidInterestFirst = periodPaymentFirst.div(4)
     const unpaidInterestSecond = periodPaymentSecond.mul(5).div(8)
@@ -198,7 +198,7 @@ describe('StructuredPortfolio.loansValue', () => {
     await structuredPortfolio.connect(other).repayLoan(secondLoanId)
     await timeTravel(DAY)
     await structuredPortfolio.connect(other).repayLoan(firstLoanId)
-    await timeTravel(DAY / 4)
+    await timeTravelAndMine(DAY / 4)
 
     const unpaidInterestSecond = periodPaymentSecond.mul(5).div(8)
 
@@ -222,7 +222,7 @@ describe('StructuredPortfolio.loansValue', () => {
     await timeTravel(DAY)
     await structuredPortfolio.connect(other).repayLoan(firstLoanId)
     await structuredPortfolio.connect(other).repayLoan(firstLoanId)
-    await timeTravel(DAY / 4)
+    await timeTravelAndMine(DAY / 4)
 
     const unpaidInterestSecond = periodPaymentSecond.mul(5).div(8)
 
@@ -241,7 +241,7 @@ describe('StructuredPortfolio.loansValue', () => {
     })
     const loanId = await addAndFundLoan(loan)
 
-    await timeTravel(DAY * 2)
+    await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
     await structuredPortfolio.markLoanAsDefaulted(loanId)
 
     expect(await structuredPortfolio.loansValue())

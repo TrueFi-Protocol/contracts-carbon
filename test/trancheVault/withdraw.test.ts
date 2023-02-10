@@ -5,7 +5,7 @@ import {
   structuredPortfolioLiveFixture,
 } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelAndMine } from 'utils/timeTravel'
 import { DAY, MONTH, ONE_IN_BPS, WEEK, YEAR } from 'utils/constants'
 import { constants } from 'ethers'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
@@ -211,7 +211,7 @@ describe('TrancheVault.withdraw', () => {
       await withdrawFromTranche(juniorTranche, amount)
       expect(await juniorTranche.totalAssets()).to.be.closeTo(expectedAssetsAfterMonth2, delta)
 
-      await timeTravel(MONTH)
+      await timeTravelAndMine(MONTH)
       const expectedAssetsAfterMonth3 = withInterest(expectedAssetsAfterMonth2, targetApy, MONTH)
       expect(await juniorTranche.totalAssets()).to.be.closeTo(expectedAssetsAfterMonth3, delta)
     })

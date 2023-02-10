@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { YEAR } from 'utils/constants'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelAndMine } from 'utils/timeTravel'
 
 describe('TrancheVault.convertToAssets', () => {
   const loadFixture = setupFixtureLoader()
@@ -54,7 +54,7 @@ describe('TrancheVault.convertToAssets', () => {
     const totalSupply = senior.initialDeposit
     const targetTrancheValue = senior.calculateTargetValue()
 
-    await timeTravel(YEAR)
+    await timeTravelAndMine(YEAR)
 
     const shares = parseTokenUnits(1e6)
     const expectedAmount = shares.mul(targetTrancheValue).div(totalSupply)
@@ -67,7 +67,7 @@ describe('TrancheVault.convertToAssets', () => {
     const yearDivider = 4
     const targetTrancheValue = senior.calculateTargetValue(yearDivider)
 
-    await timeTravel(YEAR / yearDivider)
+    await timeTravelAndMine(YEAR / yearDivider)
 
     const shares = parseTokenUnits(1e6)
     const expectedAmount = shares.mul(targetTrancheValue).div(totalSupply)

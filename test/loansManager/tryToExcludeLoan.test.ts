@@ -2,7 +2,6 @@ import { loansManagerFixture } from 'fixtures/loansManagerFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { expect } from 'chai'
 import { timeTravel } from 'utils/timeTravel'
-import { DAY } from 'utils/constants'
 
 describe('LoansManager.tryToExcludeLoan', () => {
   const loadFixture = setupFixtureLoader()
@@ -13,10 +12,10 @@ describe('LoansManager.tryToExcludeLoan', () => {
   })
 
   it('one-element loans array', async () => {
-    const { loansManager, addAndFundLoan } = await loadFixture(loansManagerFixture)
+    const { loansManager, addAndFundLoan, loan: { periodDuration, gracePeriod } } = await loadFixture(loansManagerFixture)
     const loanId = await addAndFundLoan()
 
-    await timeTravel(DAY * 2)
+    await timeTravel(periodDuration + gracePeriod + 1)
     await loansManager.setLoanAsDefaulted(loanId)
     await loansManager.tryToExcludeLoan(loanId)
 
@@ -24,10 +23,10 @@ describe('LoansManager.tryToExcludeLoan', () => {
   })
 
   it('excludes first loan', async () => {
-    const { addAndFundLoan, loansManager } = await loadFixture(loansManagerFixture)
+    const { addAndFundLoan, loansManager, loan: { periodDuration, gracePeriod } } = await loadFixture(loansManagerFixture)
     const loanIds = [await addAndFundLoan(), await addAndFundLoan(), await addAndFundLoan()]
 
-    await timeTravel(DAY * 2)
+    await timeTravel(periodDuration + gracePeriod + 1)
     const defaultedLoanId = loanIds[0]
     await loansManager.setLoanAsDefaulted(defaultedLoanId)
     await loansManager.tryToExcludeLoan(defaultedLoanId)
@@ -36,10 +35,10 @@ describe('LoansManager.tryToExcludeLoan', () => {
   })
 
   it('excludes last loan', async () => {
-    const { addAndFundLoan, loansManager } = await loadFixture(loansManagerFixture)
+    const { addAndFundLoan, loansManager, loan: { periodDuration, gracePeriod } } = await loadFixture(loansManagerFixture)
     const loanIds = [await addAndFundLoan(), await addAndFundLoan(), await addAndFundLoan()]
 
-    await timeTravel(DAY * 2)
+    await timeTravel(periodDuration + gracePeriod + 1)
     const defaultedLoanId = loanIds[2]
     await loansManager.setLoanAsDefaulted(defaultedLoanId)
     await loansManager.tryToExcludeLoan(defaultedLoanId)
@@ -48,10 +47,10 @@ describe('LoansManager.tryToExcludeLoan', () => {
   })
 
   it('excludes loan in the middle', async () => {
-    const { addAndFundLoan, loansManager } = await loadFixture(loansManagerFixture)
+    const { addAndFundLoan, loansManager, loan: { periodDuration, gracePeriod } } = await loadFixture(loansManagerFixture)
     const loanIds = [await addAndFundLoan(), await addAndFundLoan(), await addAndFundLoan()]
 
-    await timeTravel(DAY * 2)
+    await timeTravel(periodDuration + gracePeriod + 1)
     const defaultedLoanId = loanIds[1]
     await loansManager.setLoanAsDefaulted(defaultedLoanId)
     await loansManager.tryToExcludeLoan(defaultedLoanId)
@@ -60,10 +59,10 @@ describe('LoansManager.tryToExcludeLoan', () => {
   })
 
   it('emits event', async () => {
-    const { loansManager, addAndFundLoan } = await loadFixture(loansManagerFixture)
+    const { loansManager, addAndFundLoan, loan: { periodDuration, gracePeriod } } = await loadFixture(loansManagerFixture)
     const loanId = await addAndFundLoan()
 
-    await timeTravel(DAY * 2)
+    await timeTravel(periodDuration + gracePeriod + 1)
     await loansManager.setLoanAsDefaulted(loanId)
     await expect(loansManager.tryToExcludeLoan(loanId)).to.emit(loansManager, 'ActiveLoanRemoved').withArgs(loanId)
   })

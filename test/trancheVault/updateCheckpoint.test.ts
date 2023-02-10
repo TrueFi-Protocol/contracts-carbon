@@ -3,9 +3,8 @@ import { structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixt
 import { setupFixtureLoader } from 'test/setup'
 import { WEEK, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
-import { timeTravel } from 'utils/timeTravel'
+import { timeTravel, timeTravelTo, timeTravelToAndMine } from 'utils/timeTravel'
 import { parseUSDC } from 'utils/parseUSDC'
-import { setNextBlockTimestamp } from 'utils/setNextBlockTimestamp'
 
 describe('TrancheVault.updateCheckpoint', () => {
   const loadFixture = setupFixtureLoader()
@@ -82,7 +81,7 @@ describe('TrancheVault.updateCheckpoint', () => {
     const loan = getLoan({ principal: maxLoanValue })
     await addAndFundLoan(loan)
     await protocolConfig.setDefaultProtocolFeeRate(0)
-    await setNextBlockTimestamp(timestamp + YEAR)
+    await timeTravelToAndMine(timestamp + YEAR)
     expect(await juniorTranche.unpaidProtocolFee()).to.equal(0)
     await depositToTranche(juniorTranche, 5)
     const unpaidFees = await juniorTranche.unpaidProtocolFee()
@@ -103,7 +102,7 @@ describe('TrancheVault.updateCheckpoint', () => {
     const maxLoanValue = (await structuredPortfolio.liquidAssets()).sub(parseUSDC(1))
     const loan = getLoan({ principal: maxLoanValue })
     await addAndFundLoan(loan)
-    await setNextBlockTimestamp(timestamp + YEAR)
+    await timeTravelTo(timestamp + YEAR)
     await juniorTranche.setManagerFeeRate(0)
     await depositToTranche(juniorTranche, 5)
     const unpaidFees = await juniorTranche.unpaidManagerFee()
