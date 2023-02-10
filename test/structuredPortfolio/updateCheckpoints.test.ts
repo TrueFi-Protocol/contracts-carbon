@@ -435,7 +435,7 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
         gracePeriod: 0,
       }))
 
-      await setNextBlockTimestamp(await getTxTimestamp(startTx) + YEAR)
+      await timeTravelFrom(startTx, YEAR)
       await structuredPortfolio.updateCheckpoints()
       for (const tranche of tranches) {
         await tranche.setManagerFeeRate(0)
@@ -452,7 +452,7 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       expect(await tranches[2].totalAssets()).to.be.closeTo(seniorAfterYearAfterFees, 100)
       expect(await tranches[1].totalAssets()).to.be.closeTo(juniorAfterYearAfterFees, 100)
 
-      await setNextBlockTimestamp(await getTxTimestamp(startTx) + 2 * YEAR)
+      await timeTravelFrom(startTx, 2 * YEAR)
       await structuredPortfolio.updateCheckpoints()
 
       const seniorAfterTwoYears = withInterest(seniorAfterYearAfterFees, seniorTrancheData.targetApy, YEAR)

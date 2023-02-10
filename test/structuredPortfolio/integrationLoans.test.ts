@@ -69,20 +69,20 @@ describe('StructuredPortfolio: loans integration tests', () => {
 
     await enableFees()
     const totalDeposited = await depositToTranches()
-    await startPortfolioAndEnableLiveActions()
+    const startTx = await startPortfolioAndEnableLiveActions()
 
     const loan = getLoan({
       principal: depositAmount.mul(2),
       periodPayment: depositAmount,
       periodCount: 1,
-      periodDuration: portfolioDuration,
+      periodDuration: YEAR,
       gracePeriod: 0,
     })
 
     const loanToDefaultId = await addAndFundLoan(loan)
     const loanToRepayId = await addAndFundLoan(loan)
 
-    await timeTravel(portfolioDuration + 1)
+    await timeTravelFrom(startTx, portfolioDuration + 1)
     await structuredPortfolio.close()
 
     await structuredPortfolio.markLoanAsDefaulted(loanToDefaultId)

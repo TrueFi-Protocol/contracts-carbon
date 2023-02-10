@@ -3,7 +3,7 @@ import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixt
 import { trancheVaultFixture } from 'fixtures/trancheVaultFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { MONTH, YEAR } from 'utils/constants'
-import { timeTravelAndMine } from 'utils/timeTravel'
+import { timeTravelAndMine, timeTravelFromAndMine } from 'utils/timeTravel'
 
 describe('TrancheVault.totalAssets', () => {
   const loadFixture = setupFixtureLoader()
@@ -37,11 +37,11 @@ describe('TrancheVault.totalAssets', () => {
     const { equityTranche, token, structuredPortfolio, protocolConfig, withInterest, parseTokenUnits } = await loadFixture(structuredPortfolioLiveFixture)
     const protocolFeeRate = 1000
     await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate)
-    await structuredPortfolio.updateCheckpoints()
+    const updateCheckpointsTx = await structuredPortfolio.updateCheckpoints()
 
     await structuredPortfolio.close()
     const equityBalance = await token.balanceOf(equityTranche.address)
-    await timeTravelAndMine(MONTH)
+    await timeTravelFromAndMine(updateCheckpointsTx, MONTH)
 
     const expectedProtocolFee = withInterest(equityBalance, protocolFeeRate, MONTH).sub(equityBalance)
     const delta = parseTokenUnits(0.01)
