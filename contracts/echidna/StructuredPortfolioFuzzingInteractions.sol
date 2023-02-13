@@ -30,7 +30,7 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
         previousTotalAssets = structuredPortfolio.totalAssets();
     }
 
-    function markLoanAsDefaulted(uint256 rawLoanId) public {
+    function markLoanAsDefaulted(uint8 rawLoanId) public {
         uint256 loanId = rawLoanId % structuredPortfolio.getActiveLoans().length;
         structuredPortfolio.markLoanAsDefaulted(loanId);
         anyDefaultedLoans = true;
@@ -38,7 +38,7 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
     }
 
     function deposit(uint256 rawAmount, uint8 rawTrancheId) public {
-        uint256 trancheId = rawTrancheId % 3;
+        uint256 trancheId = rawTrancheId % _getNumberOfTranches();
         uint256 amount = rawAmount % token.balanceOf(address(lender));
         ITrancheVault tranche;
         if (trancheId == 0) {
@@ -52,33 +52,38 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
         lender.deposit(tranche, amount);
     }
 
+    uint16 internal constant MAX_PERIOD_COUNT = 5;
+    uint32 internal constant MAX_PERIOD_DURATION = uint32(7 * DAY);
+    uint32 internal constant MAX_GRACE_PERIOD = uint32(DAY);
+
     function addLoan(AddLoanParams calldata rawParams) external {
         AddLoanParams memory params = AddLoanParams(
             rawParams.principal % structuredPortfolio.virtualTokenBalance(),
-            rawParams.periodCount % 10,
-            rawParams.periodPayment % (structuredPortfolio.virtualTokenBalance() / 10),
-            rawParams.periodDuration % uint32(7 * DAY),
+            (rawParams.periodCount % MAX_PERIOD_COUNT) + 1,
+            rawParams.periodPayment % (token.balanceOf(address(borrower)) / MAX_PERIOD_COUNT),
+            rawParams.periodDuration % MAX_PERIOD_DURATION,
             address(borrower), /* recipient */
-            uint32(DAY), /* gracePeriod */
-            true /* canBeRepaidAfterDefault */
+            rawParams.gracePeriod % MAX_GRACE_PERIOD,
+            rawParams.canBeRepaidAfterDefault
         );
 
         structuredPortfolio.addLoan(params);
+        totalLoansCount += 1;
     }
 
     function acceptLoan(uint256 rawLoanId) external {
-        uint256 loanId = rawLoanId % 5;
+        uint256 loanId = rawLoanId % totalLoansCount;
         borrower.acceptLoan(fixedInterestOnlyLoans, loanId);
     }
 
     function fundLoan(uint256 rawLoanId) external {
-        uint256 loanId = rawLoanId % 5;
+        uint256 loanId = rawLoanId % totalLoansCount;
         structuredPortfolio.fundLoan(loanId);
         activeLoansCount += 1;
     }
 
     function repayLoan(uint256 rawLoanId) external {
-        uint256 loanId = rawLoanId % 5;
+        uint256 loanId = rawLoanId % totalLoansCount;
         FixedInterestOnlyLoanStatus statusBefore = fixedInterestOnlyLoans.status(loanId);
         borrower.repayLoan(structuredPortfolio, fixedInterestOnlyLoans, loanId);
         if (
@@ -100,5 +105,9 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
 
     function updatePreviousStatus() public {
         previousStatus = structuredPortfolio.status();
+    }
+
+    function _getNumberOfTranches() internal view returns (uint256) {
+        return structuredPortfolio.getTranches().length;
     }
 }

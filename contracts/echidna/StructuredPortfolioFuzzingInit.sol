@@ -23,7 +23,7 @@ import {DepositController} from "../controllers/DepositController.sol";
 import {WithdrawController} from "../controllers/WithdrawController.sol";
 import {TransferController} from "../controllers/TransferController.sol";
 import {MockToken} from "../mocks/MockToken.sol";
-import {TrancheInitData, PortfolioParams, ExpectedEquityRate, YEAR} from "../interfaces/IStructuredPortfolio.sol";
+import {TrancheInitData, PortfolioParams, ExpectedEquityRate, YEAR, BASIS_PRECISION} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio, Status} from "../StructuredPortfolio.sol";
 import {StructuredPortfolioTest2} from "../test/StructuredPortfolioTest2.sol";
 import {AddLoanParams} from "../LoansManager.sol";
@@ -46,15 +46,33 @@ contract StructuredPortfolioFuzzingInit {
     FuzzingLender public lender;
 
     uint256 internal activeLoansCount;
+    uint256 internal totalLoansCount;
+
+    uint256 internal constant FEE_RATE = (BASIS_PRECISION * 5) / 1000;
 
     constructor() {
         _initializeToken();
         _initializeProtocolConfig();
         _initializeFixedInterestOnlyLoans();
         _initializeLenderVerifier();
-        equityTranche = _initializeTranche("Equity Tranche", "EQT", 0, 10**9 * 10**6);
-        juniorTranche = _initializeTranche("Junior Tranche", "JNT", 1, 10**9 * 10**6);
-        seniorTranche = _initializeTranche("Senior Tranche", "SNT", 2, 10**9 * 10**6);
+        equityTranche = _initializeTranche(
+            "Equity Tranche",
+            "EQT",
+            0,
+            10**9 * 10**token.decimals() /* ceiling */
+        );
+        juniorTranche = _initializeTranche(
+            "Junior Tranche",
+            "JNT",
+            1,
+            10**9 * 10**token.decimals() /* ceiling */
+        );
+        seniorTranche = _initializeTranche(
+            "Senior Tranche",
+            "SNT",
+            2,
+            10**9 * 10**token.decimals() /* ceiling */
+        );
         _initializePortfolio();
 
         _initializeLender();
@@ -69,12 +87,12 @@ contract StructuredPortfolioFuzzingInit {
         token = new MockToken(
             6 /* decimals */
         );
-        token.mint(address(this), 10**12);
+        token.mint(address(this), 1e6 * 10**token.decimals());
     }
 
     function _initializeProtocolConfig() internal {
         protocolConfig = new ProtocolConfigTest(
-            50, /* _defaultProtocolFeeRate */
+            FEE_RATE, /* _defaultProtocolFeeRate */
             address(this), /* _protocolAdmin */
             address(this), /* _protocolTreasury */
             address(this) /* _pauserAddress */
@@ -99,15 +117,15 @@ contract StructuredPortfolioFuzzingInit {
         depositController.initialize(
             address(this), /* manager */
             address(lenderVerifier),
-            50, /* _depositFeeRate */
+            FEE_RATE, /* _depositFeeRate */
             ceiling
         );
         depositController.setDepositAllowed(true, Status.Live);
         WithdrawController withdrawController = new WithdrawController();
         withdrawController.initialize(
             address(this), /* manager */
-            50, /* _withdrawFeeRate */
-            10**6 /* _floor */
+            FEE_RATE, /* _withdrawFeeRate */
+            10**token.decimals() /* _floor */
         );
         withdrawController.setWithdrawAllowed(true, Status.Live);
         TransferController transferController = new TransferController();
@@ -122,7 +140,7 @@ contract StructuredPortfolioFuzzingInit {
             protocolConfig,
             waterfallIndex,
             address(this), /* manager */
-            50 /* _managerFeeRate */
+            FEE_RATE /* _managerFeeRate */
         );
 
         return tranche;
@@ -144,12 +162,12 @@ contract StructuredPortfolioFuzzingInit {
         );
         tranchesInitData[1] = TrancheInitData(
             juniorTranche,
-            500, /* targetApy */
+            uint128((BASIS_PRECISION * 5) / 100), /* targetApy */
             0 /* minSubordinateRatio */
         );
         tranchesInitData[2] = TrancheInitData(
             seniorTranche,
-            300, /* targetApy */
+            uint128((BASIS_PRECISION * 3) / 100), /* targetApy */
             0 /* minSubordinateRatio */
         );
 
@@ -160,24 +178,24 @@ contract StructuredPortfolioFuzzingInit {
             protocolConfig,
             portfolioParams,
             tranchesInitData,
-            ExpectedEquityRate(200, 2000)
+            ExpectedEquityRate((BASIS_PRECISION * 2) / 100, (BASIS_PRECISION * 20) / 100)
         );
     }
 
     function _initializeLender() internal {
         lender = new FuzzingLender();
-        token.mint(address(lender), 1e10 * 10**6);
+        token.mint(address(lender), 1e10 * 10**token.decimals());
     }
 
     function _initializeBorrower() internal {
         borrower = new FuzzingBorrower();
-        token.mint(address(lender), 1e10 * 10**6);
+        token.mint(address(lender), 1e10 * 10**token.decimals());
     }
 
     function _fillTranches() internal {
-        lender.deposit(equityTranche, 2e6 * 10**6);
-        lender.deposit(juniorTranche, 3e6 * 10**6);
-        lender.deposit(seniorTranche, 5e6 * 10**6);
+        lender.deposit(equityTranche, 2e6 * 10**token.decimals());
+        lender.deposit(juniorTranche, 3e6 * 10**token.decimals());
+        lender.deposit(seniorTranche, 5e6 * 10**token.decimals());
     }
 
     function _startPortfolio() internal {
@@ -186,29 +204,31 @@ contract StructuredPortfolioFuzzingInit {
 
     function _createAndFundLoans() internal {
         AddLoanParams memory params1 = AddLoanParams(
-            3e6 * 10**6, /* principal */
+            3e6 * 10**token.decimals(), /* principal */
             3, /* periodCount */
-            2e4 * 10**6, /* periodPayment */
+            2e4 * 10**token.decimals(), /* periodPayment */
             uint32(DAY), /* periodDuration */
             address(borrower), /* recipient */
             uint32(DAY), /* gracePeriod */
             true /* canBeRepaidAfterDefault */
         );
         structuredPortfolio.addLoan(params1);
+        totalLoansCount += 1;
         borrower.acceptLoan(fixedInterestOnlyLoans, 0);
         structuredPortfolio.fundLoan(0);
         activeLoansCount += 1;
 
         AddLoanParams memory params2 = AddLoanParams(
-            6e6 * 10**6, /* principal */
+            6e6 * 10**token.decimals(), /* principal */
             10, /* periodCount */
-            2e4 * 10**6, /* periodPayment */
+            2e4 * 10**token.decimals(), /* periodPayment */
             uint32(DAY), /* periodDuration */
             address(borrower), /* recipient */
             uint32(DAY), /* gracePeriod */
             true /* canBeRepaidAfterDefault */
         );
         structuredPortfolio.addLoan(params2);
+        totalLoansCount += 1;
         borrower.acceptLoan(fixedInterestOnlyLoans, 1);
         structuredPortfolio.fundLoan(1);
         activeLoansCount += 1;
