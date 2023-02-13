@@ -406,7 +406,6 @@ describe('StructuredPortfolio.repayLoan', () => {
       await structuredPortfolio.markLoanAsDefaulted(loanId)
 
       await timeTravel(portfolioDuration - loan.periodDuration)
-      await structuredPortfolio.updateCheckpoints()
       await structuredPortfolio.close()
       await repayLoanInFull(loanId)
 
