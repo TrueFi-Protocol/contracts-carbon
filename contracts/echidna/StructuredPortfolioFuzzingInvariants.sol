@@ -14,21 +14,17 @@ pragma solidity ^0.8.16;
 import {FixedInterestOnlyLoans} from "../test/FixedInterestOnlyLoans.sol";
 import {Status, TrancheData} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio} from "../StructuredPortfolio.sol";
-import {StructuredPortfolioFuzzingInit} from "./StructuredPortfolioFuzzingInit.sol";
+import {StructuredPortfolioFuzzingInteractions} from "./StructuredPortfolioFuzzingInteractions.sol";
 import {ITrancheVault, Checkpoint} from "../interfaces/ITrancheVault.sol";
 import {AddLoanParams} from "../interfaces/ILoansManager.sol";
 
 uint256 constant DAY = 1 days;
 
-contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
-    bool public echidna_check_updateCheckpointsContinuous = true;
-
+contract StructuredPortfolioFuzzingInvariants is StructuredPortfolioFuzzingInteractions {
     function echidna_check_statusIsNotCapitalFormation() public view returns (bool) {
         return structuredPortfolio.status() != Status.CapitalFormation;
     }
 
-    uint256 internal previousTotalAssets;
-    bool internal anyDefaultedLoans = false;
     bool public echidna_check_totalAssetsIncreases = true;
 
     function _echidna_check_totalAssetsIncreases() public {
@@ -39,79 +35,7 @@ contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
         echidna_check_totalAssetsIncreases = structuredPortfolio.totalAssets() >= previousTotalAssets;
     }
 
-    function _anyOverdueLoans() internal view returns (bool) {
-        for (uint256 i = 0; i < activeLoansCount; i++) {
-            uint256 activeLoanId = structuredPortfolio.activeLoanIds(i);
-            if (fixedInterestOnlyLoans.currentPeriodEndDate(activeLoanId) < block.timestamp) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    function updateTotalAssets() public {
-        previousTotalAssets = structuredPortfolio.totalAssets();
-    }
-
-    function markLoanAsDefaulted(uint256 rawLoanId) public {
-        uint256 loanId = rawLoanId % structuredPortfolio.getActiveLoans().length;
-        structuredPortfolio.markLoanAsDefaulted(loanId);
-        anyDefaultedLoans = true;
-    }
-
-    function deposit(uint256 rawAmount, uint8 rawTrancheId) public {
-        uint256 trancheId = rawTrancheId % 3;
-        uint256 amount = rawAmount % token.balanceOf(address(lender));
-        ITrancheVault tranche;
-        if (trancheId == 0) {
-            tranche = equityTranche;
-        } else if (trancheId == 1) {
-            tranche = juniorTranche;
-        } else {
-            tranche = seniorTranche;
-        }
-
-        lender.deposit(tranche, amount);
-    }
-
-    function addLoan(AddLoanParams calldata rawParams) external {
-        AddLoanParams memory params = AddLoanParams(
-            rawParams.principal % structuredPortfolio.virtualTokenBalance(),
-            rawParams.periodCount % 10,
-            rawParams.periodPayment % (structuredPortfolio.virtualTokenBalance() / 10),
-            rawParams.periodDuration % uint32(7 * DAY),
-            address(borrower), /* recipient */
-            uint32(DAY), /* gracePeriod */
-            true /* canBeRepaidAfterDefault */
-        );
-
-        structuredPortfolio.addLoan(params);
-    }
-
-    function acceptLoan(uint256 rawLoanId) external {
-        uint256 loanId = rawLoanId % 5;
-        borrower.acceptLoan(fixedInterestOnlyLoans, loanId);
-        activeLoansCount += 1;
-    }
-
-    function fundLoan(uint256 rawLoanId) external {
-        uint256 loanId = rawLoanId % 5;
-        structuredPortfolio.fundLoan(loanId);
-    }
-
-    function repayLoan(uint256 rawLoanId) external {
-        uint256 loanId = rawLoanId % 5;
-        borrower.repayLoan(structuredPortfolio, fixedInterestOnlyLoans, loanId);
-    }
-
-    function close() public {
-        structuredPortfolio.close();
-    }
-
-    function updateCheckpoints() public {
-        structuredPortfolio.updateCheckpoints();
-    }
+    bool public echidna_check_updateCheckpointsContinuous = true;
 
     function _echidna_check_updateCheckpointsContinuous() public {
         uint256[] memory waterfall_old = structuredPortfolio.calculateWaterfall();
@@ -146,6 +70,21 @@ contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
         }
     }
 
+    function echidna_check_virtualTokenBalanceEqualsTokenBalance() public view returns (bool) {
+        return structuredPortfolio.virtualTokenBalance() == token.balanceOf(address(structuredPortfolio));
+    }
+
+    function _anyOverdueLoans() internal view returns (bool) {
+        for (uint256 i = 0; i < activeLoansCount; i++) {
+            uint256 activeLoanId = structuredPortfolio.activeLoanIds(i);
+            if (fixedInterestOnlyLoans.currentPeriodEndDate(activeLoanId) < block.timestamp) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     function _getTranchesData() internal view returns (TrancheData[] memory) {
         ITrancheVault[] memory trancheVaults = structuredPortfolio.getTranches();
         TrancheData[] memory tranchesData = new TrancheData[](trancheVaults.length);
@@ -165,9 +104,5 @@ contract StructuredPortfolioFuzzingProxy is StructuredPortfolioFuzzingInit {
         }
 
         return trancheCheckpoints;
-    }
-
-    function echidna_check_virtualTokenBalanceEqualsTokenBalance() public view returns (bool) {
-        return structuredPortfolio.virtualTokenBalance() == token.balanceOf(address(structuredPortfolio));
     }
 }
