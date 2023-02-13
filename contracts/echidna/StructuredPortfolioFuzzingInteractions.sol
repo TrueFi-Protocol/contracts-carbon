@@ -12,6 +12,7 @@
 pragma solidity ^0.8.16;
 
 import {FixedInterestOnlyLoans} from "../test/FixedInterestOnlyLoans.sol";
+import {FixedInterestOnlyLoanStatus} from "../interfaces/IFixedInterestOnlyLoans.sol";
 import {Status, TrancheData} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio} from "../StructuredPortfolio.sol";
 import {StructuredPortfolioFuzzingInit} from "./StructuredPortfolioFuzzingInit.sol";
@@ -22,6 +23,7 @@ uint256 constant DAY = 1 days;
 
 contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingInit {
     uint256 internal previousTotalAssets;
+    Status internal previousStatus;
     bool internal anyDefaultedLoans = false;
 
     function updateTotalAssets() public {
@@ -32,6 +34,7 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
         uint256 loanId = rawLoanId % structuredPortfolio.getActiveLoans().length;
         structuredPortfolio.markLoanAsDefaulted(loanId);
         anyDefaultedLoans = true;
+        activeLoansCount -= 1;
     }
 
     function deposit(uint256 rawAmount, uint8 rawTrancheId) public {
@@ -66,16 +69,24 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
     function acceptLoan(uint256 rawLoanId) external {
         uint256 loanId = rawLoanId % 5;
         borrower.acceptLoan(fixedInterestOnlyLoans, loanId);
-        activeLoansCount += 1;
     }
 
     function fundLoan(uint256 rawLoanId) external {
         uint256 loanId = rawLoanId % 5;
         structuredPortfolio.fundLoan(loanId);
+        activeLoansCount += 1;
     }
 
     function repayLoan(uint256 rawLoanId) external {
         uint256 loanId = rawLoanId % 5;
+        FixedInterestOnlyLoanStatus statusBefore = fixedInterestOnlyLoans.status(loanId);
+        borrower.repayLoan(structuredPortfolio, fixedInterestOnlyLoans, loanId);
+        if (
+            fixedInterestOnlyLoans.status(loanId) == FixedInterestOnlyLoanStatus.Repaid &&
+            statusBefore != FixedInterestOnlyLoanStatus.Defaulted
+        ) {
+            activeLoansCount -= 1;
+        }
         borrower.repayLoan(structuredPortfolio, fixedInterestOnlyLoans, loanId);
     }
 
@@ -85,5 +96,9 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
 
     function updateCheckpoints() public {
         structuredPortfolio.updateCheckpoints();
+    }
+
+    function updatePreviousStatus() public {
+        previousStatus = structuredPortfolio.status();
     }
 }

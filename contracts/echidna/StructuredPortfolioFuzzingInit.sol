@@ -196,8 +196,8 @@ contract StructuredPortfolioFuzzingInit {
         );
         structuredPortfolio.addLoan(params1);
         borrower.acceptLoan(fixedInterestOnlyLoans, 0);
-        activeLoansCount += 1;
         structuredPortfolio.fundLoan(0);
+        activeLoansCount += 1;
 
         AddLoanParams memory params2 = AddLoanParams(
             6e6 * 10**6, /* principal */
@@ -210,7 +210,7 @@ contract StructuredPortfolioFuzzingInit {
         );
         structuredPortfolio.addLoan(params2);
         borrower.acceptLoan(fixedInterestOnlyLoans, 1);
-        activeLoansCount += 1;
         structuredPortfolio.fundLoan(1);
+        activeLoansCount += 1;
     }
 }

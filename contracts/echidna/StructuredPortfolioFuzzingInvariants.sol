@@ -74,6 +74,43 @@ contract StructuredPortfolioFuzzingInvariants is StructuredPortfolioFuzzingInter
         return structuredPortfolio.virtualTokenBalance() == token.balanceOf(address(structuredPortfolio));
     }
 
+    bool public echidna_check_onlyValidTransitions = true;
+
+    function _echidna_check_onlyValidTransitions() public {
+        Status currentStatus = structuredPortfolio.status();
+        if (
+            (previousStatus == Status.Live && currentStatus == Status.CapitalFormation) ||
+            (previousStatus == Status.Closed && currentStatus == Status.CapitalFormation) ||
+            (previousStatus == Status.Closed && currentStatus == Status.Live)
+        ) {
+            echidna_check_onlyValidTransitions = false;
+        }
+    }
+
+    function echidna_check_onlyValidStatuses() public view returns (bool) {
+        Status status = structuredPortfolio.status();
+
+        return status == Status.CapitalFormation || status == Status.Live || status == Status.Closed;
+    }
+
+    bool public echidna_check_activeLoanIdsLengthLTEActiveLoansCount = true;
+
+    function _echidna_check_activeLoanIdsLengthLTEActiveLoansCount() public {
+        structuredPortfolio.activeLoanIds(activeLoansCount); // should revert
+
+        echidna_check_activeLoanIdsLengthLTEActiveLoansCount = false;
+    }
+
+    function echidna_check_activeLoanIdsLengthGTEActiveLoansCount() public view returns (bool) {
+        if (activeLoansCount == 0) {
+            return true;
+        }
+
+        structuredPortfolio.activeLoanIds(activeLoansCount - 1); // should not revert
+
+        return true;
+    }
+
     function _anyOverdueLoans() internal view returns (bool) {
         for (uint256 i = 0; i < activeLoansCount; i++) {
             uint256 activeLoanId = structuredPortfolio.activeLoanIds(i);
