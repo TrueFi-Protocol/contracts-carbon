@@ -472,14 +472,15 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       }
       await structuredPortfolio.start()
 
-      const loanId = await addAndFundLoan(getLoan({
+      const loan = getLoan({
         principal: parseTokenUnits(150),
         periodPayment: loanAmount,
         periodCount: 1,
         periodDuration: 1,
         gracePeriod: 0,
-      }))
-      await timeTravel(1)
+      })
+      const loanId = await addAndFundLoan(loan)
+      await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
       await structuredPortfolio.markLoanAsDefaulted(loanId)
       const juniorDeficitBefore = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint.deficit
       expect(juniorDeficitBefore).to.eq(parseTokenUnits(50))

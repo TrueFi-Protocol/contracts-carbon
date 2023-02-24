@@ -3,7 +3,7 @@ import { defaultAccounts } from 'ethereum-waffle'
 import { providers } from 'ethers'
 import { existsSync, unlinkSync } from 'fs'
 import ganache from 'ganache'
-import { safeReadJsonFile } from 'scripts/utils/safeReadJsonFile'
+import { safeReadJsonFile } from 'deployments-utils'
 import { runCarbon } from 'scripts/playground/runCarbon'
 
 describe('deployCarbon', () => {

@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
+import { getStructuredPortfolioFixture, structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
@@ -239,6 +239,52 @@ describe('StructuredPortfolio: manager fees', () => {
     await withdrawFromTranche(seniorTranche, 1)
 
     expect(await token.balanceOf(another.address)).to.eq(balanceAfterClose)
+  })
+
+  it('not accrue fees on unpaid fees', async () => {
+    const { structuredPortfolio, parseTokenUnits, depositToTranche, getLoan, seniorTranche, equityTranche, juniorTranche, addAndFundLoan } = await loadFixture(getStructuredPortfolioFixture({ tokenDecimals: 18, targetApys: [0, 0, 0] }))
+    const managerFeeRate = 5_000 // 50%
+    await seniorTranche.setManagerFeeRate(managerFeeRate)
+    await juniorTranche.setManagerFeeRate(managerFeeRate)
+    await equityTranche.setManagerFeeRate(managerFeeRate)
+
+    const seniorDeposit = parseTokenUnits(0.001)
+    const juniorDeposit = parseTokenUnits(1000)
+    const equityDeposit = parseTokenUnits(1000)
+    await depositToTranche(seniorTranche, seniorDeposit)
+    await depositToTranche(juniorTranche, juniorDeposit)
+    await depositToTranche(equityTranche, equityDeposit)
+
+    await structuredPortfolio.start()
+
+    const loan = getLoan({
+      principal: parseTokenUnits(2000),
+      periodCount: 1,
+      periodPayment: BigNumber.from(1),
+      periodDuration: 12 * YEAR,
+      gracePeriod: 0,
+    })
+    await addAndFundLoan(loan)
+
+    const expectedFeesAfterEachYear = [
+      [0, 0, 0],
+      [500, 500, 0.0005],
+      [750, 750, 0.00075],
+      [875, 875, 0.000875],
+      [937.5, 937.5, 0.0009375],
+      [968.75, 968.75, 0.00096875],
+    ]
+
+    const delta = parseTokenUnits(0.01)
+
+    for (let year = 0; year < expectedFeesAfterEachYear.length; year++) {
+      await structuredPortfolio.updateCheckpoints()
+      expect(await seniorTranche.unpaidManagerFee()).to.be.closeTo(parseTokenUnits(expectedFeesAfterEachYear[year][2]), delta)
+      expect(await juniorTranche.unpaidManagerFee()).to.be.closeTo(parseTokenUnits(expectedFeesAfterEachYear[year][1]), delta)
+      expect(await equityTranche.unpaidManagerFee()).to.be.closeTo(parseTokenUnits(expectedFeesAfterEachYear[year][0]), delta)
+
+      await timeTravel(YEAR)
+    }
   })
 
   it('caps pending fees to tranche assets', async () => {

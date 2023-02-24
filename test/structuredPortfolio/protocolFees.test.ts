@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
+import { getStructuredPortfolioFixture, structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { DAY, MONTH, ONE_IN_BPS, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
@@ -223,6 +223,50 @@ describe('StructuredPortfolio: protocol fees', () => {
     await seniorTranche.updateCheckpoint()
 
     expect(await token.balanceOf(protocolTreasury)).to.be.gt(balanceAfterClose)
+  })
+
+  it('not accrue fees on unpaid fees', async () => {
+    const { structuredPortfolio, protocolConfig, parseTokenUnits, depositToTranche, getLoan, seniorTranche, equityTranche, juniorTranche, addAndFundLoan } = await loadFixture(getStructuredPortfolioFixture({ tokenDecimals: 18, targetApys: [0, 0, 0] }))
+    const protocolFeeRate = 5_000
+    await protocolConfig.setDefaultProtocolFeeRate(protocolFeeRate) // 50%
+
+    const seniorDeposit = parseTokenUnits(0.001)
+    const juniorDeposit = parseTokenUnits(1000)
+    const equityDeposit = parseTokenUnits(1000)
+    await depositToTranche(seniorTranche, seniorDeposit)
+    await depositToTranche(juniorTranche, juniorDeposit)
+    await depositToTranche(equityTranche, equityDeposit)
+
+    await structuredPortfolio.start()
+
+    const loan = getLoan({
+      principal: parseTokenUnits(2000),
+      periodCount: 1,
+      periodPayment: BigNumber.from(1),
+      periodDuration: 12 * YEAR,
+      gracePeriod: 0,
+    })
+    await addAndFundLoan(loan)
+
+    const expectedFeesAfterEachYear = [
+      [0, 0, 0],
+      [500, 500, 0.0005],
+      [750, 750, 0.00075],
+      [875, 875, 0.000875],
+      [937.5, 937.5, 0.0009375],
+      [968.75, 968.75, 0.00096875],
+    ]
+
+    const delta = parseTokenUnits(0.01)
+
+    for (let year = 0; year < expectedFeesAfterEachYear.length; year++) {
+      await structuredPortfolio.updateCheckpoints()
+      expect(await seniorTranche.unpaidProtocolFee()).to.be.closeTo(parseTokenUnits(expectedFeesAfterEachYear[year][2]), delta)
+      expect(await juniorTranche.unpaidProtocolFee()).to.be.closeTo(parseTokenUnits(expectedFeesAfterEachYear[year][1]), delta)
+      expect(await equityTranche.unpaidProtocolFee()).to.be.closeTo(parseTokenUnits(expectedFeesAfterEachYear[year][0]), delta)
+
+      await timeTravel(YEAR)
+    }
   })
 
   describe('manager + protocol fee', () => {

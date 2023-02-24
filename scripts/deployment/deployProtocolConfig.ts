@@ -1,7 +1,7 @@
 import { contract } from 'ethereum-mars'
 import { ProtocolConfig } from '../../build/artifacts'
 import { ProtocolConfig__factory } from '../../build/types'
-import { encodeInitializeCall, getNameWithPrefix, proxy } from '../utils'
+import { encodeInitializeCall, getNameWithPrefix, proxy } from 'deployments-utils'
 import { config } from './config'
 
 export function deployProtocolConfig(networkName: string, prefix = '') {
