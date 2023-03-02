@@ -8,6 +8,7 @@ RUN export apt update && \
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
 
 RUN apt update && \
+    apt -y install git && \
     apt -y install nodejs && \
     rm -rf /var/cache/apt/lists
 
@@ -22,8 +23,9 @@ ADD abi-exporter.js .
 ADD .mocharc.json .
 ADD .compiler.json .
 ADD fuzzing fuzzing
+ADD fuzzing/docker/commands.sh commands.sh
 
 RUN pnpm install
 RUN pnpm build
 
-ENTRYPOINT [ "echidna-test" ]
+ENTRYPOINT [ "./commands.sh" ]

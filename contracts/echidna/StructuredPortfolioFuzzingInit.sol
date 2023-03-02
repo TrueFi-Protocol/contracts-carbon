@@ -30,6 +30,7 @@ import {AddLoanParams} from "../LoansManager.sol";
 import {StructuredPortfolioTest} from "../test/StructuredPortfolioTest.sol";
 import {FuzzingBorrower} from "./FuzzingBorrower.sol";
 import {FuzzingLender} from "./FuzzingLender.sol";
+import {FuzzingManager} from "./FuzzingManager.sol";
 
 uint256 constant DAY = 1 days;
 
@@ -44,6 +45,7 @@ contract StructuredPortfolioFuzzingInit {
     StructuredPortfolio public structuredPortfolio;
     FuzzingBorrower public borrower;
     FuzzingLender public lender;
+    FuzzingManager public manager;
 
     uint256 internal activeLoansCount;
     uint256 internal totalLoansCount;
@@ -52,6 +54,7 @@ contract StructuredPortfolioFuzzingInit {
 
     constructor() {
         _initializeToken();
+        _initializeManager();
         _initializeProtocolConfig();
         _initializeFixedInterestOnlyLoans();
         _initializeLenderVerifier();
@@ -90,12 +93,17 @@ contract StructuredPortfolioFuzzingInit {
         token.mint(address(this), 1e6 * 10**token.decimals());
     }
 
+    function _initializeManager() internal {
+        manager = new FuzzingManager();
+        token.mint(address(manager), 1e6 * 10**token.decimals());
+    }
+
     function _initializeProtocolConfig() internal {
         protocolConfig = new ProtocolConfigTest(
             FEE_RATE, /* _defaultProtocolFeeRate */
-            address(this), /* _protocolAdmin */
-            address(this), /* _protocolTreasury */
-            address(this) /* _pauserAddress */
+            address(manager), /* _protocolAdmin */
+            address(manager), /* _protocolTreasury */
+            address(manager) /* _pauserAddress */
         );
     }
 
@@ -115,19 +123,19 @@ contract StructuredPortfolioFuzzingInit {
     ) internal returns (TrancheVault) {
         DepositController depositController = new DepositController();
         depositController.initialize(
-            address(this), /* manager */
+            address(manager), /* manager */
             address(lenderVerifier),
             FEE_RATE, /* _depositFeeRate */
             ceiling
         );
-        depositController.setDepositAllowed(true, Status.Live);
+        manager.setDepositAllowed(depositController, true, Status.Live);
         WithdrawController withdrawController = new WithdrawController();
         withdrawController.initialize(
-            address(this), /* manager */
+            address(manager), /* manager */
             FEE_RATE, /* _withdrawFeeRate */
             10**token.decimals() /* _floor */
         );
-        withdrawController.setWithdrawAllowed(true, Status.Live);
+        manager.setWithdrawAllowed(withdrawController, true, Status.Live);
         TransferController transferController = new TransferController();
 
         TrancheVault tranche = new TrancheVaultTest2(
@@ -139,7 +147,7 @@ contract StructuredPortfolioFuzzingInit {
             transferController,
             protocolConfig,
             waterfallIndex,
-            address(this), /* manager */
+            address(manager), /* manager */
             FEE_RATE /* _managerFeeRate */
         );
 
@@ -172,7 +180,7 @@ contract StructuredPortfolioFuzzingInit {
         );
 
         structuredPortfolio = new StructuredPortfolioTest2(
-            address(this), /* manager */
+            address(manager), /* manager */
             IERC20WithDecimals(address(token)),
             fixedInterestOnlyLoans,
             protocolConfig,
@@ -189,7 +197,7 @@ contract StructuredPortfolioFuzzingInit {
 
     function _initializeBorrower() internal {
         borrower = new FuzzingBorrower();
-        token.mint(address(lender), 1e10 * 10**token.decimals());
+        token.mint(address(borrower), 1e10 * 10**token.decimals());
     }
 
     function _fillTranches() internal {
@@ -199,7 +207,7 @@ contract StructuredPortfolioFuzzingInit {
     }
 
     function _startPortfolio() internal {
-        structuredPortfolio.start();
+        manager.start(structuredPortfolio);
     }
 
     function _createAndFundLoans() internal {
@@ -212,10 +220,10 @@ contract StructuredPortfolioFuzzingInit {
             uint32(DAY), /* gracePeriod */
             true /* canBeRepaidAfterDefault */
         );
-        structuredPortfolio.addLoan(params1);
+        manager.addLoan(structuredPortfolio, params1);
         totalLoansCount += 1;
         borrower.acceptLoan(fixedInterestOnlyLoans, 0);
-        structuredPortfolio.fundLoan(0);
+        manager.fundLoan(structuredPortfolio, 0);
         activeLoansCount += 1;
 
         AddLoanParams memory params2 = AddLoanParams(
@@ -227,10 +235,10 @@ contract StructuredPortfolioFuzzingInit {
             uint32(DAY), /* gracePeriod */
             true /* canBeRepaidAfterDefault */
         );
-        structuredPortfolio.addLoan(params2);
+        manager.addLoan(structuredPortfolio, params2);
         totalLoansCount += 1;
         borrower.acceptLoan(fixedInterestOnlyLoans, 1);
-        structuredPortfolio.fundLoan(1);
+        manager.fundLoan(structuredPortfolio, 1);
         activeLoansCount += 1;
     }
 }

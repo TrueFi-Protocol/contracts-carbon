@@ -32,7 +32,7 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
 
     function markLoanAsDefaulted(uint8 rawLoanId) public {
         uint256 loanId = rawLoanId % structuredPortfolio.getActiveLoans().length;
-        structuredPortfolio.markLoanAsDefaulted(loanId);
+        manager.markLoanAsDefaulted(structuredPortfolio, loanId);
         anyDefaultedLoans = true;
         activeLoansCount -= 1;
     }
@@ -67,7 +67,7 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
             rawParams.canBeRepaidAfterDefault
         );
 
-        structuredPortfolio.addLoan(params);
+        manager.addLoan(structuredPortfolio, params);
         totalLoansCount += 1;
     }
 
@@ -78,7 +78,7 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
 
     function fundLoan(uint256 rawLoanId) external {
         uint256 loanId = rawLoanId % totalLoansCount;
-        structuredPortfolio.fundLoan(loanId);
+        manager.fundLoan(structuredPortfolio, loanId);
         activeLoansCount += 1;
     }
 
@@ -96,7 +96,7 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
     }
 
     function close() public {
-        structuredPortfolio.close();
+        manager.close(structuredPortfolio);
     }
 
     function updateCheckpoints() public {

@@ -1,0 +1,6 @@
+cryticArgs: ["--hardhat-artifacts-directory", "build"]
+multi-abi: false
+corpusDir: "echidna-corpus"
+seqLen: 30
+codeSize: 0xf000
+testMode: assertion

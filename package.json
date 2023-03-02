@@ -27,7 +27,7 @@
     "verify:typecheck": "bash ./spec/verify.sh -t"
   },
   "devDependencies": {
-    "deployments-utils": "*",
+    "@crytic/properties": "github:crytic/properties",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
@@ -41,6 +41,7 @@
     "@types/mocha": "^9.1.1",
     "@types/node": "^17.0.34",
     "chai": "^4.3.6",
+    "deployments-utils": "*",
     "eslint": "^7.32.0",
     "ethereum-mars": "0.2.6-dev.eb75a27",
     "ethereum-waffle": "4.0.10",

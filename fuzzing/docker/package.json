@@ -10,6 +10,7 @@
     "fuzz:check": "./fuzzing/fuzz.py --test-limit 1"
   },
   "devDependencies": {
+    "@crytic/properties": "github:crytic/properties",
     "@ensdomains/ens": "^0.4.4",
     "@ensdomains/resolver": "^0.2.4",
     "@ethersproject/abi": "^5.7.0",
