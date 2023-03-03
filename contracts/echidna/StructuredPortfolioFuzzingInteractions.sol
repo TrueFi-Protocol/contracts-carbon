@@ -92,7 +92,6 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
         ) {
             activeLoansCount -= 1;
         }
-        borrower.repayLoan(structuredPortfolio, fixedInterestOnlyLoans, loanId);
     }
 
     function close() public {
