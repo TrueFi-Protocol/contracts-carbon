@@ -2,5 +2,5 @@ cryticArgs: ["--hardhat-artifacts-directory", "build"]
 multi-abi: false
 contractAddr: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 corpusDir: "echidna-corpus"
-seqLen: 30
+seqLen: 100
 codeSize: 0xf000
