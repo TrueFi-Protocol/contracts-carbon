@@ -23,6 +23,14 @@ contract MockToken is ERC20 {
         _burn(account, amount);
     }
 
+    function forceApproval(
+        address account,
+        address spender,
+        uint256 amount
+    ) public {
+        _approve(account, spender, amount);
+    }
+
     function failTransfers(address recipient, bool newValue) external {
         _failTransfers[recipient] = newValue;
     }
