@@ -42,7 +42,7 @@ contract StructuredPortfolioFuzzingInit {
     TrancheVault public equityTranche;
     TrancheVault public juniorTranche;
     TrancheVault public seniorTranche;
-    StructuredPortfolio public structuredPortfolio;
+    StructuredPortfolioTest2 public structuredPortfolio;
     FuzzingBorrower public borrower;
     FuzzingLender public lender;
     FuzzingManager public manager;

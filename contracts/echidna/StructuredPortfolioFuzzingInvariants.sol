@@ -16,6 +16,7 @@ import {Status, TrancheData} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio} from "../StructuredPortfolio.sol";
 import {StructuredPortfolioFuzzingInteractions} from "./StructuredPortfolioFuzzingInteractions.sol";
 import {ITrancheVault, Checkpoint} from "../interfaces/ITrancheVault.sol";
+import {TrancheVault} from "../TrancheVault.sol";
 import {AddLoanParams} from "../interfaces/ILoansManager.sol";
 
 uint256 constant DAY = 1 days;
@@ -109,6 +110,42 @@ contract StructuredPortfolioFuzzingInvariants is StructuredPortfolioFuzzingInter
         structuredPortfolio.activeLoanIds(activeLoansCount - 1); // should not revert
 
         return true;
+    }
+
+    bool public echidna_check_tokensAreDistributedCorrectlyOnClose = true;
+
+    function _echidna_check_tokensAreDistributedCorrectlyOnClose() public {
+        structuredPortfolio.updateCheckpoints();
+
+        uint256[] memory assumedTrancheValues = new uint256[](3);
+        for (uint256 i = 1; i < 3; i++) {
+            assumedTrancheValues[i] = structuredPortfolio.assumedTrancheValue(i);
+        }
+
+        manager.close(structuredPortfolio);
+
+        ITrancheVault[] memory trancheVaults = structuredPortfolio.getTranches();
+        for (uint256 i = 2; i > 0; i--) {
+            TrancheVault trancheVault = TrancheVault(address(trancheVaults[i]));
+            TrancheVault lowerTrancheVault = TrancheVault(address(trancheVaults[i - 1]));
+
+            uint256 trancheBalance = trancheVault.virtualTokenBalance();
+            if (trancheBalance == assumedTrancheValues[i]) {
+                continue;
+            }
+
+            if (trancheBalance > assumedTrancheValues[i]) {
+                echidna_check_tokensAreDistributedCorrectlyOnClose = false;
+                return;
+            }
+
+            assert(trancheBalance < assumedTrancheValues[i]);
+            uint256 lowerTrancheBalance = lowerTrancheVault.virtualTokenBalance();
+            if (lowerTrancheBalance != 0) {
+                echidna_check_tokensAreDistributedCorrectlyOnClose = false;
+                return;
+            }
+        }
     }
 
     function _anyOverdueLoans() internal view returns (bool) {

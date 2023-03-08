@@ -36,4 +36,8 @@ contract StructuredPortfolioTest2 is StructuredPortfolio {
             _expectedEquityRate
         );
     }
+
+    function assumedTrancheValue(uint256 trancheIdx) external view returns (uint256) {
+        return _assumedTrancheValue(trancheIdx, _limitedBlockTimestamp());
+    }
 }
