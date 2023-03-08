@@ -13,7 +13,6 @@ def build_docker():
 
 
 def spawn_single_container(conf):
-    shell(f"rm -rf ./echidna-corpus")
     shell(f"docker run --rm -e HOST_USER=$(id -u) -v {os.getcwd()}/echidna-corpus:/root/echidna-corpus fuzz_carbon {' '.join(conf)}")
 
 if __name__=="__main__":
