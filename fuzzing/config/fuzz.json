@@ -1,4 +1,5 @@
 {
   "StructuredPortfolioFuzzingInvariants": "fuzzing/config/StructuredPortfolio.yaml",
-  "StructuredPortfolioFuzzingInvariants_crytic": "fuzzing/config/StructuredPortfolio_crytic.yaml"
+  "StructuredPortfolioFuzzingInvariantsWithLiveActions": "fuzzing/config/StructuredPortfolioWithLiveActions.yaml",
+  "StructuredPortfolioFuzzingInvariantsCrytic": "fuzzing/config/StructuredPortfolioCrytic.yaml"
 }

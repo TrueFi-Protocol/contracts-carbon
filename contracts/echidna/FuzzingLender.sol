@@ -19,4 +19,8 @@ contract FuzzingLender {
         IERC20WithDecimals(tranche.asset()).approve(address(tranche), amount);
         tranche.deposit(amount, address(this));
     }
+
+    function withdraw(ITrancheVault tranche, uint256 amount) external {
+        tranche.withdraw(amount, address(this), address(this));
+    }
 }

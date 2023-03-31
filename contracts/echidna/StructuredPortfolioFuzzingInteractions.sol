@@ -26,6 +26,10 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
     Status internal previousStatus;
     bool internal anyDefaultedLoans = false;
 
+    constructor() {
+        previousStatus = structuredPortfolio.status();
+    }
+
     function updateTotalAssets() public {
         previousTotalAssets = structuredPortfolio.totalAssets();
     }
@@ -35,21 +39,6 @@ contract StructuredPortfolioFuzzingInteractions is StructuredPortfolioFuzzingIni
         manager.markLoanAsDefaulted(structuredPortfolio, loanId);
         anyDefaultedLoans = true;
         activeLoansCount -= 1;
-    }
-
-    function deposit(uint256 rawAmount, uint8 rawTrancheId) public {
-        uint256 trancheId = rawTrancheId % _getNumberOfTranches();
-        uint256 amount = rawAmount % token.balanceOf(address(lender));
-        ITrancheVault tranche;
-        if (trancheId == 0) {
-            tranche = equityTranche;
-        } else if (trancheId == 1) {
-            tranche = juniorTranche;
-        } else {
-            tranche = seniorTranche;
-        }
-
-        lender.deposit(tranche, amount);
     }
 
     uint16 internal constant MAX_PERIOD_COUNT = 5;

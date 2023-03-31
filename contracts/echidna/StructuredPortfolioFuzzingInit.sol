@@ -50,6 +50,8 @@ contract StructuredPortfolioFuzzingInit {
     uint256 internal activeLoansCount;
     uint256 internal totalLoansCount;
 
+    uint256[] internal initialTrancheValues;
+
     uint256 internal constant FEE_RATE = (BASIS_PRECISION * 5) / 1000;
 
     constructor() {
@@ -84,6 +86,8 @@ contract StructuredPortfolioFuzzingInit {
         _fillTranches();
         _startPortfolio();
         _createAndFundLoans();
+
+        _initializeAuxiliaryVariables();
     }
 
     function _initializeToken() internal {
@@ -240,5 +244,9 @@ contract StructuredPortfolioFuzzingInit {
         borrower.acceptLoan(fixedInterestOnlyLoans, 1);
         manager.fundLoan(structuredPortfolio, 1);
         activeLoansCount += 1;
+    }
+
+    function _initializeAuxiliaryVariables() internal {
+        initialTrancheValues = [equityTranche.totalAssets(), juniorTranche.totalAssets(), seniorTranche.totalAssets()];
     }
 }

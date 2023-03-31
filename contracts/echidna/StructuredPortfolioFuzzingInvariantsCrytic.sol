@@ -15,7 +15,7 @@ import {CryticERC4626PropertyTests} from "@crytic/properties/contracts/ERC4626/E
 import {TestERC20Token} from "@crytic/properties/contracts/ERC4626/util/TestERC20Token.sol";
 import {StructuredPortfolioFuzzingInteractions} from "./StructuredPortfolioFuzzingInteractions.sol";
 
-contract StructuredPortfolioFuzzingInvariants_crytic is CryticERC4626PropertyTests, StructuredPortfolioFuzzingInteractions {
+contract StructuredPortfolioFuzzingInvariantsCrytic is CryticERC4626PropertyTests, StructuredPortfolioFuzzingInteractions {
     constructor() StructuredPortfolioFuzzingInteractions() {
         initialize(address(equityTranche), address(token), false);
     }

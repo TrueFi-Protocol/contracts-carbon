@@ -12,6 +12,7 @@
 pragma solidity ^0.8.16;
 
 import {StructuredPortfolio, PortfolioParams, TrancheInitData, ExpectedEquityRate} from "../StructuredPortfolio.sol";
+import {TrancheVault} from "../TrancheVault.sol";
 import {IERC20WithDecimals} from "../interfaces/IERC20WithDecimals.sol";
 import {IProtocolConfig} from "../interfaces/IProtocolConfig.sol";
 import {IFixedInterestOnlyLoans} from "../interfaces/IFixedInterestOnlyLoans.sol";
@@ -39,5 +40,11 @@ contract StructuredPortfolioTest2 is StructuredPortfolio {
 
     function assumedTrancheValue(uint256 trancheIdx) external view returns (uint256) {
         return _assumedTrancheValue(trancheIdx, _limitedBlockTimestamp());
+    }
+
+    // This does not include unpaidFees (but includes current fees)
+    function effectiveAssumedTrancheValue(uint256 trancheIdx) external view returns (uint256) {
+        TrancheVault tranche = TrancheVault(address(tranches[trancheIdx]));
+        return _assumedTrancheValue(trancheIdx, _limitedBlockTimestamp()) - tranche.unpaidManagerFee() - tranche.unpaidProtocolFee();
     }
 }
