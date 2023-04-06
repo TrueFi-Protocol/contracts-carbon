@@ -4,7 +4,7 @@
   "description": "TrueFi Carbon",
   "scripts": {
     "clean": "rm -rf ./build && hardhat clean",
-    "build:fuzzing": "pnpm build && python3 fuzzing/scripts/build_fuzzing.py",
+    "build:fuzz": "pnpm clean && pnpm build:hardhat && pnpm build:typechain && pnpm build:mars && pnpm run build:merge-deployments",
     "build:hardhat": "hardhat compile",
     "build:typechain": "typechain --target ethers-v5 --out-dir build/types 'build/*.json'",
     "build:verify": "ts-node ./spec/generateConfigs.ts",

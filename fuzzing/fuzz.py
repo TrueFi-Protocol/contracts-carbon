@@ -14,7 +14,7 @@ def shell(cmd):
     return result
 
 def build_docker():
-    shell(f"docker build -f fuzzing/docker/Dockerfile . -t fuzz_carbon")
+    shell(f"docker build -f fuzzing/docker/Dockerfile ../.. -t fuzz_carbon")
 
 def spawn_single_container(conf):
     output = shell(f"docker run --rm -e HOST_USER=$(id -u) -v {os.getcwd()}/echidna-corpus:/root/echidna-corpus fuzz_carbon {' '.join(conf)}")

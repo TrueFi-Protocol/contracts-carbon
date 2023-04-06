@@ -14,18 +14,11 @@ RUN apt update && \
 
 RUN npm install -g pnpm@7.5.0
 
-WORKDIR /root
+ADD . /root/truefi
 
-ADD contracts contracts
-ADD fuzzing/docker/package.json package.json
-ADD hardhat.config.ts .
-ADD abi-exporter.js .
-ADD .mocharc.json .
-ADD .compiler.json .
-ADD fuzzing fuzzing
-ADD fuzzing/docker/commands.sh commands.sh
+WORKDIR /root/truefi/packages/contracts-carbon/
 
 RUN pnpm install
-RUN pnpm build
+RUN pnpm build:fuzz
 
-ENTRYPOINT [ "./commands.sh" ]
+ENTRYPOINT [ "./fuzzing/docker/commands.sh" ]
