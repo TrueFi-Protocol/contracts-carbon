@@ -17,7 +17,7 @@ def build_docker():
     shell(f"docker build -f fuzzing/docker/Dockerfile ../.. -t fuzz_carbon")
 
 def spawn_single_container(conf):
-    output = shell(f"docker run --rm -e HOST_USER=$(id -u) -v {os.getcwd()}/echidna-corpus:/root/echidna-corpus fuzz_carbon {' '.join(conf)}")
+    output = shell(f"docker run --rm -e HOST_USER=$(id -u) -v {os.getcwd()}/echidna-corpus:/root/truefi/packages/contracts-carbon/echidna-corpus fuzz_carbon {' '.join(conf)}")
     if re.search("passed!", output) is None:
         exit(1)
     shell(f"rm -rf echidna-corpus/coverage")
