@@ -2,7 +2,7 @@
 set -eu
 
 # Setting Infura or Alchemy key to use for convenience here
-export INFURA_KEY="f88abc181a4a45a6bc47bdda05a94944"
+export INFURA_KEY="5be498e94afe494897c88427fcb3e42a"
 
 # Setting Etherscan key to use for convenience here
 export ETHERSCAN_KEY="XQPPJGFR4J3I6PEISYEG4JPETFZ2EF56EX" # Use for Ethereum & testnets
