@@ -86,7 +86,7 @@ describe('TrancheVault.mint', () => {
       .to.emit(equityTranche, 'ManagerFeePaid').withArgs(another.address, depositFee)
   })
 
-  it('returns asset amount', async () => {
+  it('returns deposited asset amount when deposit fee is 0', async () => {
     const { juniorTranche, token, wallet } = await loadFixture(structuredPortfolioLiveFixture)
     const shares = 1000
     const yearlyVaultValueGrowthFactor = 1.05
@@ -96,6 +96,35 @@ describe('TrancheVault.mint', () => {
     await token.approve(juniorTranche.address, assetAmount)
 
     expect(await juniorTranche.callStatic.mint(shares, wallet.address)).to.eq(assetAmount)
+  })
+
+  it('returns asset amount plus fees when fee is not 0', async () => {
+    const { juniorTranche, token, wallet, tranchesData } = await loadFixture(structuredPortfolioLiveFixture)
+    await tranchesData[1].depositController.setDepositFeeRate(500)
+    const shares = 1000
+    const yearlyVaultValueGrowthFactor = 1.05
+    const assetAmount = shares * yearlyVaultValueGrowthFactor + 1
+    const expectedFee = Math.floor(assetAmount * 500 / ONE_IN_BPS)
+    const totalAssets = assetAmount + expectedFee
+
+    await timeTravel(YEAR)
+    await token.approve(juniorTranche.address, totalAssets)
+
+    expect(await juniorTranche.callStatic.mint(shares, wallet.address)).to.eq(totalAssets)
+  })
+
+  it('asset amount with fees is equal to previewMint', async () => {
+    const { juniorTranche, wallet, token, tranchesData } = await loadFixture(structuredPortfolioLiveFixture)
+    await tranchesData[1].depositController.setDepositFeeRate(500)
+    const shares = 1000
+    const yearlyVaultValueGrowthFactor = 1.05
+    const assetAmount = shares * yearlyVaultValueGrowthFactor + 1
+    const expectedFee = Math.floor(assetAmount * 500 / ONE_IN_BPS)
+    const totalAssets = assetAmount + expectedFee
+
+    await timeTravel(YEAR)
+    await token.approve(juniorTranche.address, totalAssets)
+    expect(await juniorTranche.callStatic.mint(shares, wallet.address)).to.equal(await juniorTranche.previewMint(shares))
   })
 
   it('emits Deposit event', async () => {

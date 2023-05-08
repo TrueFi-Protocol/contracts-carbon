@@ -228,7 +228,7 @@ contract TrancheVault is ITrancheVault, ERC20Upgradeable, Upgradeable {
         _payDepositFee(depositFee);
         _depositAssets(assetAmount, shares, receiver);
 
-        return assetAmount;
+        return assetAmount + depositFee;
     }
 
     function _maxWithdraw(address owner) public view returns (uint256) {
