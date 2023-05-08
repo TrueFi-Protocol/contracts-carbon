@@ -59,5 +59,24 @@ describe('TrancheVault.previewRedeem', () => {
     const expectedAssets = shares * totalAssets / totalSupply
     const expectedAssetsWithFee = Math.ceil(expectedAssets * (ONE_IN_BPS - withdrawFeeRate) / ONE_IN_BPS)
     expect(await seniorTranche.previewRedeem(shares)).to.eq(expectedAssetsWithFee)
+    expect(await seniorTranche.previewWithdraw(expectedAssetsWithFee)).to.eq(shares)
+  })
+
+  it('is inverse of previewWithdraw', async () => {
+    const { seniorTranche, juniorTranche, depositToTranche, startPortfolioAndEnableLiveActions, seniorTrancheData: { withdrawController } } = await loadFixture(structuredPortfolioFixture)
+
+    const totalSupply = 1000
+    await depositToTranche(seniorTranche, totalSupply)
+    await depositToTranche(juniorTranche, totalSupply)
+
+    await startPortfolioAndEnableLiveActions()
+
+    await timeTravel(YEAR)
+
+    const withdrawFeeRate = 500
+    await withdrawController.setWithdrawFeeRate(withdrawFeeRate)
+
+    const shares = 500
+    expect(await seniorTranche.previewWithdraw(await seniorTranche.previewRedeem(shares))).to.eq(shares)
   })
 })

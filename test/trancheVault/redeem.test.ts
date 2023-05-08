@@ -124,7 +124,7 @@ describe('TrancheVault.redeem', () => {
     await equityTranche.setManagerFeeBeneficiary(another.address)
 
     const amount = 1000
-    const withdrawFee = Math.floor(amount * withdrawFeeRate / ONE_IN_BPS)
+    const withdrawFee = 48
     await expect(() => redeemFromTranche(equityTranche, amount))
       .to.changeTokenBalances(
         token,
@@ -181,7 +181,7 @@ describe('TrancheVault.redeem', () => {
     await equityTranche.setManagerFeeBeneficiary(another.address)
 
     const amount = 1000
-    const withdrawFee = Math.floor(amount * withdrawFeeRate / ONE_IN_BPS)
+    const withdrawFee = 48
 
     await expect(redeemFromTranche(equityTranche, amount))
       .to.emit(equityTranche, 'ManagerFeePaid').withArgs(another.address, withdrawFee)

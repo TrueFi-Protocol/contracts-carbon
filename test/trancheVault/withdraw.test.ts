@@ -141,6 +141,24 @@ describe('TrancheVault.withdraw', () => {
       .to.changeTokenBalance(equityTranche, wallet, -(amount + withdrawFee))
   })
 
+  it('is equivalent to a redeem call', async () => {
+    const { equityTranche, redeemFromTranche, token, wallet, another, equityTrancheData: { withdrawController }, depositToTranche, parseTokenUnits } = await loadFixture(structuredPortfolioFixture)
+    await depositToTranche(equityTranche, parseTokenUnits(1000))
+
+    const withdrawFeeRate = 500
+    await withdrawController.setWithdrawFeeRate(withdrawFeeRate)
+    await withdrawController.setWithdrawAllowed(true, PortfolioStatus.CapitalFormation)
+    await equityTranche.setManagerFeeBeneficiary(another.address)
+
+    const amount = 1000
+    const withdrawFee = Math.floor(amount * withdrawFeeRate / ONE_IN_BPS)
+    const shares = amount + withdrawFee
+    await equityTranche.approve(equityTranche.address, amount + withdrawFee)
+
+    await expect(() => redeemFromTranche(equityTranche, shares))
+      .to.changeTokenBalances(token, [wallet, another, equityTranche], [amount, withdrawFee, -(amount + withdrawFee)])
+  })
+
   it('emits ManagerFeePaid event when controller fee set', async () => {
     const { equityTranche, depositToTranche, withdrawFromTranche, parseTokenUnits, another, equityTrancheData: { withdrawController } } = await loadFixture(structuredPortfolioFixture)
     await depositToTranche(equityTranche, parseTokenUnits(1000))

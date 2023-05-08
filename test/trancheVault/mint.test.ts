@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { DAY, MAX_UINT_128, ONE_IN_BPS, YEAR } from 'utils/constants'
+import { DAY, MAX_UINT_128, YEAR } from 'utils/constants'
 import { getTxTimestamp } from 'utils/getTxTimestamp'
 import { timeTravel } from 'utils/timeTravel'
 import { convertToAssets, convertToAssetsCeil } from 'utils/convertToAssets'
@@ -54,7 +54,7 @@ describe('TrancheVault.mint', () => {
     await equityTranche.setManagerFeeBeneficiary(another.address)
 
     const amount = 1000
-    const depositFee = Math.floor(amount * depositFeeRate / ONE_IN_BPS)
+    const depositFee = 52
     const totalDepositAmount = amount + depositFee
     await expect(() => mintToTranche(equityTranche, amount))
       .to.changeTokenBalances(
@@ -81,7 +81,7 @@ describe('TrancheVault.mint', () => {
     await equityTranche.setManagerFeeBeneficiary(another.address)
 
     const amount = 1000
-    const depositFee = Math.floor(amount * depositFeeRate / ONE_IN_BPS)
+    const depositFee = 52
     await expect(mintToTranche(equityTranche, amount))
       .to.emit(equityTranche, 'ManagerFeePaid').withArgs(another.address, depositFee)
   })

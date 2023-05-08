@@ -84,6 +84,24 @@ describe('TrancheVault.deposit', () => {
     await expect(() => depositToTranche(equityTranche, amount)).to.changeTokenBalance(equityTranche, wallet, amount - depositFee)
   })
 
+  it('is equivalent to a mint call', async () => {
+    const { equityTranche, wallet, another, mintToTranche, equityTrancheData: { depositController }, token } = await loadFixture(structuredPortfolioFixture)
+    const depositFeeRate = 500
+    await depositController.setDepositFeeRate(depositFeeRate)
+    await equityTranche.setManagerFeeBeneficiary(another.address)
+
+    const amount = 1000
+    const depositFee = Math.floor(amount * depositFeeRate / ONE_IN_BPS)
+    const shares = amount - depositFee
+
+    await expect(() => mintToTranche(equityTranche, shares, wallet.address))
+      .to.changeTokenBalances(
+        token,
+        [wallet, another, equityTranche],
+        [-amount, depositFee, amount - depositFee],
+      )
+  })
+
   it('emits ManagerFeePaid event when controller fee set', async () => {
     const { equityTranche, another, depositToTranche, equityTrancheData: { depositController } } = await loadFixture(structuredPortfolioFixture)
     const depositFeeRate = 500

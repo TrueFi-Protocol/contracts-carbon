@@ -99,21 +99,27 @@ contract WithdrawController is IWithdrawController, Initializable, AccessControl
         return (previewWithdraw(assets), withdrawFee);
     }
 
+    /**
+     * @dev We want to reverse calculations of onWithdraw:
+     *      onWithdraw(assets) = (assets + assets * feeRate) * totalSupply / totalAmount = shares
+     *      assets = shares * totalAmount / totalSupply / (1+feeRate) =
+     *             = convertToAssetsCeil(shares / (1+feeRate))
+     */
     function onRedeem(
         address,
         uint256 shares,
         address,
         address
-    ) external view returns (uint256, uint256) {
-        uint256 assets = ITrancheVault(msg.sender).convertToAssets(shares);
-        uint256 withdrawFee = _getWithdrawFee(assets);
-        return (assets - withdrawFee, withdrawFee);
+    ) public view returns (uint256, uint256) {
+        uint256 netAssets = ITrancheVault(msg.sender).convertToAssets(shares);
+        uint256 grossAssets = (netAssets * BASIS_PRECISION) / (BASIS_PRECISION + withdrawFeeRate);
+        uint256 withdrawFee = netAssets - grossAssets;
+        return (grossAssets, withdrawFee);
     }
 
     function previewRedeem(uint256 shares) public view returns (uint256) {
-        uint256 assets = ITrancheVault(msg.sender).convertToAssets(shares);
-        uint256 withdrawFee = _getWithdrawFee(assets);
-        return assets - withdrawFee;
+        (uint256 assets, ) = onRedeem(address(0), shares, address(0), address(0));
+        return assets;
     }
 
     function previewWithdraw(uint256 assets) public view returns (uint256) {

@@ -74,14 +74,21 @@ contract DepositController is IDepositController, Initializable, AccessControlEn
         return (previewDeposit(assets), depositFee);
     }
 
+    /**
+     * @dev We want to reverse calculations of onDeposit:
+     *      onDeposit(assets) = (assets - assets * feeRate) * totalSupply / totalAmount = shares
+     *      assets = shares * totalAmount / totalSupply / (1-feeRate) =
+     *             = convertToAssetsCeil(shares / (1-feeRate))
+     */
     function onMint(
         address,
         uint256 shares,
         address
-    ) external view returns (uint256, uint256) {
-        uint256 assets = ITrancheVault(msg.sender).convertToAssetsCeil(shares);
-        uint256 depositFee = _getDepositFee(assets);
-        return (assets, depositFee);
+    ) public view returns (uint256, uint256) {
+        uint256 netAssets = ITrancheVault(msg.sender).convertToAssetsCeil(shares);
+        uint256 grossAssets = (netAssets * BASIS_PRECISION) / (BASIS_PRECISION - depositFeeRate);
+        uint256 depositFee = _getDepositFee(grossAssets);
+        return (grossAssets - depositFee, depositFee);
     }
 
     function previewDeposit(uint256 assets) public view returns (uint256 shares) {
@@ -90,8 +97,7 @@ contract DepositController is IDepositController, Initializable, AccessControlEn
     }
 
     function previewMint(uint256 shares) public view returns (uint256) {
-        uint256 assets = ITrancheVault(msg.sender).convertToAssetsCeil(shares);
-        uint256 depositFee = _getDepositFee(assets);
+        (uint256 assets, uint256 depositFee) = onMint(address(0), shares, address(0));
         return assets + depositFee;
     }
 
