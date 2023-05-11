@@ -104,7 +104,7 @@ describe('TrancheVault.mint', () => {
     const shares = 1000
     const yearlyVaultValueGrowthFactor = 1.05
     const assetAmount = shares * yearlyVaultValueGrowthFactor + 1
-    const expectedFee = Math.floor(assetAmount * 500 / ONE_IN_BPS)
+    const expectedFee = 55
     const totalAssets = assetAmount + expectedFee
 
     await timeTravel(YEAR)
@@ -119,7 +119,7 @@ describe('TrancheVault.mint', () => {
     const shares = 1000
     const yearlyVaultValueGrowthFactor = 1.05
     const assetAmount = shares * yearlyVaultValueGrowthFactor + 1
-    const expectedFee = Math.floor(assetAmount * 500 / ONE_IN_BPS)
+    const expectedFee = 55
     const totalAssets = assetAmount + expectedFee
 
     await timeTravel(YEAR)
