@@ -41,7 +41,7 @@
     "@types/mocha": "^9.1.1",
     "@types/node": "^17.0.34",
     "chai": "^4.3.6",
-    "deployments-utils": "*",
+    "deployments-utils": "workspace:*",
     "eslint": "^7.32.0",
     "ethereum-mars": "0.2.6-dev.eb75a27",
     "ethereum-waffle": "4.0.10",
