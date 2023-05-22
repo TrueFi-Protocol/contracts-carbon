@@ -28,12 +28,12 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
         assert(structuredPortfolio.status() != Status.CapitalFormation);
     }
 
-    function verify_totalAssetsIncreases() public view {
+    function verify_totalAssetsIncreases() public {
         require(structuredPortfolio.loansValue() > structuredPortfolio.totalAssets() / 2);
         require(!anyDefaultedLoans);
         require(!_anyOverdueLoans());
 
-        assert(structuredPortfolio.totalAssets() >= previousTotalAssets);
+        assertGte(structuredPortfolio.totalAssets(), previousTotalAssets, "total assets increase assuming no defaulted loans");
     }
 
     function verify_updateCheckpointsContinuous() public {
@@ -47,44 +47,70 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
         Checkpoint[] memory trancheCheckpoints_new = _getTrancheCheckpoints();
 
         for (uint256 i = 0; i < waterfall_old.length; i++) {
-            assert(waterfall_new[i] == waterfall_old[i]);
+            emit LogUint256("tranche id", i);
+            assertEq(waterfall_new[i], waterfall_old[i], "waterfall value is equal before and after update");
 
-            assert(
-                trancheData_new[i].loansDeficitCheckpoint.deficit == trancheData_old[i].loansDeficitCheckpoint.deficit &&
-                    trancheData_new[i].loansDeficitCheckpoint.timestamp == trancheData_old[i].loansDeficitCheckpoint.timestamp
+            assertEq(
+                trancheData_new[i].loansDeficitCheckpoint.deficit,
+                trancheData_old[i].loansDeficitCheckpoint.deficit,
+                "deficit value is preserved after subsequent update"
+            );
+            assertEq(
+                trancheData_new[i].loansDeficitCheckpoint.timestamp,
+                trancheData_old[i].loansDeficitCheckpoint.timestamp,
+                "deficit timestamp is preserved after subsequent update"
             );
 
-            assert(
-                trancheCheckpoints_new[i].totalAssets == trancheCheckpoints_old[i].totalAssets &&
-                    trancheCheckpoints_new[i].protocolFeeRate == trancheCheckpoints_old[i].protocolFeeRate &&
-                    trancheCheckpoints_new[i].timestamp == trancheCheckpoints_old[i].timestamp &&
-                    trancheCheckpoints_new[i].unpaidFees == trancheCheckpoints_old[i].unpaidFees
+            assertEq(
+                trancheCheckpoints_new[i].totalAssets,
+                trancheCheckpoints_old[i].totalAssets,
+                "total assets are preserved after subsequent update"
+            );
+            assertEq(
+                trancheCheckpoints_new[i].protocolFeeRate,
+                trancheCheckpoints_old[i].protocolFeeRate,
+                "protocol fee rate is preserved after subsequent update"
+            );
+            assertEq(
+                trancheCheckpoints_new[i].timestamp,
+                trancheCheckpoints_old[i].timestamp,
+                "timestamp is preserved after subsequent update"
+            );
+            assertEq(
+                trancheCheckpoints_new[i].unpaidFees,
+                trancheCheckpoints_old[i].unpaidFees,
+                "unpaid fees are preserved after subsequent update"
             );
         }
     }
 
-    function verify_virtualTokenBalanceEqualsTokenBalance() public view {
-        assert(structuredPortfolio.virtualTokenBalance() == token.balanceOf(address(structuredPortfolio)));
-    }
-
-    function verify_onlyValidTransitions() public view {
-        Status currentStatus = structuredPortfolio.status();
-        assert(
-            (previousStatus == Status.Live && currentStatus == Status.Live) ||
-                (previousStatus == Status.Live && currentStatus == Status.Closed) ||
-                (previousStatus == Status.Closed && currentStatus == Status.Closed)
+    function verify_virtualTokenBalanceEqualsTokenBalance() public {
+        assertEq(
+            structuredPortfolio.virtualTokenBalance(),
+            token.balanceOf(address(structuredPortfolio)),
+            "token balance is equal to virtualTokenBalance"
         );
     }
 
-    function verify_onlyValidStatuses() public view {
+    function verify_onlyValidTransitions() public {
+        Status currentStatus = structuredPortfolio.status();
+        assertWithMsg(
+            (previousStatus == Status.Live && currentStatus == Status.Live) ||
+                (previousStatus == Status.Live && currentStatus == Status.Closed) ||
+                (previousStatus == Status.Closed && currentStatus == Status.Closed),
+            "only valid state transitions"
+        );
+    }
+
+    function verify_onlyValidStatuses() public {
         Status status = structuredPortfolio.status();
 
-        assert(status == Status.CapitalFormation || status == Status.Live || status == Status.Closed);
+        assertWithMsg(status == Status.CapitalFormation || status == Status.Live || status == Status.Closed, "only valid statuses");
     }
 
     function verify_activeLoanIdsLengthEqualsActiveLoansCount() public {
         try structuredPortfolio.activeLoanIds(activeLoansCount) returns (uint256) {
-            assert(false);
+            assertWithMsg(false, "number of active loans is equal to activeLoansCount");
         } catch {
             // correct
         }
@@ -92,7 +118,7 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
         try structuredPortfolio.activeLoanIds(activeLoansCount - 1) returns (uint256) {
             // correct
         } catch {
-            assert(false);
+            assertWithMsg(false, "number of active loans is equal to activeLoansCount");
         }
     }
 
@@ -105,9 +131,11 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
         }
 
         manager.close(structuredPortfolio);
+        emit LogString("close portfolio");
 
         ITrancheVault[] memory trancheVaults = structuredPortfolio.getTranches();
         for (uint256 i = 2; i > 0; i--) {
+            emit LogUint256("tranche id", i);
             TrancheVault trancheVault = TrancheVault(address(trancheVaults[i]));
             TrancheVault lowerTrancheVault = TrancheVault(address(trancheVaults[i - 1]));
 
@@ -116,10 +144,10 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
                 continue;
             }
 
-            assert(trancheBalance < assumedTrancheValues[i]);
+            assertLt(trancheBalance, assumedTrancheValues[i], "tranche balance is not greater than the assumed tranche value");
 
             uint256 lowerTrancheBalance = lowerTrancheVault.virtualTokenBalance();
-            assert(lowerTrancheBalance == 0);
+            assertEq(lowerTrancheBalance, 0, "lower tranche is empty if tranche doesn't meet assumed value");
         }
 
         revert();

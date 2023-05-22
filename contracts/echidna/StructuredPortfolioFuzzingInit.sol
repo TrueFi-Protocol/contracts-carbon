@@ -31,10 +31,11 @@ import {StructuredPortfolioTest} from "../test/StructuredPortfolioTest.sol";
 import {FuzzingBorrower} from "./FuzzingBorrower.sol";
 import {FuzzingLender} from "./FuzzingLender.sol";
 import {FuzzingManager} from "./FuzzingManager.sol";
+import {PropertiesAsserts} from "@crytic/properties/contracts/util/PropertiesHelper.sol";
 
 uint256 constant DAY = 1 days;
 
-contract StructuredPortfolioFuzzingInit {
+contract StructuredPortfolioFuzzingInit is PropertiesAsserts {
     MockToken public token;
     ProtocolConfig public protocolConfig;
     FixedInterestOnlyLoans public fixedInterestOnlyLoans;

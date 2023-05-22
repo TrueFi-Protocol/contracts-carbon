@@ -33,6 +33,7 @@ contract StructuredPortfolioFuzzingInvariants is StructuredPortfolioFuzzingInter
 
         uint256 limitedBlockTimestamp = Math.min(block.timestamp, structuredPortfolio.endDate());
         uint256 timePassed = limitedBlockTimestamp - structuredPortfolio.startDate();
+        emit LogUint256("time passed since portfolio start", timePassed);
         for (uint256 i = 1; i < 3; i++) {
             TrancheData memory trancheData = structuredPortfolio.getTrancheData(i);
             int128 initialTrancheValue = ABDKMath64x64.fromUInt(initialTrancheValues[i]);
@@ -42,7 +43,8 @@ contract StructuredPortfolioFuzzingInvariants is StructuredPortfolioFuzzingInter
             );
             int128 assumedTrancheValue = ABDKMath64x64.fromUInt(structuredPortfolio.effectiveAssumedTrancheValue(i));
             int128 epsilon = ABDKMath64x64.fromUInt(100);
-            assert(assumedTrancheValue < upperBound.add(epsilon) && assumedTrancheValue > lowerBound.sub(epsilon));
+            assertLt(assumedTrancheValue.toUInt(), upperBound.add(epsilon).toUInt(), "assumed tranche value is under upper bound");
+            assertGt(assumedTrancheValue.toUInt(), lowerBound.sub(epsilon).toUInt(), "assumed tranche value is over lower bound");
         }
     }
 
