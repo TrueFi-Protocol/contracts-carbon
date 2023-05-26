@@ -27,7 +27,7 @@
     "verify:typecheck": "bash ./spec/verify.sh -t"
   },
   "devDependencies": {
-    "@crytic/properties": "github:crytic/properties",
+    "@crytic/properties": "github:trusttoken/properties",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
