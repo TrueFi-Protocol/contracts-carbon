@@ -1,2 +1,2 @@
-certora-cli==3.6.8
+certora-cli==3.6.8.post3
 solc-select
