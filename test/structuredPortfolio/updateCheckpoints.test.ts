@@ -210,7 +210,7 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
         expect(await tranche.unpaidProtocolFee()).to.be.gt(0)
       }
 
-      const getDeficit = async i => (await structuredPortfolio.tranchesData(i)).loansDeficitCheckpoint.deficit
+      const getDeficit = async i => (await tranches[i].getCheckpoint()).deficit
 
       const seniorDeficitBefore = await getDeficit(2)
       const juniorDeficitBefore = await getDeficit(1)
@@ -279,6 +279,7 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
         senior,
         depositToTranche,
         withInterest,
+        tranches,
       } = await loadFixture(structuredPortfolioLiveFixture)
 
       // drain equity tranche and small amount from junior to cause deficit on default
@@ -293,7 +294,7 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       const loanId = await addAndFundLoan(loan)
       await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
       await structuredPortfolio.markLoanAsDefaulted(loanId)
-      expect((await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint.deficit).to.be.gt(0)
+      expect((await tranches[1].getCheckpoint()).deficit).to.be.gt(0)
 
       // start accruing fees on junior
       const protocolFeeRate = 100
@@ -303,25 +304,29 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       await timeTravelAndMine(2 * YEAR)
 
       const seniorInterest = withInterest(senior.initialDeposit, senior.targetApy, 2 * YEAR).sub(senior.initialDeposit)
+      const juniorInterest = withInterest(junior.initialDeposit, junior.targetApy, 2 * YEAR).sub(junior.initialDeposit)
       const expectedJuniorBeforeFees = junior.initialDeposit.sub(seniorInterest)
       const expectedJuniorFees = withInterest(expectedJuniorBeforeFees, protocolFeeRate, 2 * YEAR).sub(expectedJuniorBeforeFees)
 
       const delta = parseTokenUnits('0.01')
 
+      const expectedDeficit = seniorInterest.add(juniorInterest)
+
+      console.log('1 update')
       expect(await juniorTranche.pendingProtocolFee()).to.be.closeTo(expectedJuniorFees, delta)
-      let { deficit } = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint
+      let { deficit } = await juniorTranche.getCheckpoint()
       expect(deficit).to.be.gt(0)
       expect(deficit).to.be.lt(parseTokenUnits(0.2))
 
       await depositToTranche(juniorTranche, parseTokenUnits(6e6))
-      ;({ deficit } = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint)
-      expect(deficit).to.be.gt(0)
-      expect(deficit).to.be.lt(parseTokenUnits(0.2))
+      ;({ deficit } = await juniorTranche.getCheckpoint())
+      expect(deficit).to.be.gt(expectedDeficit)
+      expect(deficit).to.be.lt(parseTokenUnits(0.2).add(expectedDeficit))
 
       await structuredPortfolio.updateCheckpoints()
-      ;({ deficit } = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint)
-      expect(deficit).to.be.gt(0)
-      expect(deficit).to.be.lt(parseTokenUnits(0.2))
+      ;({ deficit } = await juniorTranche.getCheckpoint())
+      expect(deficit).to.be.gt(expectedDeficit)
+      expect(deficit).to.be.lt(parseTokenUnits(0.2).add(expectedDeficit))
     })
 
     it('fees calculated correctly with deficit', async () => {
@@ -372,9 +377,8 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       const seniorAssumedValue = initialDeposits[2]
       const seniorAssumedValueFee = withInterest(seniorAssumedValue, protocolFeeRate, portfolioStartTimestamp + timeElapsed - feeStartTimestamp).sub(seniorAssumedValue)
       const seniorAssumedValueAfterFee = seniorAssumedValue.sub(seniorAssumedValueFee)
-      const seniorDeficit = (await structuredPortfolio.tranchesData(2)).loansDeficitCheckpoint.deficit
 
-      expect('updateCheckpointFromPortfolio').to.be.calledOnContractWith(seniorTranche, [seniorAssumedValueAfterFee, seniorDeficit])
+      expect('updateCheckpointFromPortfolio').to.be.calledOnContractWith(seniorTranche, [seniorAssumedValueAfterFee])
       expect(await seniorTranche.unpaidProtocolFee()).to.eq(seniorAssumedValueFee)
     })
 
@@ -482,12 +486,12 @@ describe('StructuredPortfolio.updateCheckpoints', () => {
       const loanId = await addAndFundLoan(loan)
       await timeTravel(loan.periodDuration + loan.gracePeriod + 1)
       await structuredPortfolio.markLoanAsDefaulted(loanId)
-      const juniorDeficitBefore = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint.deficit
+      const juniorDeficitBefore = (await tranches[1].getCheckpoint()).deficit
       expect(juniorDeficitBefore).to.eq(parseTokenUnits(50))
 
       await timeTravel(YEAR)
       await structuredPortfolio.updateCheckpoints()
-      const juniorDeficitAfter = (await structuredPortfolio.tranchesData(1)).loansDeficitCheckpoint.deficit
+      const juniorDeficitAfter = (await tranches[1].getCheckpoint()).deficit
       // 3% senior interest + 5% junior interest from assets and deficit
       expect(juniorDeficitAfter).to.eq(parseTokenUnits(58))
     })

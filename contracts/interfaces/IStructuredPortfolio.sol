@@ -17,6 +17,7 @@ import {ILoansManager, AddLoanParams} from "./ILoansManager.sol";
 import {IFixedInterestOnlyLoans} from "./IFixedInterestOnlyLoans.sol";
 import {IERC20WithDecimals} from "./IERC20WithDecimals.sol";
 import {IProtocolConfig} from "./IProtocolConfig.sol";
+import {Checkpoint} from "./ITrancheVault.sol";
 
 uint256 constant BASIS_PRECISION = 10000;
 uint256 constant YEAR = 365 days;
@@ -25,13 +26,6 @@ enum Status {
     CapitalFormation,
     Live,
     Closed
-}
-
-struct LoansDeficitCheckpoint {
-    /// @dev Tranche missing funds due to defaulted loans
-    uint256 deficit;
-    /// @dev Timestamp of checkpoint
-    uint256 timestamp;
 }
 
 struct TrancheData {
@@ -43,8 +37,6 @@ struct TrancheData {
     uint256 distributedAssets;
     /// @dev The potential maximum amount of tranche assets available for withdraw after close() was called
     uint256 maxValueOnClose;
-    /// @dev Checkpoint tracking how many assets should be returned to the tranche due to defaulted loans
-    LoansDeficitCheckpoint loansDeficitCheckpoint;
 }
 
 struct TrancheInitData {
@@ -126,6 +118,13 @@ interface IStructuredPortfolio is IAccessControlUpgradeable {
 
     /// @return Minimum sum of all tranches assets required to be met to switch StructuredPortfolio to Live phase
     function minimumSize() external view returns (uint256);
+
+    function calculateDeficit(
+        uint256 i,
+        uint256 realTotalAssets,
+        uint256 pendingFees,
+        uint256 unpaidFees
+    ) external view returns (uint256);
 
     /**
      * @notice Launches the portfolio making it possible to issue loans.

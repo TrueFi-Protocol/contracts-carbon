@@ -21,7 +21,7 @@ import {ITrancheVault, Checkpoint} from "./interfaces/ITrancheVault.sol";
 import {IProtocolConfig} from "./interfaces/IProtocolConfig.sol";
 import {IDepositController} from "./interfaces/IDepositController.sol";
 import {IWithdrawController} from "./interfaces/IWithdrawController.sol";
-import {IStructuredPortfolio, Status, TrancheData, TrancheInitData, PortfolioParams, ExpectedEquityRate, LoansDeficitCheckpoint, BASIS_PRECISION, YEAR} from "./interfaces/IStructuredPortfolio.sol";
+import {IStructuredPortfolio, Status, TrancheData, TrancheInitData, PortfolioParams, ExpectedEquityRate, BASIS_PRECISION, YEAR} from "./interfaces/IStructuredPortfolio.sol";
 import {LoansManager, AddLoanParams} from "./LoansManager.sol";
 
 contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable {
@@ -80,14 +80,12 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         minimumSize = portfolioParams.minimumSize;
         expectedEquityRate = _expectedEquityRate;
 
-        LoansDeficitCheckpoint memory emptyLoansDeficitCheckpoint = LoansDeficitCheckpoint({deficit: 0, timestamp: 0});
-
         for (uint256 i = 0; i < tranchesCount; i++) {
             TrancheInitData memory initData = tranchesInitData[i];
             tranches.push(initData.tranche);
             initData.tranche.setPortfolio(this);
             underlyingToken.safeApprove(address(initData.tranche), type(uint256).max);
-            tranchesData.push(TrancheData(initData.targetApy, initData.minSubordinateRatio, 0, 0, emptyLoansDeficitCheckpoint));
+            tranchesData.push(TrancheData(initData.targetApy, initData.minSubordinateRatio, 0, 0));
         }
 
         emit PortfolioInitialized(tranches);
@@ -103,36 +101,25 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
 
     function updateCheckpoints() public whenNotPaused {
         require(status != Status.CapitalFormation, "SP: No checkpoints before start");
-        (uint256[] memory _totalAssetsAfter, uint256[] memory pendingFees) = _calculateWaterfall(virtualTokenBalance + loansValue());
-        LoansDeficitCheckpoint[] memory deficits = _calculateLoansDeficit(_totalAssetsAfter, pendingFees);
+        uint256[] memory _totalAssetsAfter = calculateWaterfall();
         for (uint256 i = 0; i < _totalAssetsAfter.length; i++) {
-            tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i], deficits[i].deficit);
-        }
-        if (someLoansDefaulted) {
-            for (uint256 i = 1; i < deficits.length; i++) {
-                tranchesData[i].loansDeficitCheckpoint = deficits[i];
-            }
+            tranches[i].updateCheckpointFromPortfolio(_totalAssetsAfter[i]);
         }
     }
 
-    function _calculateLoansDeficit(uint256[] memory realTotalAssets, uint256[] memory pendingFees)
-        internal
-        view
-        returns (LoansDeficitCheckpoint[] memory)
-    {
-        LoansDeficitCheckpoint[] memory deficits = new LoansDeficitCheckpoint[](realTotalAssets.length);
+    function calculateDeficit(
+        uint256 i,
+        uint256 realTotalAssets,
+        uint256 pendingFees,
+        uint256 unpaidFees
+    ) external view returns (uint256) {
         if (!someLoansDefaulted) {
-            return deficits;
+            return 0;
         }
         uint256 timestamp = _limitedBlockTimestamp();
-        for (uint256 i = 1; i < realTotalAssets.length; i++) {
-            Checkpoint memory checkpoint = tranches[i].getCheckpoint();
-            uint256 assumedTotalAssets = _assumedTrancheValue(i, timestamp);
-            uint256 assumedTotalAssetsAfterFees = _saturatingSub(assumedTotalAssets, Math.max(pendingFees[i], checkpoint.unpaidFees));
-            uint256 newDeficit = _saturatingSub(assumedTotalAssetsAfterFees, realTotalAssets[i]);
-            deficits[i] = LoansDeficitCheckpoint({deficit: newDeficit, timestamp: timestamp});
-        }
-        return deficits;
+        uint256 assumedTotalAssets = _assumedTrancheValue(i, timestamp);
+        uint256 assumedTotalAssetsAfterFees = _saturatingSub(assumedTotalAssets, Math.max(pendingFees, unpaidFees));
+        return _saturatingSub(assumedTotalAssetsAfterFees, realTotalAssets);
     }
 
     function increaseVirtualTokenBalance(uint256 increment) external {
@@ -339,7 +326,7 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function _closeTranches() internal {
         updateCheckpoints();
         uint256 limitedBlockTimestamp = _limitedBlockTimestamp();
-        (uint256[] memory waterfall, ) = _calculateWaterfall(virtualTokenBalance);
+        uint256[] memory waterfall = _calculateWaterfall(virtualTokenBalance);
 
         for (uint256 i = 0; i < waterfall.length; i++) {
             if (i != 0) {
@@ -367,19 +354,16 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function calculateWaterfall() public view returns (uint256[] memory) {
-        (uint256[] memory waterfall, ) = _calculateWaterfall(virtualTokenBalance + loansValue());
-        return waterfall;
+        return _calculateWaterfall(virtualTokenBalance + loansValue());
     }
 
-    function _calculateWaterfall(uint256 assetsLeft) internal view returns (uint256[] memory, uint256[] memory) {
+    function _calculateWaterfall(uint256 assetsLeft) internal view returns (uint256[] memory) {
         uint256[] memory waterfall = _calculateWaterfallWithoutFees(assetsLeft);
-        uint256[] memory fees = new uint256[](tranches.length);
         for (uint256 i = 0; i < waterfall.length; i++) {
             uint256 pendingFees = tranches[i].totalPendingFeesForAssets(waterfall[i]);
             waterfall[i] = _saturatingSub(waterfall[i], pendingFees);
-            fees[i] = pendingFees;
         }
-        return (waterfall, fees);
+        return waterfall;
     }
 
     function calculateWaterfallWithoutFees() public view returns (uint256[] memory) {
@@ -417,20 +401,11 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     function _assumedTrancheValue(uint256 trancheIdx, uint256 timestamp) internal view returns (uint256) {
         Checkpoint memory checkpoint = tranches[trancheIdx].getCheckpoint();
         TrancheData memory trancheData = tranchesData[trancheIdx];
-        uint256 targetApy = trancheData.targetApy;
 
         uint256 timePassedSinceCheckpoint = _saturatingSub(timestamp, checkpoint.timestamp);
-        uint256 assumedTotalAssets = _withInterest(checkpoint.totalAssets, targetApy, timePassedSinceCheckpoint) +
+        return
+            _withInterest(checkpoint.totalAssets + checkpoint.deficit, trancheData.targetApy, timePassedSinceCheckpoint) +
             checkpoint.unpaidFees;
-
-        uint256 defaultedLoansDeficit;
-        uint256 checkpointDeficit = trancheData.loansDeficitCheckpoint.deficit;
-        if (checkpointDeficit != 0) {
-            uint256 timePassed = _saturatingSub(timestamp, trancheData.loansDeficitCheckpoint.timestamp);
-            defaultedLoansDeficit = _withInterest(checkpointDeficit, targetApy, timePassed);
-        }
-
-        return assumedTotalAssets + defaultedLoansDeficit;
     }
 
     function _withInterest(

@@ -39,11 +39,9 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
     function verify_updateCheckpointsContinuous() public {
         uint256[] memory waterfall_old = structuredPortfolio.calculateWaterfall();
         structuredPortfolio.updateCheckpoints();
-        TrancheData[] memory trancheData_old = _getTranchesData();
         Checkpoint[] memory trancheCheckpoints_old = _getTrancheCheckpoints();
         structuredPortfolio.updateCheckpoints();
         uint256[] memory waterfall_new = structuredPortfolio.calculateWaterfall();
-        TrancheData[] memory trancheData_new = _getTranchesData();
         Checkpoint[] memory trancheCheckpoints_new = _getTrancheCheckpoints();
 
         for (uint256 i = 0; i < waterfall_old.length; i++) {
@@ -51,13 +49,13 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
             assertEq(waterfall_new[i], waterfall_old[i], "waterfall value is equal before and after update");
 
             assertEq(
-                trancheData_new[i].loansDeficitCheckpoint.deficit,
-                trancheData_old[i].loansDeficitCheckpoint.deficit,
+                trancheCheckpoints_new[i].deficit,
+                trancheCheckpoints_old[i].deficit,
                 "deficit value is preserved after subsequent update"
             );
             assertEq(
-                trancheData_new[i].loansDeficitCheckpoint.timestamp,
-                trancheData_old[i].loansDeficitCheckpoint.timestamp,
+                trancheCheckpoints_new[i].timestamp,
+                trancheCheckpoints_old[i].timestamp,
                 "deficit timestamp is preserved after subsequent update"
             );
 
