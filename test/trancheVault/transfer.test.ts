@@ -3,7 +3,7 @@ import { trancheVaultFixture } from 'fixtures/trancheVaultFixture'
 import { setupFixtureLoader } from 'test/setup'
 import { structuredPortfolioFixture } from 'fixtures/structuredPortfolioFixture'
 import { deployMockContract } from 'ethereum-waffle'
-import { TransferController__factory } from 'build/types'
+import { TransferEnabledController__factory } from 'build/types'
 
 describe('TrancheVault: transfer', () => {
   const loadFixture = setupFixtureLoader()
@@ -12,7 +12,7 @@ describe('TrancheVault: transfer', () => {
     const fixtureResult = await loadFixture(trancheVaultFixture)
     const { wallet, tranche } = fixtureResult
 
-    const mockTransferController = await deployMockContract(wallet, TransferController__factory.abi)
+    const mockTransferController = await deployMockContract(wallet, TransferEnabledController__factory.abi)
     await tranche.setTransferController(mockTransferController.address)
     await mockTransferController.mock.onTransfer.returns(false)
 

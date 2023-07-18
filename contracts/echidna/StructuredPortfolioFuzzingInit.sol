@@ -21,7 +21,7 @@ import {ProtocolConfigTest} from "../test/ProtocolConfigTest.sol";
 import {AllowAllLenderVerifier} from "../lenderVerifiers/AllowAllLenderVerifier.sol";
 import {DepositController} from "../controllers/DepositController.sol";
 import {WithdrawController} from "../controllers/WithdrawController.sol";
-import {TransferController} from "../controllers/TransferController.sol";
+import {TransferEnabledController} from "../controllers/TransferEnabledController.sol";
 import {MockToken} from "../mocks/MockToken.sol";
 import {TrancheInitData, PortfolioParams, ExpectedEquityRate, YEAR, BASIS_PRECISION} from "../interfaces/IStructuredPortfolio.sol";
 import {StructuredPortfolio, Status} from "../StructuredPortfolio.sol";
@@ -141,7 +141,7 @@ contract StructuredPortfolioFuzzingInit is PropertiesAsserts {
             10**token.decimals() /* _floor */
         );
         manager.setWithdrawAllowed(withdrawController, true, Status.Live);
-        TransferController transferController = new TransferController();
+        TransferEnabledController transferController = new TransferEnabledController();
 
         TrancheVault tranche = new TrancheVaultTest2(
             name,
