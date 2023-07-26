@@ -142,11 +142,6 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
     }
 
     function totalAssets() external view returns (uint256) {
-        if (status == Status.Live) {
-            uint256 _totalPendingFees = totalPendingFees();
-            uint256 totalAssetsBeforeFees = virtualTokenBalance + loansValue();
-            return _saturatingSub(totalAssetsBeforeFees, _totalPendingFees);
-        }
         return _sum(_tranchesTotalAssets());
     }
 

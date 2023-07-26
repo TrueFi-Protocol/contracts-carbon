@@ -1,9 +1,12 @@
 import { expect } from 'chai'
 import { structuredPortfolioFixture, structuredPortfolioLiveFixture } from 'fixtures/structuredPortfolioFixture'
 import { setupFixtureLoader } from 'test/setup'
-import { ONE_IN_BPS, YEAR } from 'utils/constants'
+import { ONE_IN_BPS, YEAR, DAY } from 'utils/constants'
 import { parseUSDC } from 'utils/parseUSDC'
-import { timeTravelFrom } from 'utils/timeTravel'
+import { timeTravelFrom, timeTravel } from 'utils/timeTravel'
+import { Loan } from 'fixtures/setupLoansManagerHelpers'
+import { BigNumber } from 'ethers'
+import { sum } from 'utils/sum'
 
 describe('StructuredPortfolio.totalAssets', () => {
   const loadFixture = setupFixtureLoader()
@@ -107,5 +110,101 @@ describe('StructuredPortfolio.totalAssets', () => {
     const expectedTotalAssets = loanValue.sub(protocolFee)
     await structuredPortfolio.updateCheckpoints()
     expect(await structuredPortfolio.totalAssets()).to.closeTo(expectedTotalAssets, parseTokenUnits(0.02))
+  })
+
+  it('equals to sum of tranche total assets when equity tranche is empty', async () => {
+    const { parseTokenUnits, depositToTranche, equityTranche, juniorTranche, seniorTranche, structuredPortfolio, other, addAndFundLoan, protocolConfig } = await loadFixture(structuredPortfolioFixture)
+    await protocolConfig.setDefaultProtocolFeeRate(10000 / 2) // 50%
+
+    const loan1: Loan = {
+      principal: parseUSDC(210),
+      periodCount: 1,
+      periodPayment: BigNumber.from(1),
+      periodDuration: DAY,
+      recipient: other.address,
+      gracePeriod: DAY,
+      canBeRepaidAfterDefault: true,
+    }
+    const loan2: Loan = {
+      principal: parseUSDC(89),
+      periodCount: 1,
+      periodPayment: BigNumber.from(1),
+      periodDuration: DAY,
+      recipient: other.address,
+      gracePeriod: DAY,
+      canBeRepaidAfterDefault: true,
+    }
+    const depositAmount = parseTokenUnits(100)
+
+    await depositToTranche(equityTranche, depositAmount)
+
+    await depositToTranche(juniorTranche, depositAmount)
+
+    await depositToTranche(seniorTranche, depositAmount)
+
+    await structuredPortfolio.start()
+
+    await addAndFundLoan(loan1)
+    await addAndFundLoan(loan2)
+
+    await timeTravel(180 * DAY)
+
+    await structuredPortfolio.markLoanAsDefaulted(0)
+
+    const summedTotalAssets = sum(
+      await equityTranche.totalAssets(),
+      await juniorTranche.totalAssets(),
+      await seniorTranche.totalAssets(),
+    )
+
+    expect(await structuredPortfolio.totalAssets()).to.eq(summedTotalAssets)
+  })
+
+  it('equals to sum of tranche total assets when equity and junior tranches are empty', async () => {
+    const { parseTokenUnits, depositToTranche, equityTranche, juniorTranche, seniorTranche, structuredPortfolio, other, addAndFundLoan, protocolConfig } = await loadFixture(structuredPortfolioFixture)
+    await protocolConfig.setDefaultProtocolFeeRate(10000 / 2) // 50%
+
+    const loan1: Loan = {
+      principal: parseUSDC(150),
+      periodCount: 1,
+      periodPayment: BigNumber.from(1),
+      periodDuration: DAY,
+      recipient: other.address,
+      gracePeriod: DAY,
+      canBeRepaidAfterDefault: true,
+    }
+    const loan2: Loan = {
+      principal: parseUSDC(149),
+      periodCount: 1,
+      periodPayment: BigNumber.from(1),
+      periodDuration: DAY,
+      recipient: other.address,
+      gracePeriod: DAY,
+      canBeRepaidAfterDefault: true,
+    }
+    const depositAmount = parseTokenUnits(100)
+
+    await depositToTranche(equityTranche, depositAmount)
+
+    await depositToTranche(juniorTranche, depositAmount)
+
+    await depositToTranche(seniorTranche, depositAmount)
+
+    await structuredPortfolio.start()
+
+    await addAndFundLoan(loan1)
+    await addAndFundLoan(loan2)
+
+    await timeTravel(180 * DAY)
+
+    await structuredPortfolio.markLoanAsDefaulted(0)
+
+    const summedTotalAssets = sum(
+      await equityTranche.totalAssets(),
+      await juniorTranche.totalAssets(),
+      await seniorTranche.totalAssets(),
+    )
+
+    expect(await structuredPortfolio.totalAssets()).to.eq(summedTotalAssets)
   })
 })

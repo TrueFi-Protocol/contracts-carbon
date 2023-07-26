@@ -18,8 +18,9 @@ def build_docker():
 
 def spawn_single_container(conf):
     try:
+        print(f"Running \"echidna {' '.join(conf)}\"")
         output = shell(f"docker run --rm -e HOST_USER=$(id -u) -v {os.getcwd()}/echidna-corpus:/root/truefi/packages/contracts-carbon/echidna-corpus fuzz_carbon {' '.join(conf)}")
-        if re.search("passed!", output) is None:
+        if re.search("failed!", output) is not None:
             exit(1)
     finally:
         shell(f"rm -rf echidna-corpus/coverage")
