@@ -151,6 +151,16 @@ contract StructuredPortfolioFuzzingInvariantsWithLiveActions is StructuredPortfo
         revert();
     }
 
+    function verify_liquidAssetsIsEqualToVirtualTokenBalanceAfterUpdate() external {
+        uint256 liquidAssets = structuredPortfolio.liquidAssets();
+        structuredPortfolio.updateCheckpoints();
+        assertEq(
+            liquidAssets,
+            structuredPortfolio.virtualTokenBalance(),
+            "liquid assets is the amount of tokens remaining after an update"
+        );
+    }
+
     function _anyOverdueLoans() internal view returns (bool) {
         for (uint256 i = 0; i < activeLoansCount; i++) {
             uint256 activeLoanId = structuredPortfolio.activeLoanIds(i);

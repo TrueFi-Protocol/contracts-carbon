@@ -141,13 +141,19 @@ contract StructuredPortfolio is IStructuredPortfolio, LoansManager, Upgradeable 
         revert("SP: Not a tranche");
     }
 
-    function totalAssets() external view returns (uint256) {
+    function totalAssets() public view returns (uint256) {
         return _sum(_tranchesTotalAssets());
     }
 
     function liquidAssets() public view returns (uint256) {
-        uint256 _totalPendingFees = totalPendingFees();
-        return _saturatingSub(virtualTokenBalance, _totalPendingFees);
+        if (status != Status.Live) {
+            return 0;
+        }
+        return _saturatingSub(virtualTokenBalance, _totalPayableFees());
+    }
+
+    function _totalPayableFees() internal view returns (uint256) {
+        return virtualTokenBalance + loansValue() - totalAssets();
     }
 
     function totalPendingFees() public view returns (uint256) {
