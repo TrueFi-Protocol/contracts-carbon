@@ -40,5 +40,11 @@ export const config: Config = {
       protocolTreasury: '0xe13610d0a3e4303c70791773C5DF8Bb16de185d1',
       pauserAddress: '0xe13610d0a3e4303c70791773C5DF8Bb16de185d1',
     },
+    optimism_sepolia: {
+      defaultProtocolFeeRate: 0,
+      protocolAdmin: '0x131E3Df4B9085A1b589F65F11A55359E533B8A06',
+      protocolTreasury: '0x131E3Df4B9085A1b589F65F11A55359E533B8A06',
+      pauserAddress: '0x131E3Df4B9085A1b589F65F11A55359E533B8A06'
+    }
   },
 }

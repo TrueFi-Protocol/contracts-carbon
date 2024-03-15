@@ -43,7 +43,7 @@
     "chai": "^4.3.6",
     "deployments-utils": "workspace:*",
     "eslint": "^7.32.0",
-    "ethereum-mars": "0.2.6-dev.eb75a27",
+    "ethereum-mars": "0.2.6-dev.7dac279",
     "ethereum-waffle": "4.0.10",
     "ethers": "^5.7.0",
     "ganache": "7.1.0",
