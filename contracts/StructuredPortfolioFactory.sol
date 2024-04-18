@@ -42,9 +42,18 @@ contract StructuredPortfolioFactory is IStructuredPortfolioFactory, AccessContro
         PortfolioParams calldata portfolioParams,
         TrancheData[] calldata tranchesData,
         ExpectedEquityRate calldata expectedEquityRate
-    ) external {
+    ) external virtual {
         require(hasRole(WHITELISTED_MANAGER_ROLE, msg.sender), "SPF: Only whitelisted manager");
+        _createPortfolio(underlyingToken, fixedInterestOnlyLoans, portfolioParams, tranchesData, expectedEquityRate);
+    }
 
+    function _createPortfolio(
+        IERC20WithDecimals underlyingToken,
+        IFixedInterestOnlyLoans fixedInterestOnlyLoans,
+        PortfolioParams calldata portfolioParams,
+        TrancheData[] calldata tranchesData,
+        ExpectedEquityRate calldata expectedEquityRate
+    ) internal {
         (TrancheInitData[] memory tranchesInitData, ITrancheVault[] memory tranches) = _deployTranches(underlyingToken, tranchesData);
 
         IStructuredPortfolio newPortfolio = IStructuredPortfolio(

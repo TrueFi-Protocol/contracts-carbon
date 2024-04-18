@@ -21,8 +21,8 @@
       "multisig": false
     },
     "structuredPortfolioFactory": {
-      "txHash": "0xfbef4d503ac2cc1b174d12e0ec05744368122f56d30c043e44365cb37ae0c885",
-      "address": "0x976491D8124BE567fd905dc12a5C15B69b73da1a",
+      "txHash": "0x98bfb5bd1a659e5d45e80a79e06d4666f0b3f7c482e6c436236c7c705356ee0b",
+      "address": "0x85792EB449461752150C298c8bc9a72807B78b36",
       "multisig": false
     },
     "carbon_defaultDepositController": {
@@ -43,6 +43,11 @@
     "allowAllLenderVerifier": {
       "txHash": "0x036741bfad87337d4f9abf2a462640d23b054c3f44ad3cc81f3461cd06528a5c",
       "address": "0x90907cc824fF7fB9b1A45A79F9702399481af0d5",
+      "multisig": false
+    },
+    "openStructuredPortfolioFactory": {
+      "txHash": "0x1c2b83d02e7e37253a3e903dcef334a5b9658045608972caa6e0ae2d354bb9ea",
+      "address": "0xb7bcd60e1616BB8FA31eF68E8E4d974D6a86787A",
       "multisig": false
     }
   }

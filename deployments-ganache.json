@@ -1,58 +1,63 @@
 {
   "ganache": {
     "structuredPortfolio": {
-      "txHash": "0xcbaae3a5b9434ff2ad49d22886cf551147b641daead99c3cedebd59111651bb6",
+      "txHash": "0xe6bd8ee15047b078cc851a85f8dbab6771115fe5ed0ab71eaf1cd585fda3e1c0",
       "address": "0xA193E42526F1FEA8C99AF609dcEabf30C1c29fAA",
       "multisig": false
     },
     "trancheVault": {
-      "txHash": "0x218508c914168d4df81e67d3e34436cb085490075a48ae217b4f0f83ae3e2db2",
+      "txHash": "0x273ca26efc6557c799921c58be014889b36f71d8ef3d543741dfeb9128739c70",
       "address": "0xFDFEF9D10d929cB3905C71400ce6be1990EA0F34",
       "multisig": false
     },
     "carbon_protocolConfig": {
-      "txHash": "0x0c58780e0c681fc5c380e69d2c531fcca70581c0c5684959ef9a2b5cefe9e832",
+      "txHash": "0x7dc741b8752535455b2144108253a5f73b485817bc7318af9e26e068080c9659",
       "address": "0xaC8444e7d45c34110B34Ed269AD86248884E78C7",
       "multisig": false
     },
     "carbon_protocolConfig_proxy": {
-      "txHash": "0x9742b4f90ba3ca354c945d3fd6c25d16ec3c789b76d3b8298560497555e15a51",
+      "txHash": "0xe45041abbcbb084979194b73b716b12d3e36e9dca503e6a6e6ec06a7b5b6d5ae",
       "address": "0x94BA4d5Ebb0e05A50e977FFbF6e1a1Ee3D89299c",
       "multisig": false
     },
     "structuredPortfolioFactory": {
-      "txHash": "0x5a502af106776db7a54c2960534451e96289f13b0c6ae8a563c98285ba9a0de0",
+      "txHash": "0x47c559e46c39ceec0c6b167f22df7367d9c26a07ef629360b6b5e32957af82fe",
       "address": "0xFf807885934003A35b1284d7445fc83Fd23417e5",
       "multisig": false
     },
     "carbon_defaultDepositController": {
-      "txHash": "0xc44fa041df87078f438a7e6dd1165370ebbf5974b44ec6700867c8ccfe6cbec0",
+      "txHash": "0x9d6ce8aba3e4996e43d76137f43e649ecfcc477b0f0696ae264f8897d40a23b3",
       "address": "0xD756fb6A081CC11e7F513C39399DB296b1DE3036",
       "multisig": false
     },
     "carbon_defaultWithdrawController": {
-      "txHash": "0x29e805dbe7fa99c6d36aefee8ebdc6348e3f9375b58c9f9b499e0df296e3ce49",
+      "txHash": "0xf6c0255ce8a208830018e730318ea6a27cf62b99c13be9072f612cff8de950e0",
       "address": "0x956dA338C1518a7FB213042b70c60c021aeBd554",
       "multisig": false
     },
     "carbon_defaultTransferController": {
-      "txHash": "0xd63ec32b3043d42d5a89d1a6258bc88df3a035e63dea8b880562296737d52b43",
+      "txHash": "0x3742de53bd273d9c88d7ad1a072de08706c2bab83e525c38ba2fdbaf1395fa13",
       "address": "0xdCCc660F92826649754E357b11bd41C31C0609B9",
       "multisig": false
     },
     "allowAllLenderVerifier": {
-      "txHash": "0x3af28b5b27b3173df24f672e26b676cc6d2e74e7f39fed5c696c60d5b3aa2fab",
+      "txHash": "0x97f70a1277e6969e997ccb45b17248e50c43fcf8544e946d8c3b1a363ef0c041",
       "address": "0x84e924C5E04438D2c1Df1A981f7E7104952e6de1",
       "multisig": false
     },
-    "mockUsdc": {
-      "txHash": "0x8e59ac027a26dc4bf5d6ed907f978bd9436f40e7eda848175455181381b471e3",
+    "openStructuredPortfolioFactory": {
+      "txHash": "0x9b8e5aea76fe169d3e0bf51767da870890dd5df4e7a5c325c47cdf7c5b898f0c",
       "address": "0x6454C9d69a4721feBA60e26A367bD4D56196Ee7c",
       "multisig": false
     },
-    "fixedInterestOnlyLoans_proxy": {
-      "txHash": "0x94f7c21f807aaded4674c0beae0fc056f5ac6cf85a887eebf1e8224baf1bfe62",
+    "mockUsdc": {
+      "txHash": "0x6c0ca0aee6335264c7c4838a541164832cc1ac1dd649ba822f37b216160af1ea",
       "address": "0x4E0597863fA1AA7B6b95a887AD9fEee038815642",
+      "multisig": false
+    },
+    "fixedInterestOnlyLoans_proxy": {
+      "txHash": "0x4ce9c28894b08a258f848500656d4cb2390eceb35f3ca13cfeb96d7aace9f180",
+      "address": "0x2061701b22095418514C0D4a28366C54B1464C17",
       "multisig": false
     }
   }
