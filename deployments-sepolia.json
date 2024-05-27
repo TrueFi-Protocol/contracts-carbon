@@ -1,0 +1,50 @@
+{
+    "sepolia": {
+      "structuredPortfolio": {
+        "txHash": "0x3ccbba5e1032c10f7e3de1f3bc4b0ae76d4906831eb274bdc3a20f2ec9dae719",
+        "address": "0xBf2912dB127705E0Ea7555d571d697B426cb5F88",
+        "multisig": false
+      },
+      "trancheVault": {
+        "txHash": "0xd5003e71a8aea9295e897dc47b314321459dfdd6c5c689b2df4ec4d3aa72b293",
+        "address": "0x2fE71E12CeF997c7731Cd6512CC96C54C1B3C31B",
+        "multisig": false
+      },
+      "carbon_protocolConfig": {
+        "txHash": "0xd044132a280691d39986240447c9c8404029fb0e37a2f88a0726bb8721a1fb94",
+        "address": "0x11A3a31B1d0fE67449215c7459D4a49d38Be78fa",
+        "multisig": false
+      },
+      "carbon_protocolConfig_proxy": {
+        "txHash": "0xcede5dcbdf8378db71ce09992f53bf160966870d5ba88be63044dcc2c8bd37d4",
+        "address": "0x5fDAA4Dd2f2321f5DaBB298587FD70f784ec22FF",
+        "multisig": false
+      },
+      "structuredPortfolioFactory": {
+        "txHash": "0xd4d8898958d2fcde2967863180bcdca3f1321840115c82e3fb3083d62c477ea6",
+        "address": "0xbB924aed28c80abde18e9d6271584477B1cB0056",
+        "multisig": false
+      },
+      "carbon_defaultDepositController": {
+        "txHash": "0xc3e736bb1ddea909bbb8849b4fe0e1f361a25a152bc7601361117b358c1912ef",
+        "address": "0x9453b451f48BEa2486f529cb67c06D55E42Ad9c9",
+        "multisig": false
+      },
+      "carbon_defaultWithdrawController": {
+        "txHash": "0x84a3104607f5c2c48710e4d11a4b5827553a7a440d093a0b804fe66ca377435f",
+        "address": "0x48f3F2525c705bBDf599D7B6f8f4E19F51110326",
+        "multisig": false
+      },
+      "carbon_defaultTransferController": {
+        "txHash": "0x99d65c1ac7bdbd644a774568989179cc558ab5792506685fbe5a27bdfc4dcf0e",
+        "address": "0xB1C8cA9dB53E8866AA7F983897761ffB45CcaA5D",
+        "multisig": false
+      },
+      "allowAllLenderVerifier": {
+        "txHash": "0xb9262ad2959da14b81797009880e9a74ba127942dd8b22f1c70b328dd0512a28",
+        "address": "0xAD71070fF4B3a1c149fc6d1703B6A7F0FD781925",
+        "multisig": false
+      }
+    }
+  }
+  
